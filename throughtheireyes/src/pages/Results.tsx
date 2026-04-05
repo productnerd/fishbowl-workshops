@@ -8,7 +8,6 @@ import WrapCard from '../components/wrapped/WrapCard'
 import BarChart from '../components/wrapped/BarChart'
 import GaugeChart from '../components/wrapped/GaugeChart'
 import QuoteCarousel from '../components/wrapped/QuoteCarousel'
-import SummaryCard from '../components/wrapped/SummaryCard'
 import ProgressDots from '../components/wrapped/ProgressDots'
 import Button from '../components/ui/Button'
 
@@ -56,7 +55,7 @@ export default function Results() {
     load()
   }, [slug])
 
-  const totalCards = 16
+  const totalCards = 25
   const next = useCallback(() => setCardIndex((i) => Math.min(i + 1, totalCards - 1)), [])
   const prev = useCallback(() => setCardIndex((i) => Math.max(i - 1, 0)), [])
 
@@ -201,231 +200,320 @@ export default function Results() {
   const topAnswersYou = (id: number, n = 4) =>
     topAnswers(id, n).map((a) => ({ ...a, option: toSecondPerson(a.option) }))
 
+  const Kicker = ({ children }: { children: React.ReactNode }) => (
+    <p className="text-xs uppercase tracking-widest text-accent font-semibold">{children}</p>
+  )
+  const Title = ({ children }: { children: React.ReactNode }) => (
+    <h2 className="text-2xl md:text-3xl font-bold leading-tight">{children}</h2>
+  )
+
   const cards: Array<{ gradient: string; content: React.ReactNode }> = [
-    // 0: First Impressions
+    // 1. First Impressions — the vibe
     {
       gradient: 'warm',
       content: (
         <>
-          <p className="text-xs uppercase tracking-widest text-accent font-semibold">First Impressions</p>
-          <h2 className="text-2xl md:text-3xl font-bold">Before they knew you, this is what they felt</h2>
-          <div className="w-full space-y-4">
-            <p className="text-sm text-text-secondary mb-2">The vibe you give off in the first 5 minutes:</p>
-            <BarChart items={topAnswers(2).map(a => ({ label: a.option, value: a.pct }))} />
-            <div className="mt-4 p-4 bg-white/5 rounded-xl">
-              <p className="text-sm text-text-secondary mb-1">What they wrongly assumed:</p>
-              <p className="text-xl font-bold text-primary-light">{toSecondPerson(mc(1)?.winner || '')}</p>
-            </div>
-          </div>
+          <Kicker>First Impressions</Kicker>
+          <Title>The vibe you give off in the first 5 minutes</Title>
+          <BarChart items={topAnswers(2).map(a => ({ label: a.option, value: a.pct }))} />
         </>
       ),
     },
-    // 1: How They Saw You Change
+    // 2. First Impressions — wrong assumption
+    {
+      gradient: 'warm',
+      content: (
+        <>
+          <Kicker>First Impressions</Kicker>
+          <Title>What they wrongly assumed about you at first</Title>
+          <motion.p
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, type: 'spring' }}
+            className="text-3xl font-black text-primary-light"
+          >
+            {toSecondPerson(mc(1)?.winner || '')}
+          </motion.p>
+          <BarChart items={topAnswersYou(1).map(a => ({ label: a.option, value: a.pct }))} />
+        </>
+      ),
+    },
+    // 3. The Shift — freetext
     {
       gradient: 'ocean',
       content: (
         <>
-          <p className="text-xs uppercase tracking-widest text-accent font-semibold">The Shift</p>
-          <h2 className="text-2xl md:text-3xl font-bold">First impressions that changed once they knew you</h2>
+          <Kicker>The Shift</Kicker>
+          <Title>First impressions that changed once they knew you</Title>
           <QuoteCarousel quotes={freetext(3)} emptyMessage="No stories shared yet" />
         </>
       ),
     },
-    // 2: Your Superpower
+    // 4. Your Superpower
     {
       gradient: 'purple',
       content: (
         <>
-          <p className="text-xs uppercase tracking-widest text-accent font-semibold">Your Superpower</p>
-          <motion.div
+          <Kicker>Your Superpower</Kicker>
+          <Title>Your most underrated skill</Title>
+          <motion.p
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3, type: 'spring', stiffness: 150 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 150 }}
+            className="text-4xl md:text-5xl font-black bg-gradient-to-r from-primary-light to-accent bg-clip-text text-transparent"
           >
-            <p className="text-4xl md:text-5xl font-black bg-gradient-to-r from-primary-light to-accent bg-clip-text text-transparent">
-              {mc(4)?.winner}
-            </p>
-          </motion.div>
-          <p className="text-text-secondary">Your most underrated skill, according to your people.</p>
-          <div className="w-full mt-2">
-            <p className="text-sm text-text-secondary mb-2">How the vote broke down:</p>
-            <BarChart items={topAnswers(4).map(a => ({ label: a.option, value: a.pct }))} />
-          </div>
+            {mc(4)?.winner}
+          </motion.p>
+          <BarChart items={topAnswers(4).map(a => ({ label: a.option, value: a.pct }))} />
         </>
       ),
     },
-    // 3: Trust in your judgment
-    {
-      gradient: 'ocean',
-      content: (
-        <>
-          <p className="text-xs uppercase tracking-widest text-accent font-semibold">Trust</p>
-          <h2 className="text-2xl md:text-3xl font-bold">How much people trust your judgment when it matters</h2>
-          <GaugeChart value={rating(6)?.average || 0} label="Trust in your judgment" sublabel="Average rating out of 5" />
-        </>
-      ),
-    },
-    // 3: Hidden Talent
+    // 5. Hidden Talent — freetext
     {
       gradient: 'forest',
       content: (
         <>
-          <p className="text-xs uppercase tracking-widest text-accent font-semibold">Hidden Talent</p>
-          <h2 className="text-2xl md:text-3xl font-bold">What you're great at and don't even notice</h2>
+          <Kicker>Hidden Talent</Kicker>
+          <Title>What you're great at and don't even notice</Title>
           <QuoteCarousel quotes={freetext(5)} emptyMessage="No talents noted yet" />
         </>
       ),
     },
-    // 4: How You Communicate
+    // 6. Trust in your judgment
     {
       gradient: 'ocean',
       content: (
         <>
-          <p className="text-xs uppercase tracking-widest text-accent font-semibold">How You Communicate</p>
-          <div className="grid grid-cols-2 gap-3 w-full">
-            <div className="bg-white/5 rounded-xl p-4 text-center">
-              <p className="text-3xl font-bold">{rating(7)?.average || 0}</p>
-              <p className="text-xs text-text-secondary mt-1">How well you listen</p>
-            </div>
-            <div className="bg-white/5 rounded-xl p-4 text-center">
-              <p className="text-3xl font-bold">{rating(8)?.average || 0}</p>
-              <p className="text-xs text-text-secondary mt-1">Safe to be honest with</p>
-            </div>
-          </div>
-          <p className="text-sm text-text-secondary mt-3">In a disagreement, you tend to:</p>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-xl font-bold text-primary-light"
-          >
-            {mc(9)?.winner}
-          </motion.p>
+          <Kicker>Trust</Kicker>
+          <Title>How much people trust your judgment when it matters</Title>
+          <GaugeChart value={rating(6)?.average || 0} label="Trust in your judgment" sublabel="Average rating out of 5" />
         </>
       ),
     },
-    // 5: Feel Heard
+    // 7. How well you listen
+    {
+      gradient: 'ocean',
+      content: (
+        <>
+          <Kicker>Listening</Kicker>
+          <Title>How well you actually listen</Title>
+          <GaugeChart value={rating(7)?.average || 0} label="You, really listening" sublabel="Vs. waiting for your turn to talk" />
+        </>
+      ),
+    },
+    // 8. Safe to confide in
+    {
+      gradient: 'ocean',
+      content: (
+        <>
+          <Kicker>Safety</Kicker>
+          <Title>How comfortable people feel telling you something hard</Title>
+          <GaugeChart value={rating(8)?.average || 0} label="Safe to be honest with" sublabel="When the conversation gets real" />
+        </>
+      ),
+    },
+    // 9. In a disagreement
+    {
+      gradient: 'sunset',
+      content: (
+        <>
+          <Kicker>In a Disagreement</Kicker>
+          <Title>What you tend to do when things get tense</Title>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-2xl font-bold text-primary-light"
+          >
+            {mc(9)?.winner}
+          </motion.p>
+          <BarChart items={topAnswers(9).map(a => ({ label: a.option, value: a.pct }))} />
+        </>
+      ),
+    },
+    // 10. Feel heard
     {
       gradient: 'rose',
       content: (
         <>
-          <p className="text-xs uppercase tracking-widest text-accent font-semibold">In Conversation</p>
-          <h2 className="text-2xl font-bold">What you do that makes people feel really heard — or really unheard</h2>
+          <Kicker>In Conversation</Kicker>
+          <Title>What you do that makes people feel really heard — or really unheard</Title>
           <QuoteCarousel quotes={freetext(10)} emptyMessage="No notes on your conversation style" />
         </>
       ),
     },
-    // 6: Emotional Depth
+    // 11. When times are hard
     {
       gradient: 'sunset',
       content: (
         <>
-          <p className="text-xs uppercase tracking-widest text-accent font-semibold">Emotional Depth</p>
-          <p className="text-sm text-text-secondary">When people are going through something hard, you're the friend who:</p>
+          <Kicker>When Times Are Hard</Kicker>
+          <Title>The kind of friend you are when people are struggling</Title>
           <motion.p
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3, type: 'spring' }}
-            className="text-xl font-bold text-primary-light"
+            transition={{ delay: 0.2, type: 'spring' }}
+            className="text-2xl font-bold text-primary-light"
           >
             {mc(11)?.winner}
           </motion.p>
-          <div className="w-full mt-2">
-            <p className="text-sm text-text-secondary mb-1">The emotion you struggle most to express:</p>
-            <p className="text-2xl font-black text-accent">{mc(12)?.winner}</p>
-          </div>
-          <GaugeChart value={rating(13)?.average || 0} label="Reading the room" sublabel="How well you pick up on how people feel" />
+          <BarChart items={topAnswers(11).map(a => ({ label: a.option, value: a.pct }))} />
         </>
       ),
     },
-    // 7: Reliability
+    // 12. Emotion you hide
+    {
+      gradient: 'sunset',
+      content: (
+        <>
+          <Kicker>What You Hold Back</Kicker>
+          <Title>The emotion you struggle most to express</Title>
+          <motion.p
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, type: 'spring' }}
+            className="text-5xl font-black text-accent"
+          >
+            {mc(12)?.winner}
+          </motion.p>
+          <BarChart items={topAnswers(12).map(a => ({ label: a.option, value: a.pct }))} />
+        </>
+      ),
+    },
+    // 13. Reading the room
+    {
+      gradient: 'rose',
+      content: (
+        <>
+          <Kicker>Reading the Room</Kicker>
+          <Title>How well you pick up on how people feel</Title>
+          <GaugeChart value={rating(13)?.average || 0} label="Room-reading" sublabel="Emotional attunement" />
+        </>
+      ),
+    },
+    // 14. Consistency
     {
       gradient: 'midnight',
       content: (
         <>
-          <p className="text-xs uppercase tracking-widest text-accent font-semibold">Can People Count on You?</p>
+          <Kicker>Consistency</Kicker>
+          <Title>How rock-solid you are, day to day</Title>
           <GaugeChart value={rating(14)?.average || 0} label="How consistent you are" sublabel="Hot and cold → Rock solid" />
-          <p className="text-sm text-text-secondary mt-4">Where you sometimes let people down:</p>
+        </>
+      ),
+    },
+    // 15. Where you let people down
+    {
+      gradient: 'midnight',
+      content: (
+        <>
+          <Kicker>Where You Slip</Kicker>
+          <Title>Where you sometimes let people down</Title>
           <BarChart items={topAnswers(15).map(a => ({ label: a.option, value: a.pct }))} />
         </>
       ),
     },
-    // 8: Blind Spots
+    // 16. Biggest blind spot (no duplicate big text)
     {
       gradient: 'midnight',
       content: (
         <>
-          <p className="text-xs uppercase tracking-widest text-accent font-semibold">Your Biggest Blind Spot</p>
-          <h2 className="text-2xl font-bold">The thing you can't see about yourself</h2>
-          <motion.p
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4, type: 'spring' }}
-            className="text-xl font-bold text-accent"
-          >
-            {toSecondPerson(mc(16)?.winner || '')}
-          </motion.p>
+          <Kicker>Your Biggest Blind Spot</Kicker>
+          <Title>The thing you can't see about yourself</Title>
           <BarChart items={topAnswersYou(16).map(a => ({ label: a.option, value: a.pct }))} />
         </>
       ),
     },
-    // 9: Pattern They See
+    // 17. Patterns they see
     {
       gradient: 'forest',
       content: (
         <>
-          <p className="text-xs uppercase tracking-widest text-accent font-semibold">Patterns You Don't See</p>
-          <h2 className="text-2xl font-bold">What they notice that you might miss</h2>
+          <Kicker>Patterns You Don't See</Kicker>
+          <Title>What they notice that you might miss</Title>
           <QuoteCarousel quotes={freetext(18)} emptyMessage="No patterns shared" />
-          <p className="text-sm text-text-secondary mt-3">If you invested in one growth area, it should be:</p>
-          <p className="text-xl font-bold text-primary-light">{mc(17)?.winner}</p>
         </>
       ),
     },
-    // 10: Hard Truth with Love
+    // 18. Growth area
+    {
+      gradient: 'forest',
+      content: (
+        <>
+          <Kicker>The Growth Edge</Kicker>
+          <Title>Where your friends want to see you level up</Title>
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-2xl font-bold text-primary-light"
+          >
+            {mc(17)?.winner}
+          </motion.p>
+          <BarChart items={topAnswers(17).map(a => ({ label: a.option, value: a.pct }))} />
+        </>
+      ),
+    },
+    // 19. Hard truth with love
     {
       gradient: 'warm',
       content: (
         <>
-          <p className="text-xs uppercase tracking-widest text-accent font-semibold">Hard Truth, With Love</p>
-          <h2 className="text-2xl font-bold">What they'd tell you if they could, from a place of love</h2>
+          <Kicker>Hard Truth, With Love</Kicker>
+          <Title>What they'd tell you, from a place of love</Title>
           <QuoteCarousel quotes={freetext(19)} emptyMessage="No hard truths yet" />
         </>
       ),
     },
-    // 11: Your Role in the Group
+    // 20. Your group role
     {
       gradient: 'purple',
       content: (
         <>
-          <p className="text-xs uppercase tracking-widest text-accent font-semibold">Your Role in the Group</p>
+          <Kicker>Your Role in the Group</Kicker>
+          <Title>What you naturally become in a friend group</Title>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.2 }}
             className="text-4xl font-black bg-gradient-to-r from-primary-light to-accent bg-clip-text text-transparent"
           >
             {mc(20)?.winner}
           </motion.p>
-          <p className="text-text-secondary">That's what you naturally become.</p>
-          <div className="w-full mt-2">
-            <p className="text-sm text-text-secondary mb-2">What the group would lose without you:</p>
-            <BarChart items={topAnswers(21).map(a => ({ label: a.option, value: a.pct }))} />
-          </div>
+          <BarChart items={topAnswers(20).map(a => ({ label: a.option, value: a.pct }))} />
         </>
       ),
     },
-    // 12: The Annoying Truth
+    // 21. What group would lose
+    {
+      gradient: 'purple',
+      content: (
+        <>
+          <Kicker>If You Left</Kicker>
+          <Title>What the group would lose without you</Title>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-3xl font-black text-primary-light"
+          >
+            {mc(21)?.winner}
+          </motion.p>
+          <BarChart items={topAnswers(21).map(a => ({ label: a.option, value: a.pct }))} />
+        </>
+      ),
+    },
+    // 22. Annoying habit
     {
       gradient: 'sunset',
       content: (
         <>
-          <p className="text-xs uppercase tracking-widest text-accent font-semibold">The Annoying Truth 😅</p>
-          <h2 className="text-2xl font-bold">Your most annoying habit:</h2>
+          <Kicker>The Annoying Truth 😅</Kicker>
+          <Title>Your most annoying habit</Title>
           <motion.p
             initial={{ opacity: 0, rotate: -5 }}
             animate={{ opacity: 1, rotate: 0 }}
-            transition={{ delay: 0.3, type: 'spring' }}
+            transition={{ delay: 0.2, type: 'spring' }}
             className="text-2xl font-bold text-accent"
           >
             {mc(22)?.winner}
@@ -434,28 +522,36 @@ export default function Results() {
         </>
       ),
     },
-    // 13: The Good Stuff
+    // 23. What they appreciate
     {
       gradient: 'golden',
       content: (
         <>
-          <p className="text-xs uppercase tracking-widest text-accent font-semibold">The Good Stuff ❤️</p>
-          <h2 className="text-2xl font-bold">What they genuinely cherish about you</h2>
+          <Kicker>The Good Stuff ❤️</Kicker>
+          <Title>What they genuinely appreciate about you</Title>
           <QuoteCarousel quotes={freetext(23)} />
-          <p className="text-sm text-text-secondary mt-3">What makes you irreplaceable:</p>
+        </>
+      ),
+    },
+    // 24. Irreplaceable
+    {
+      gradient: 'golden',
+      content: (
+        <>
+          <Kicker>One of a Kind</Kicker>
+          <Title>What makes you irreplaceable</Title>
           <QuoteCarousel quotes={freetext(24)} />
         </>
       ),
     },
-    // 14: The Final Message + Summary
+    // 25. Final message
     {
       gradient: 'rose',
       content: (
         <>
-          <p className="text-xs uppercase tracking-widest text-accent font-semibold">The Final Message</p>
-          <h2 className="text-2xl font-bold">"If you only read one thing…"</h2>
+          <Kicker>The Final Message</Kicker>
+          <Title>"If you only read one thing…"</Title>
           <QuoteCarousel quotes={freetext(25)} />
-          <SummaryCard data={data} />
         </>
       ),
     },

@@ -27,7 +27,7 @@ export default function WrapCard({ children, gradient = 'purple', className = ''
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.4 }}
-      className={`card-screen bg-gradient-to-b ${bg} relative overflow-hidden ${className}`}
+      className={`min-h-dvh bg-gradient-to-b ${bg} relative overflow-hidden flex flex-col items-center justify-start pt-24 px-6 pb-10 ${className}`}
     >
       {/* Subtle decorative glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
