@@ -5,6 +5,7 @@ interface Props {
   children: ReactNode
   gradient?: string
   className?: string
+  wide?: boolean
 }
 
 const gradients: Record<string, string> = {
@@ -18,8 +19,9 @@ const gradients: Record<string, string> = {
   golden: 'from-[#3D2E1F] via-[#1A1A2E] to-[#1B2838]',
 }
 
-export default function WrapCard({ children, gradient = 'purple', className = '' }: Props) {
+export default function WrapCard({ children, gradient = 'purple', className = '', wide = false }: Props) {
   const bg = gradients[gradient] || gradients.purple
+  const widthClass = wide ? 'max-w-lg md:max-w-4xl' : 'max-w-lg'
 
   return (
     <motion.div
@@ -31,7 +33,7 @@ export default function WrapCard({ children, gradient = 'purple', className = ''
     >
       {/* Subtle decorative glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
-      <div className="relative z-10 flex flex-col items-center gap-6 max-w-lg w-full text-center">
+      <div className={`relative z-10 flex flex-col items-center gap-6 ${widthClass} w-full text-center`}>
         {children}
       </div>
     </motion.div>

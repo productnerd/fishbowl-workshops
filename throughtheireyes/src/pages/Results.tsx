@@ -10,6 +10,7 @@ import BarChart from '../components/wrapped/BarChart'
 import GaugeChart from '../components/wrapped/GaugeChart'
 import QuoteCarousel from '../components/wrapped/QuoteCarousel'
 import ProgressDots from '../components/wrapped/ProgressDots'
+import RichText from '../components/wrapped/RichText'
 import Button from '../components/ui/Button'
 
 const REQUIRED_RESPONSES = 5
@@ -232,7 +233,7 @@ export default function Results() {
     what_they_love: 'golden',
   }
 
-  const detailCards: Array<{ gradient: string; content: React.ReactNode }> = [
+  const detailCards: Array<{ gradient: string; content: React.ReactNode; wide?: boolean }> = [
     // 1. First Impressions — the vibe
     {
       gradient: 'warm',
@@ -602,8 +603,9 @@ export default function Results() {
 
   // Build opening summary card from AI insights (first card after "Show me")
   const adviceStartIndex = 1 + detailCards.length + 1 // opening + 25 details + advice intro
-  const openingCard: { gradient: string; content: React.ReactNode } = {
+  const openingCard: { gradient: string; content: React.ReactNode; wide?: boolean } = {
     gradient: 'midnight',
+    wide: true,
     content: (
       <>
         <Kicker>The Big Picture</Kicker>
@@ -623,16 +625,18 @@ export default function Results() {
         ) : insights ? (
           <>
             <Title>{insights.openingSummary.headline}</Title>
-            <div className="w-full flex flex-col gap-3">
+            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-3">
               {insights.openingSummary.sections.map((s) => (
                 <div
                   key={s.area}
-                  className="bg-white/5 rounded-2xl p-4 border border-white/10 text-left"
+                  className="bg-white/5 rounded-2xl p-4 border border-white/10 text-left h-full"
                 >
                   <p className="text-[10px] uppercase tracking-widest text-accent font-semibold mb-1">
                     {AREA_LABELS[s.area]}
                   </p>
-                  <p className="text-sm text-text-primary leading-relaxed">{s.insight}</p>
+                  <p className="text-sm text-text-secondary leading-relaxed">
+                    <RichText text={s.insight} />
+                  </p>
                 </div>
               ))}
             </div>
@@ -656,7 +660,7 @@ export default function Results() {
   }
 
   // Advice intro + 8 advice cards
-  const adviceCards: Array<{ gradient: string; content: React.ReactNode }> = insights
+  const adviceCards: Array<{ gradient: string; content: React.ReactNode; wide?: boolean }> = insights
     ? [
         {
           gradient: 'forest',
@@ -677,7 +681,9 @@ export default function Results() {
               <Kicker>{AREA_LABELS[a.area]}</Kicker>
               <Title>{a.title}</Title>
               <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10 text-left">
-                <p className="text-base text-text-primary leading-relaxed">{a.action}</p>
+                <p className="text-base text-text-secondary leading-relaxed">
+                  <RichText text={a.action} />
+                </p>
               </div>
             </>
           ),
@@ -692,7 +698,7 @@ export default function Results() {
       <ProgressDots total={cards.length} current={cardIndex} onNavigate={setCardIndex} />
 
       <AnimatePresence mode="wait">
-        <WrapCard key={cardIndex} gradient={cards[cardIndex].gradient}>
+        <WrapCard key={cardIndex} gradient={cards[cardIndex].gradient} wide={cards[cardIndex].wide}>
           {cards[cardIndex].content}
 
           {/* Inline nav rendered inside every card so it's always visible */}
