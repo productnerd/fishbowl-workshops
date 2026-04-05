@@ -13,9 +13,10 @@ create table if not exists public.tte_ai_insights (
 
 alter table public.tte_ai_insights enable row level security;
 
--- Anyone can read an insight once the session has 6+ responses (same gate as results)
+-- Anyone can read an insight once the session has 5+ responses (same gate as results)
 drop policy if exists "tte_ai_insights_select_after_six" on public.tte_ai_insights;
-create policy "tte_ai_insights_select_after_six"
+drop policy if exists "tte_ai_insights_select_after_threshold" on public.tte_ai_insights;
+create policy "tte_ai_insights_select_after_threshold"
   on public.tte_ai_insights
   for select
   to anon, authenticated
@@ -23,7 +24,7 @@ create policy "tte_ai_insights_select_after_six"
     exists (
       select 1 from public.tte_sessions s
       where s.id = tte_ai_insights.session_id
-      and s.response_count >= 6
+      and s.response_count >= 5
     )
   );
 
