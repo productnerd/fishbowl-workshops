@@ -18,7 +18,7 @@ export default function BarChart({ items, color = 'bg-primary' }: Props) {
     <div className="flex flex-col gap-3 w-full">
       {items.map((item, i) => (
         <div key={item.label} className="flex items-center gap-3">
-          <span className="text-xs text-text-secondary w-24 text-right shrink-0 truncate">
+          <span className="text-xs text-text-secondary w-28 text-right shrink-0 leading-tight break-words">
             {item.label}
           </span>
           <div className="flex-1 h-8 bg-white/5 rounded-full overflow-hidden relative">
