@@ -608,7 +608,7 @@ export default function Results() {
         <Kicker>The Big Picture</Kicker>
         {insights ? (
           <>
-            <Title>{insights.openingSummary.headline}</Title>
+            <Title><RichText text={insights.openingSummary.headline} /></Title>
 
             {isStale && cachedAt !== null && (
               <div className="w-full bg-accent/10 border border-accent/30 rounded-2xl p-4 text-left flex flex-col sm:flex-row items-start sm:items-center gap-3">
@@ -699,7 +699,7 @@ export default function Results() {
                       <p className="text-[10px] uppercase tracking-widest text-accent font-semibold mb-1">
                         {AREA_LABELS[a.area]}
                       </p>
-                      <p className="text-sm font-semibold text-text-primary mb-2">{a.title}</p>
+                      <p className="text-sm font-semibold text-text-primary mb-2"><RichText text={a.title} /></p>
                       <ul className="flex flex-col gap-1.5 text-sm text-text-secondary leading-snug">
                         {bullets.map((b, i) => (
                           <li key={i} className="flex gap-2">

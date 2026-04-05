@@ -158,31 +158,55 @@ Deno.serve(async (req) => {
 
     const areaBlock = AREAS.map((a) => `- ${a.key} ("${a.label}") — questions ${a.questions}`).join('\n')
 
-    const systemPrompt = `You are an insightful analyst for a feedback app called "Through Their Eyes". Anonymous friends have answered 25 questions about a person named ${name}, and your job is to synthesize the results into warm, specific, cross-referenced insights that ${name} will read about themselves.
+    const systemPrompt = `You are an insightful analyst for a feedback app called "Through Their Eyes". Anonymous friends have answered 25 questions about a person named ${name}. Your job is to synthesize the results into warm, specific, cross-referenced insights that ${name} will read about themselves.
 
-Voice & tone (applies to EVERY string you write):
-- Speak TO ${name} in second person ("you", "your"). Never use their name or third-person pronouns.
-- Warm. Friendly. Nurturing. Mature. Optimistic. Down to earth. Easy going.
-- Like a wise, kind friend who read everything carefully. Never sycophantic. Never clinical. Never preachy.
-- Be brief and to the point. Short, scannable sentences. No filler. No throat-clearing. No "it's important to note".
-- Ground every claim in what respondents actually wrote. No invention.
-- Look ACROSS questions for patterns (e.g. if "underestimates themselves" shows up in blind spots AND hidden talents AND final message, name that).
+=== VOICE & TONE (applies to EVERY string you write) ===
+Speak TO ${name} in second person ("you", "your"). Never use their name. Never use third-person pronouns about them.
+Tone: warm, friendly, nurturing, mature, optimistic, down to earth, easy going. Like a wise, kind friend who read everything carefully.
+Never sycophantic. Never clinical. Never preachy. No throat-clearing. No "it's important to note". No filler.
+Be brief and scannable. Short sentences. Ground every claim in what respondents actually wrote.
+Look ACROSS questions for patterns (e.g. if "underestimates themselves" shows up in blind spots AND hidden talents AND final message, name that).
 
-Formatting rules (STRICT, non-negotiable):
-- NEVER use em dashes (—) or en dashes (–) ANYWHERE in any string. Not in insights. Not in summaries. Not in advice. Use a comma, period, colon, semicolon, or parentheses instead. This rule is absolute and will be checked.
-- In every "insight", "summary", "otherSummary", and every advice bullet, wrap 2 to 4 of the most scannable key phrases in markdown bold using **double asterisks**. Choose punchy verbs and nouns, not filler words. Do NOT bold full sentences. Bold sparingly so the bolded words alone tell the gist.
-- The "headline" field should NOT contain markdown bold.
-- The "title" field (inside advice) should NOT contain markdown bold.
+=== ABSOLUTE BAN ON DASHES ===
+NEVER type the character "—" (U+2014 em dash).
+NEVER type the character "–" (U+2013 en dash).
+NEVER type " - " as a sentence connector (use commas, periods, colons, semicolons, or parentheses).
+This is the single most important rule. Every single string you emit will be scanned for these characters. A single em dash invalidates the entire response. Use commas and periods.
 
-The 8 canonical areas (use these exact keys):
+=== BOLD MARKDOWN ===
+In every "insight", "summary", "otherSummary", and every advice bullet, wrap 2 to 4 of the most scannable key phrases in markdown bold using **double asterisks**. Choose punchy verbs and nouns, not filler words. Do NOT bold full sentences. Bold sparingly so the bolded words alone tell the gist.
+The "headline" field must NOT contain bold.
+The "title" field (inside advice) must NOT contain bold.
+
+=== AREAS (use these exact keys) ===
 ${areaBlock}
 
-Output format: return ONLY valid JSON, no surrounding commentary, no code fences. The JSON string values MAY contain **bold** markdown as described above but no other markdown. Shape:
+=== ADVICE BULLETS (critical, read carefully) ===
+Every "action" MUST be a JSON array of EXACTLY 2 separate short bullet strings. Not 1. Not 3. EXACTLY 2.
+Each bullet is its own independent sentence, MAX 14 WORDS. Count the words. If your bullet is over 14 words, cut it.
+Each bullet must contain at least one **bold** segment on the key verb or phrase.
+The two bullets must attack the advice from two DIFFERENT angles (e.g. one behavioral, one mindset; or one what-to-do, one what-to-notice). Never just rephrase the same idea twice.
+DO NOT write a single long paragraph and split it into two. Write TWO distinct short actionable bullets from scratch.
+
+GOOD example:
+"action": [
+  "Say **thank you** and stop. No deflection, no joke, no minimizing.",
+  "Notice the **urge to disappear** when praised. That feeling is the work."
+]
+
+BAD example (too long, one idea split in half, em dash):
+"action": [
+  "Your friends say you deflect every compliment with a joke — try just saying thank you this week, it will feel uncomfortable",
+  "That discomfort is the exact growth edge your friends are pointing at, so sit with it instead of redirecting"
+]
+
+=== OUTPUT FORMAT ===
+Return ONLY valid JSON, no surrounding commentary, no code fences. String values MAY contain **bold** markdown but no other markdown. Shape:
 {
   "openingSummary": {
-    "headline": "One punchy line (max 12 words) capturing the meta-finding — the thing that jumps out across all 25 answers",
+    "headline": "One punchy line, max 12 words, capturing the meta-finding that jumps out across all 25 answers. No bold. No dashes.",
     "sections": [
-      { "area": "first_impressions", "insight": "2-3 sentences synthesizing this area — what the data says about you here, specific and warm" },
+      { "area": "first_impressions", "insight": "2 to 3 sentences synthesizing this area. Specific and warm. 2 to 4 **bold** phrases. No dashes." },
       { "area": "talents", "insight": "..." },
       { "area": "communication", "insight": "..." },
       { "area": "emotional_depth", "insight": "..." },
@@ -193,18 +217,18 @@ Output format: return ONLY valid JSON, no surrounding commentary, no code fences
     ]
   },
   "mc": {
-    "<questionId>": { "otherSummary": "2-3 sentences on what the 'Other' respondents added, whether they cluster around any theme, and how that compares to the canonical winners" }
+    "<questionId>": { "otherSummary": "2 to 3 sentences on what the 'Other' respondents added, whether they cluster around a theme, how that compares to the canonical winners. No dashes." }
   },
   "freetext": {
-    "<questionId>": { "summary": "2-4 sentence synthesis — what people agree on, what's unexpected, what resonates with answers to other questions. Be specific, quotable, short." }
+    "<questionId>": { "summary": "2 to 4 sentence synthesis. What people agree on, what is unexpected, what resonates with other questions. Specific, quotable, short. No dashes." }
   },
   "advice": [
     {
       "area": "first_impressions",
-      "title": "Short imperative, max 5 words, no bold",
+      "title": "Short imperative, max 5 words, no bold, no dashes",
       "action": [
-        "One very short, concrete, actionable bullet, max 14 words, with **bold** on the action verb or key phrase",
-        "A second bullet, same rules. Different angle from the first. No em dashes."
+        "First bullet. Max 14 words. One **bold** phrase. No dashes.",
+        "Second bullet. Different angle. Max 14 words. One **bold** phrase. No dashes."
       ]
     },
     { "area": "talents", "title": "...", "action": ["...", "..."] },
@@ -290,6 +314,44 @@ Output format: return ONLY valid JSON, no surrounding commentary, no code fences
       return node
     }
     insights = scrub(insights)
+
+    // Enforce advice bullet shape deterministically. If the model returned a
+    // single long string, or one giant bullet, or three bullets, we normalise
+    // to exactly 2 bullets per action, each trimmed to a sentence.
+    const toBullets = (val: unknown): string[] => {
+      let bullets: string[] = []
+      if (Array.isArray(val)) bullets = val.filter((x) => typeof x === 'string') as string[]
+      else if (typeof val === 'string') bullets = [val]
+
+      // If any bullet is a multi-sentence monster, split on sentence boundaries
+      const exploded: string[] = []
+      for (const b of bullets) {
+        const parts = b
+          .split(/(?<=[.!?])\s+/)
+          .map((s) => s.trim())
+          .filter(Boolean)
+        if (parts.length >= 2) exploded.push(...parts)
+        else exploded.push(b.trim())
+      }
+
+      // Keep first 2, pad if needed so the UI always renders 2 bullets
+      let result = exploded.filter(Boolean).slice(0, 2)
+      if (result.length === 1) {
+        // Try splitting the single bullet on commas if it's long
+        const commaParts = result[0].split(/,\s+/).map((s) => s.trim()).filter(Boolean)
+        if (commaParts.length >= 2) result = [commaParts[0] + '.', commaParts.slice(1).join(', ') + '.']
+      }
+      if (result.length === 0) result = ['', '']
+      if (result.length === 1) result.push('')
+      return result
+    }
+
+    if (Array.isArray(insights?.advice)) {
+      insights.advice = insights.advice.map((a: any) => ({
+        ...a,
+        action: toBullets(a?.action),
+      }))
+    }
 
     // 6. Upsert cache. This MUST succeed — every generated report has to be
     // persisted so subsequent page loads retrieve the stored version instead
