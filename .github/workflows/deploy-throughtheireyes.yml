@@ -44,8 +44,3 @@ jobs:
           target-folder: throughtheireyes
           branch: gh-pages
           clean: true
-          clean-exclude: |
-            profile
-            README.md
-            Rakefile
-            index.html
