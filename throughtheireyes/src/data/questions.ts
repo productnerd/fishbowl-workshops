@@ -26,7 +26,9 @@ export const questions: Question[] = [
     type: 'rating',
     section: 'First Impressions & Energy',
     sectionDescription: 'How {name} lands on people before they know them well.',
-    text: 'How quickly did {name} make you feel comfortable around them?',
+    text: 'How quickly did {name} make you feel at ease?',
+    lowLabel: 'Took a while',
+    highLabel: 'Instantly',
   },
   {
     id: 4,

@@ -20,6 +20,8 @@ export interface Question {
   options?: string[]
   section: string
   sectionDescription: string
+  lowLabel?: string
+  highLabel?: string
 }
 
 export interface Session {

@@ -3,11 +3,11 @@ import { motion } from 'framer-motion'
 interface Props {
   value: number | null
   onChange: (value: number) => void
+  lowLabel?: string
+  highLabel?: string
 }
 
-const labels = ['', 'Not at all', 'A little', 'Somewhat', 'Quite a bit', 'Absolutely']
-
-export default function Rating({ value, onChange }: Props) {
+export default function Rating({ value, onChange, lowLabel = 'Not at all', highLabel = 'Absolutely' }: Props) {
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-lg">
       <div className="flex gap-3">
@@ -29,18 +29,9 @@ export default function Rating({ value, onChange }: Props) {
         ))}
       </div>
       <div className="flex justify-between w-full max-w-[310px] text-xs text-text-secondary">
-        <span>Not at all</span>
-        <span>Absolutely</span>
+        <span>{lowLabel}</span>
+        <span>{highLabel}</span>
       </div>
-      {value && (
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-primary-light text-sm font-medium"
-        >
-          {labels[value]}
-        </motion.p>
-      )}
     </div>
   )
 }

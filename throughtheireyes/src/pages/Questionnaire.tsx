@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
@@ -10,17 +10,21 @@ import FreeText from '../components/questions/FreeText'
 import ProgressBar from '../components/ui/ProgressBar'
 import Button from '../components/ui/Button'
 
+const AUTO_ADVANCE_DELAY = 400
+
 export default function Questionnaire() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const [session, setSession] = useState<Session | null>(null)
   const [questions, setQuestions] = useState<Question[]>([])
   const [current, setCurrent] = useState(0)
+  const [maxReached, setMaxReached] = useState(0)
   const [answers, setAnswers] = useState<Record<number, string | number>>({})
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [direction, setDirection] = useState(1)
+  const autoAdvanceTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -49,26 +53,70 @@ export default function Questionnaire() {
     load()
   }, [slug])
 
+  // Clear any pending auto-advance timer on unmount or question change
+  useEffect(() => {
+    return () => {
+      if (autoAdvanceTimerRef.current !== null) {
+        window.clearTimeout(autoAdvanceTimerRef.current)
+      }
+    }
+  }, [])
+
   const alreadyResponded = slug ? localStorage.getItem(`tte_responded_${slug}`) === 'true' : false
 
   const q = questions[current]
   const isAnswered = q ? answers[q.id] !== undefined && answers[q.id] !== '' : false
   const isLast = current === questions.length - 1
+  const isReviewing = current < maxReached // user navigated back
 
   const handleNext = useCallback(() => {
     if (!isAnswered) return
+    if (autoAdvanceTimerRef.current !== null) {
+      window.clearTimeout(autoAdvanceTimerRef.current)
+      autoAdvanceTimerRef.current = null
+    }
     if (isLast) {
       handleSubmit()
     } else {
       setDirection(1)
-      setCurrent((c) => c + 1)
+      setCurrent((c) => {
+        const next = c + 1
+        setMaxReached((m) => Math.max(m, next))
+        return next
+      })
     }
-  }, [isAnswered, isLast, current])
+  }, [isAnswered, isLast])
 
   const handleBack = () => {
     if (current > 0) {
+      if (autoAdvanceTimerRef.current !== null) {
+        window.clearTimeout(autoAdvanceTimerRef.current)
+        autoAdvanceTimerRef.current = null
+      }
       setDirection(-1)
       setCurrent((c) => c - 1)
+    }
+  }
+
+  // Handles an MC/Rating selection with optional auto-advance
+  const handleSelect = (value: string | number) => {
+    if (!q) return
+    setAnswers((a) => ({ ...a, [q.id]: value }))
+
+    // Auto-advance only when on the frontier (not reviewing) and not last question
+    if (!isReviewing && !isLast) {
+      if (autoAdvanceTimerRef.current !== null) {
+        window.clearTimeout(autoAdvanceTimerRef.current)
+      }
+      autoAdvanceTimerRef.current = window.setTimeout(() => {
+        setDirection(1)
+        setCurrent((c) => {
+          const next = c + 1
+          setMaxReached((m) => Math.max(m, next))
+          return next
+        })
+        autoAdvanceTimerRef.current = null
+      }, AUTO_ADVANCE_DELAY)
     }
   }
 
@@ -97,7 +145,6 @@ export default function Questionnaire() {
       })
       localStorage.setItem('tte_responses', JSON.stringify(responses))
 
-      // Update response count
       const sessions = JSON.parse(localStorage.getItem('tte_sessions') || '{}')
       if (sessions[slug]) {
         sessions[slug].response_count = (sessions[slug].response_count || 0) + 1
@@ -143,9 +190,11 @@ export default function Questionnaire() {
 
   if (!q) return null
 
-  // Determine if we're entering a new section
   const prevQ = current > 0 ? questions[current - 1] : null
   const isNewSection = !prevQ || prevQ.section !== q.section
+
+  // Show Next button only when: reviewing (went back) OR last question OR freetext
+  const showNextButton = isReviewing || isLast || q.type === 'freetext'
 
   const slideVariants = {
     enter: (d: number) => ({ x: d > 0 ? 80 : -80, opacity: 0 }),
@@ -193,14 +242,16 @@ export default function Questionnaire() {
             {q.type === 'mc' && q.options && (
               <MultipleChoice
                 options={q.options}
-                selected={answers[q.id] as string | null ?? null}
-                onSelect={(v) => setAnswers((a) => ({ ...a, [q.id]: v }))}
+                selected={(answers[q.id] as string | null) ?? null}
+                onSelect={handleSelect}
               />
             )}
             {q.type === 'rating' && (
               <Rating
-                value={answers[q.id] as number | null ?? null}
-                onChange={(v) => setAnswers((a) => ({ ...a, [q.id]: v }))}
+                value={(answers[q.id] as number | null) ?? null}
+                onChange={handleSelect}
+                lowLabel={q.lowLabel}
+                highLabel={q.highLabel}
               />
             )}
             {q.type === 'freetext' && (
@@ -226,14 +277,20 @@ export default function Questionnaire() {
 
           {error && <p className="text-red-400 text-xs">{error}</p>}
 
-          <Button
-            onClick={handleNext}
-            disabled={!isAnswered || submitting}
-            variant="primary"
-            className="!px-6 !py-3 text-sm"
-          >
-            {submitting ? 'Submitting...' : isLast ? 'Submit' : 'Next →'}
-          </Button>
+          {showNextButton ? (
+            <Button
+              onClick={handleNext}
+              disabled={!isAnswered || submitting}
+              variant="primary"
+              className="!px-6 !py-3 text-sm"
+            >
+              {submitting ? 'Submitting...' : isLast ? 'Submit' : 'Next →'}
+            </Button>
+          ) : (
+            <div className="text-xs text-text-secondary italic">
+              Tap an answer to continue
+            </div>
+          )}
         </div>
       </div>
     </div>
