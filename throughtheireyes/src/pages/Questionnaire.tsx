@@ -28,7 +28,7 @@ export default function Questionnaire() {
 
       if (isSupabaseConfigured()) {
         const { data } = await supabase
-          .from('sessions')
+          .from('tte_sessions')
           .select('*')
           .eq('slug', slug)
           .single()
@@ -77,7 +77,7 @@ export default function Questionnaire() {
     setSubmitting(true)
 
     if (isSupabaseConfigured()) {
-      const { error: dbError } = await supabase.from('responses').insert({
+      const { error: dbError } = await supabase.from('tte_responses').insert({
         session_id: session.id,
         answers,
       })

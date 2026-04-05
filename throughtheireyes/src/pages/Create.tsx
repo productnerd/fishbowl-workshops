@@ -29,7 +29,7 @@ export default function Create() {
     const slug = generateSlug()
 
     if (isSupabaseConfigured()) {
-      const { error: dbError } = await supabase.from('sessions').insert({
+      const { error: dbError } = await supabase.from('tte_sessions').insert({
         creator_name: name.trim(),
         slug,
         response_count: 0,

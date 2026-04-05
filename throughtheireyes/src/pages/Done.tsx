@@ -12,7 +12,7 @@ export default function Done() {
     const load = async () => {
       if (!slug) return
       if (isSupabaseConfigured()) {
-        const { data } = await supabase.from('sessions').select('*').eq('slug', slug).single()
+        const { data } = await supabase.from('tte_sessions').select('*').eq('slug', slug).single()
         if (data) setSession(data)
       } else {
         const sessions = JSON.parse(localStorage.getItem('tte_sessions') || '{}')

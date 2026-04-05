@@ -28,13 +28,13 @@ export default function Results() {
 
       if (isSupabaseConfigured()) {
         const { data: sessionData } = await supabase
-          .from('sessions').select('*').eq('slug', slug).single()
+          .from('tte_sessions').select('*').eq('slug', slug).single()
         if (!sessionData) { setLoading(false); return }
         setSession(sessionData)
 
         if (sessionData.response_count >= REQUIRED_RESPONSES) {
           const { data: responses } = await supabase
-            .from('responses').select('answers').eq('session_id', sessionData.id)
+            .from('tte_responses').select('answers').eq('session_id', sessionData.id)
           if (responses) {
             setData(aggregateResponses(responses, sessionData.creator_name))
           }
