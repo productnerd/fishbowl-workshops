@@ -56,7 +56,7 @@ export default function Results() {
     load()
   }, [slug])
 
-  const totalCards = 15
+  const totalCards = 16
   const next = useCallback(() => setCardIndex((i) => Math.min(i + 1, totalCards - 1)), [])
   const prev = useCallback(() => setCardIndex((i) => Math.max(i - 1, 0)), [])
 
@@ -247,7 +247,21 @@ export default function Results() {
             </p>
           </motion.div>
           <p className="text-text-secondary">Your most underrated skill, according to your people.</p>
-          <GaugeChart value={rating(6)?.average || 0} label="Trust in your judgment" sublabel="How much people trust you when it matters" />
+          <div className="w-full mt-2">
+            <p className="text-sm text-text-secondary mb-2">How the vote broke down:</p>
+            <BarChart items={topAnswers(4).map(a => ({ label: a.option, value: a.pct }))} />
+          </div>
+        </>
+      ),
+    },
+    // 3: Trust in your judgment
+    {
+      gradient: 'ocean',
+      content: (
+        <>
+          <p className="text-xs uppercase tracking-widest text-accent font-semibold">Trust</p>
+          <h2 className="text-2xl md:text-3xl font-bold">How much people trust your judgment when it matters</h2>
+          <GaugeChart value={rating(6)?.average || 0} label="Trust in your judgment" sublabel="Average rating out of 5" />
         </>
       ),
     },
@@ -454,52 +468,40 @@ export default function Results() {
       <AnimatePresence mode="wait">
         <WrapCard key={cardIndex} gradient={cards[cardIndex].gradient}>
           {cards[cardIndex].content}
+
+          {/* Inline nav rendered inside every card so it's always visible */}
+          <div className="mt-8 flex items-center justify-center gap-4 w-full">
+            <button
+              onClick={prev}
+              disabled={cardIndex === 0}
+              className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-text-primary text-xl flex items-center justify-center hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
+              aria-label="Previous card"
+            >
+              ←
+            </button>
+            <span className="text-xs text-text-secondary tabular-nums bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-3 py-1.5">
+              {cardIndex + 1} / {cards.length}
+            </span>
+            {cardIndex === cards.length - 1 ? (
+              <button
+                disabled
+                className="h-12 px-5 rounded-full bg-white/10 border border-white/15 text-text-secondary text-sm flex items-center justify-center opacity-60"
+                aria-label="End"
+              >
+                The End ✨
+              </button>
+            ) : (
+              <button
+                onClick={next}
+                className="h-12 px-5 rounded-full bg-primary hover:bg-primary-dark text-white text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all shadow-lg shadow-primary/30"
+                aria-label="Next card"
+              >
+                Next →
+              </button>
+            )}
+          </div>
         </WrapCard>
       </AnimatePresence>
-
-      {/* Visible bottom nav */}
-      <div className="fixed bottom-6 left-0 right-0 z-30 flex items-center justify-center gap-4 pointer-events-none">
-        <button
-          onClick={prev}
-          disabled={cardIndex === 0}
-          className="pointer-events-auto w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-text-primary text-xl flex items-center justify-center hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
-          aria-label="Previous card"
-        >
-          ←
-        </button>
-        <span className="pointer-events-auto text-xs text-text-secondary tabular-nums bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-3 py-1">
-          {cardIndex + 1} / {cards.length}
-        </span>
-        {cardIndex === cards.length - 1 ? (
-          <button
-            disabled
-            className="pointer-events-auto h-12 px-5 rounded-full bg-white/10 border border-white/15 text-text-secondary text-sm flex items-center justify-center opacity-50"
-            aria-label="End"
-          >
-            The End ✨
-          </button>
-        ) : (
-          <button
-            onClick={next}
-            className="pointer-events-auto h-12 px-5 rounded-full bg-primary hover:bg-primary-dark text-white text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all shadow-lg shadow-primary/30"
-            aria-label="Next card"
-          >
-            Next →
-          </button>
-        )}
-      </div>
-
-      {/* Side tap zones for swipe-like feel (mobile) */}
-      <button
-        onClick={prev}
-        className="fixed left-0 top-0 bottom-24 w-1/5 z-20 cursor-pointer opacity-0"
-        aria-label="Previous"
-      />
-      <button
-        onClick={next}
-        className="fixed right-0 top-0 bottom-24 w-1/5 z-20 cursor-pointer opacity-0"
-        aria-label="Next"
-      />
     </>
   )
 }
