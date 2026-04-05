@@ -48,7 +48,7 @@ export default function Landing() {
           transition={{ delay: 0.35 }}
           className="text-lg text-text-secondary leading-relaxed max-w-md"
         >
-          Share a link with friends. They answer 50 anonymous questions about you.
+          Share a link with friends. They answer 25 anonymous questions about you.
           After 6 people respond, you unlock a personalized reveal of how others truly see you.
         </motion.p>
 
@@ -82,7 +82,7 @@ export default function Landing() {
           </div>
           <div className="flex items-center gap-3">
             <span className="text-lg">⏱</span>
-            <span>Takes ~10 minutes to complete</span>
+            <span>Takes ~5 minutes to complete</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-lg">✨</span>

@@ -20,6 +20,7 @@ export default function Questionnaire() {
   const [current, setCurrent] = useState(0)
   const [maxReached, setMaxReached] = useState(0)
   const [answers, setAnswers] = useState<Record<number, string | number>>({})
+  const [hydrated, setHydrated] = useState(false)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -48,10 +49,40 @@ export default function Questionnaire() {
           setQuestions(getQuestionsForName(s.creator_name))
         }
       }
+
+      // Hydrate in-progress quiz state from localStorage
+      try {
+        const saved = localStorage.getItem(`tte_progress_${slug}`)
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          if (parsed && typeof parsed === 'object') {
+            if (parsed.answers) setAnswers(parsed.answers)
+            if (typeof parsed.current === 'number') setCurrent(parsed.current)
+            if (typeof parsed.maxReached === 'number') setMaxReached(parsed.maxReached)
+          }
+        }
+      } catch {
+        // ignore corrupted storage
+      }
+
+      setHydrated(true)
       setLoading(false)
     }
     load()
   }, [slug])
+
+  // Persist progress whenever answers/current/maxReached change
+  useEffect(() => {
+    if (!slug || !hydrated) return
+    try {
+      localStorage.setItem(
+        `tte_progress_${slug}`,
+        JSON.stringify({ answers, current, maxReached })
+      )
+    } catch {
+      // ignore storage errors
+    }
+  }, [slug, hydrated, answers, current, maxReached])
 
   // Clear any pending auto-advance timer on unmount or question change
   useEffect(() => {
@@ -68,6 +99,13 @@ export default function Questionnaire() {
   const isAnswered = q ? answers[q.id] !== undefined && answers[q.id] !== '' : false
   const isLast = current === questions.length - 1
   const isReviewing = current < maxReached // user navigated back
+  // For MC with "Other" selected (free text), don't auto-advance; show Next button
+  const isMcOtherEntry =
+    !!q &&
+    q.type === 'mc' &&
+    !!q.allowOther &&
+    answers[q.id] !== undefined &&
+    !(q.options || []).includes(answers[q.id] as string)
 
   const handleNext = useCallback(() => {
     if (!isAnswered) return
@@ -103,8 +141,15 @@ export default function Questionnaire() {
     if (!q) return
     setAnswers((a) => ({ ...a, [q.id]: value }))
 
+    // Don't auto-advance if the user is typing into an "Other" field on an MC question
+    const isTypingOther =
+      q.type === 'mc' &&
+      !!q.allowOther &&
+      typeof value === 'string' &&
+      !(q.options || []).includes(value)
+
     // Auto-advance only when on the frontier (not reviewing) and not last question
-    if (!isReviewing && !isLast) {
+    if (!isReviewing && !isLast && !isTypingOther) {
       if (autoAdvanceTimerRef.current !== null) {
         window.clearTimeout(autoAdvanceTimerRef.current)
       }
@@ -153,6 +198,7 @@ export default function Questionnaire() {
     }
 
     localStorage.setItem(`tte_responded_${slug}`, 'true')
+    localStorage.removeItem(`tte_progress_${slug}`)
     navigate(`/s/${slug}/done`)
   }
 
@@ -193,8 +239,8 @@ export default function Questionnaire() {
   const prevQ = current > 0 ? questions[current - 1] : null
   const isNewSection = !prevQ || prevQ.section !== q.section
 
-  // Show Next button only when: reviewing (went back) OR last question OR freetext
-  const showNextButton = isReviewing || isLast || q.type === 'freetext'
+  // Show Next button only when: reviewing (went back) OR last question OR freetext OR MC with Other selected
+  const showNextButton = isReviewing || isLast || q.type === 'freetext' || isMcOtherEntry
 
   const slideVariants = {
     enter: (d: number) => ({ x: d > 0 ? 80 : -80, opacity: 0 }),
@@ -244,6 +290,7 @@ export default function Questionnaire() {
                 options={q.options}
                 selected={(answers[q.id] as string | null) ?? null}
                 onSelect={handleSelect}
+                allowOther={q.allowOther}
               />
             )}
             {q.type === 'rating' && (
@@ -265,7 +312,7 @@ export default function Questionnaire() {
       </div>
 
       {/* Bottom nav */}
-      <div className="fixed bottom-0 left-0 right-0 bg-surface/90 backdrop-blur-lg border-t border-white/5 px-4 py-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-surface/90 backdrop-blur-lg border-t border-white/5 px-4 pt-4 pb-3">
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <button
             onClick={handleBack}
@@ -292,6 +339,9 @@ export default function Questionnaire() {
             </div>
           )}
         </div>
+        <p className="max-w-lg mx-auto mt-3 text-center text-[10px] text-text-secondary/70 leading-relaxed">
+          Everything you share is completely anonymous. {session.creator_name} will never know which answers are yours.
+        </p>
       </div>
     </div>
   )

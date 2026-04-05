@@ -22,6 +22,7 @@ export interface Question {
   sectionDescription: string
   lowLabel?: string
   highLabel?: string
+  allowOther?: boolean
 }
 
 export interface Session {
