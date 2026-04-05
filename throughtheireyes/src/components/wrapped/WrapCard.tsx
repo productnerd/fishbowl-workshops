@@ -31,7 +31,7 @@ export default function WrapCard({ children, gradient = 'purple', className = ''
     >
       {/* Subtle decorative glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
-      <div className="relative z-10 flex flex-col items-center gap-6 max-w-lg w-full text-center">
+      <div className="relative z-10 flex flex-col items-center gap-6 max-w-lg w-full text-center pb-28">
         {children}
       </div>
     </motion.div>

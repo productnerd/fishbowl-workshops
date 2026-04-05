@@ -190,6 +190,17 @@ export default function Results() {
   const freetext = (id: number) => data.freetextResults[id] || []
   const topAnswers = (id: number, n = 4) => topMcAnswers(mc(id), n)
 
+  // MC options are phrased in third person during the quiz ("That they were serious").
+  // When shown back to the creator, swap pronouns to second person.
+  const toSecondPerson = (s: string): string =>
+    s
+      .replace(/\bthey're\b/gi, (m) => (m[0] === 'T' ? "You're" : "you're"))
+      .replace(/\bthey\b/gi, (m) => (m[0] === 'T' ? 'You' : 'you'))
+      .replace(/\btheir\b/gi, (m) => (m[0] === 'T' ? 'Your' : 'your'))
+      .replace(/\bthemselves\b/gi, 'yourself')
+  const topAnswersYou = (id: number, n = 4) =>
+    topAnswers(id, n).map((a) => ({ ...a, option: toSecondPerson(a.option) }))
+
   const cards: Array<{ gradient: string; content: React.ReactNode }> = [
     // 0: First Impressions
     {
@@ -203,7 +214,7 @@ export default function Results() {
             <BarChart items={topAnswers(2).map(a => ({ label: a.option, value: a.pct }))} />
             <div className="mt-4 p-4 bg-white/5 rounded-xl">
               <p className="text-sm text-text-secondary mb-1">What they wrongly assumed:</p>
-              <p className="text-xl font-bold text-primary-light">{mc(1)?.winner}</p>
+              <p className="text-xl font-bold text-primary-light">{toSecondPerson(mc(1)?.winner || '')}</p>
             </div>
           </div>
         </>
@@ -338,9 +349,9 @@ export default function Results() {
             transition={{ delay: 0.4, type: 'spring' }}
             className="text-xl font-bold text-accent"
           >
-            {mc(16)?.winner}
+            {toSecondPerson(mc(16)?.winner || '')}
           </motion.p>
-          <BarChart items={topAnswers(16).map(a => ({ label: a.option, value: a.pct }))} />
+          <BarChart items={topAnswersYou(16).map(a => ({ label: a.option, value: a.pct }))} />
         </>
       ),
     },
@@ -446,15 +457,47 @@ export default function Results() {
         </WrapCard>
       </AnimatePresence>
 
-      {/* Tap zones */}
+      {/* Visible bottom nav */}
+      <div className="fixed bottom-6 left-0 right-0 z-30 flex items-center justify-center gap-4 pointer-events-none">
+        <button
+          onClick={prev}
+          disabled={cardIndex === 0}
+          className="pointer-events-auto w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-text-primary text-xl flex items-center justify-center hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
+          aria-label="Previous card"
+        >
+          ←
+        </button>
+        <span className="pointer-events-auto text-xs text-text-secondary tabular-nums bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-3 py-1">
+          {cardIndex + 1} / {cards.length}
+        </span>
+        {cardIndex === cards.length - 1 ? (
+          <button
+            disabled
+            className="pointer-events-auto h-12 px-5 rounded-full bg-white/10 border border-white/15 text-text-secondary text-sm flex items-center justify-center opacity-50"
+            aria-label="End"
+          >
+            The End ✨
+          </button>
+        ) : (
+          <button
+            onClick={next}
+            className="pointer-events-auto h-12 px-5 rounded-full bg-primary hover:bg-primary-dark text-white text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all shadow-lg shadow-primary/30"
+            aria-label="Next card"
+          >
+            Next →
+          </button>
+        )}
+      </div>
+
+      {/* Side tap zones for swipe-like feel (mobile) */}
       <button
         onClick={prev}
-        className="fixed left-0 top-0 bottom-0 w-1/4 z-20 cursor-pointer opacity-0"
+        className="fixed left-0 top-0 bottom-24 w-1/5 z-20 cursor-pointer opacity-0"
         aria-label="Previous"
       />
       <button
         onClick={next}
-        className="fixed right-0 top-0 bottom-0 w-1/4 z-20 cursor-pointer opacity-0"
+        className="fixed right-0 top-0 bottom-24 w-1/5 z-20 cursor-pointer opacity-0"
         aria-label="Next"
       />
     </>
