@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
     if (sessionErr || !session) {
       return new Response(JSON.stringify({ error: 'session not found' }), { status: 404, headers: jsonHeaders })
     }
-    if ((session.response_count || 0) < 6) {
+    if ((session.response_count || 0) < 5) {
       return new Response(JSON.stringify({ error: 'not enough responses' }), { status: 403, headers: jsonHeaders })
     }
 

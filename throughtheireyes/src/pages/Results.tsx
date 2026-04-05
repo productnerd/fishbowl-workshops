@@ -12,7 +12,7 @@ import QuoteCarousel from '../components/wrapped/QuoteCarousel'
 import ProgressDots from '../components/wrapped/ProgressDots'
 import Button from '../components/ui/Button'
 
-const REQUIRED_RESPONSES = 6
+const REQUIRED_RESPONSES = 5
 
 export default function Results() {
   const { slug } = useParams<{ slug: string }>()

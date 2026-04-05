@@ -5,7 +5,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import Button from '../components/ui/Button'
 
 const MY_SESSION_KEY = 'tte_my_session'
-const REQUIRED_RESPONSES = 6
+const REQUIRED_RESPONSES = 5
 
 function generateSlug(): string {
   const chars = 'abcdefghijkmnpqrstuvwxyz23456789'
