@@ -93,9 +93,21 @@ export function useAiInsights(
           return
         }
         if (data?.insights) {
+          // Re-read from the cache so the UI always reflects persisted state,
+          // not an in-memory response.
+          const { data: stored } = await supabase
+            .from('tte_ai_insights')
+            .select('insights, response_count_at_generation')
+            .eq('session_id', sessionId)
+            .maybeSingle()
+          if (cancelled) return
           setState({
-            insights: data.insights as AiInsights,
-            cachedAt: currentResponseCount ?? null,
+            insights: (stored?.insights ?? data.insights) as AiInsights,
+            cachedAt:
+              stored?.response_count_at_generation ??
+              (typeof data.response_count_at_generation === 'number'
+                ? data.response_count_at_generation
+                : currentResponseCount ?? null),
             loading: false,
             regenerating: false,
             error: null,
@@ -139,21 +151,54 @@ export function useAiInsights(
         setState((s) => ({ ...s, regenerating: false, error: error.message }))
         return
       }
-      if (data?.insights) {
-        setState({
-          insights: data.insights as AiInsights,
-          cachedAt: currentResponseCount ?? null,
-          loading: false,
-          regenerating: false,
-          error: null,
-        })
-      } else {
+      if (!data?.insights) {
         setState((s) => ({ ...s, regenerating: false, error: 'No insights returned' }))
+        return
       }
+
+      // Re-read from the cache table to guarantee what we show is what got
+      // persisted. If the edge function's upsert silently failed, the row
+      // here will still have the old values and we surface an error instead
+      // of rendering an ephemeral in-memory report.
+      const { data: stored, error: storedErr } = await supabase
+        .from('tte_ai_insights')
+        .select('insights, response_count_at_generation')
+        .eq('session_id', sessionId)
+        .maybeSingle()
+
+      if (storedErr || !stored?.insights) {
+        setState((s) => ({
+          ...s,
+          regenerating: false,
+          error: 'Report was generated but could not be stored. Please try again.',
+        }))
+        return
+      }
+
+      const freshCount =
+        typeof data.response_count_at_generation === 'number'
+          ? data.response_count_at_generation
+          : stored.response_count_at_generation
+      if (stored.response_count_at_generation !== freshCount) {
+        setState((s) => ({
+          ...s,
+          regenerating: false,
+          error: 'Stored report is out of sync. Please try again.',
+        }))
+        return
+      }
+
+      setState({
+        insights: stored.insights as AiInsights,
+        cachedAt: stored.response_count_at_generation,
+        loading: false,
+        regenerating: false,
+        error: null,
+      })
     } catch (e) {
       setState((s) => ({ ...s, regenerating: false, error: String(e) }))
     }
-  }, [sessionId, currentResponseCount])
+  }, [sessionId])
 
   const isStale =
     state.insights !== null &&

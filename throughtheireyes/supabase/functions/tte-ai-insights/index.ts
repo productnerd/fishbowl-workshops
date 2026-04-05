@@ -94,7 +94,14 @@ Deno.serve(async (req) => {
         .eq('session_id', session_id)
         .maybeSingle()
       if (cached && cached.response_count_at_generation === session.response_count) {
-        return new Response(JSON.stringify({ insights: cached.insights, cached: true }), { headers: jsonHeaders })
+        return new Response(
+          JSON.stringify({
+            insights: cached.insights,
+            response_count_at_generation: cached.response_count_at_generation,
+            cached: true,
+          }),
+          { headers: jsonHeaders }
+        )
       }
     }
 
@@ -284,22 +291,33 @@ Output format: return ONLY valid JSON, no surrounding commentary, no code fences
     }
     insights = scrub(insights)
 
-    // 6. Upsert cache
+    // 6. Upsert cache. This MUST succeed — every generated report has to be
+    // persisted so subsequent page loads retrieve the stored version instead
+    // of regenerating. If the write fails, surface the error loudly so the
+    // client can retry rather than showing a "ghost" report that's in memory
+    // only.
+    const response_count_at_generation = session.response_count
     const { error: upsertErr } = await supabase
       .from('tte_ai_insights')
       .upsert({
         session_id,
         insights,
-        response_count_at_generation: session.response_count,
+        response_count_at_generation,
         updated_at: new Date().toISOString(),
       })
 
     if (upsertErr) {
-      // Non-fatal — still return the insights
       console.error('cache upsert failed:', upsertErr)
+      return new Response(
+        JSON.stringify({ error: 'failed to persist insights', details: upsertErr.message }),
+        { status: 500, headers: jsonHeaders }
+      )
     }
 
-    return new Response(JSON.stringify({ insights, cached: false }), { headers: jsonHeaders })
+    return new Response(
+      JSON.stringify({ insights, response_count_at_generation, cached: false }),
+      { headers: jsonHeaders }
+    )
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: jsonHeaders })
   }
