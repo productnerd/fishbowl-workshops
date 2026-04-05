@@ -57,7 +57,14 @@ export default function Results() {
     load()
   }, [slug])
 
-  const { insights, loading: aiLoading } = useAiInsights(session?.id, Boolean(data))
+  const {
+    insights,
+    loading: aiLoading,
+    regenerating,
+    isStale,
+    regenerate,
+    cachedAt,
+  } = useAiInsights(session?.id, session?.response_count, Boolean(data))
 
   // Dynamic card count: 1 opening + 25 details, plus 1 advice grid card when insights are ready
   const totalCards = 1 + 25 + (insights ? 1 : 0)
@@ -599,22 +606,31 @@ export default function Results() {
     content: (
       <>
         <Kicker>The Big Picture</Kicker>
-        {aiLoading && !insights ? (
-          <>
-            <Title>Reading every answer…</Title>
-            <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10">
-              <motion.div
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ repeat: Infinity, duration: 1.6 }}
-                className="text-text-secondary text-sm"
-              >
-                Synthesizing what {data.totalResponses} people said about you…
-              </motion.div>
-            </div>
-          </>
-        ) : insights ? (
+        {insights ? (
           <>
             <Title>{insights.openingSummary.headline}</Title>
+
+            {isStale && cachedAt !== null && (
+              <div className="w-full bg-accent/10 border border-accent/30 rounded-2xl p-4 text-left flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div className="flex-1 text-sm">
+                  <p className="font-semibold text-text-primary mb-0.5">
+                    New answers have come in since this was written.
+                  </p>
+                  <p className="text-text-secondary">
+                    This report is based on {cachedAt} responses. You now have{' '}
+                    {session.response_count}. Refresh to fold in the new perspectives.
+                  </p>
+                </div>
+                <button
+                  onClick={regenerate}
+                  disabled={regenerating}
+                  className="shrink-0 px-4 py-2 rounded-full bg-accent hover:bg-accent/90 disabled:opacity-60 text-white text-sm font-semibold cursor-pointer transition-all"
+                >
+                  {regenerating ? 'Refreshing…' : 'Regenerate'}
+                </button>
+              </div>
+            )}
+
             <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-3">
               {insights.openingSummary.sections.map((s) => (
                 <div
@@ -636,6 +652,19 @@ export default function Results() {
             >
               Skip to advice ↓
             </button>
+          </>
+        ) : aiLoading ? (
+          <>
+            <Title>Reading every answer…</Title>
+            <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10">
+              <motion.div
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ repeat: Infinity, duration: 1.6 }}
+                className="text-text-secondary text-sm"
+              >
+                Synthesizing what {data.totalResponses} people said about you…
+              </motion.div>
+            </div>
           </>
         ) : (
           <>

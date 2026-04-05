@@ -1,10 +1,12 @@
--- Auto-generate AI insights as soon as a session reaches 5+ responses,
--- and regenerate whenever a new response arrives afterward.
+-- Auto-generate AI insights the moment a session first crosses the 5-response
+-- threshold. Fires EXACTLY ONCE per session: at the transition from <5 to >=5.
 --
--- This fires the tte-ai-insights Edge Function asynchronously via pg_net
--- whenever tte_sessions.response_count changes and is >= 5. The edge
--- function is idempotent (it checks the cache via response_count_at_generation
--- before calling Claude), so it's safe even if fired redundantly.
+-- After that first generation, new responses do NOT trigger regeneration. The
+-- frontend shows the creator a "Regenerate" button when the cached response
+-- count is lower than the current count, so they can opt in to a refresh.
+--
+-- This fires the tte-ai-insights Edge Function asynchronously via pg_net so
+-- the triggering UPDATE is never blocked by the Claude call.
 --
 -- Prerequisites:
 --   1. The "pg_net" extension (Supabase: Database → Extensions → enable pg_net)
@@ -49,12 +51,14 @@ begin
 end;
 $$;
 
+-- Fires ONCE per session: only at the transition from <5 to >=5.
+-- Any subsequent response bumps the count but does not re-fire the trigger.
 create trigger tte_sessions_ai_insights_trigger
 after update of response_count on public.tte_sessions
 for each row
 when (
-  NEW.response_count >= 5
-  and NEW.response_count is distinct from OLD.response_count
+  OLD.response_count < 5
+  and NEW.response_count >= 5
 )
 execute function public.tte_trigger_ai_insights();
 

@@ -260,6 +260,30 @@ Output format: return ONLY valid JSON, no surrounding commentary, no code fences
       )
     }
 
+    // Hard guarantee: strip em/en dashes from every string value in the JSON tree.
+    // The prompt asks for this, but we enforce it deterministically so the user
+    // never sees a dash slip through regardless of what the model does.
+    const stripDashes = (s: string): string =>
+      s
+        // em/en dash surrounded by optional spaces → comma + space
+        .replace(/\s*[—–]\s*/g, ', ')
+        // collapse any accidental ", ," or "  " artifacts
+        .replace(/,\s*,/g, ',')
+        .replace(/\s{2,}/g, ' ')
+        .trim()
+
+    const scrub = (node: any): any => {
+      if (typeof node === 'string') return stripDashes(node)
+      if (Array.isArray(node)) return node.map(scrub)
+      if (node && typeof node === 'object') {
+        const out: Record<string, any> = {}
+        for (const k of Object.keys(node)) out[k] = scrub(node[k])
+        return out
+      }
+      return node
+    }
+    insights = scrub(insights)
+
     // 6. Upsert cache
     const { error: upsertErr } = await supabase
       .from('tte_ai_insights')

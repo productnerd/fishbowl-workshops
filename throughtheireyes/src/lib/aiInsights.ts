@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase, isSupabaseConfigured } from './supabase'
 
 export type AreaKey =
@@ -23,63 +23,143 @@ export interface AiInsights {
 
 interface State {
   insights: AiInsights | null
-  loading: boolean
+  cachedAt: number | null // response_count the cache was generated from
+  loading: boolean // initial fetch in progress (no cache yet)
+  regenerating: boolean // user clicked regenerate
   error: string | null
 }
 
-export function useAiInsights(sessionId: string | undefined, ready: boolean): State {
-  const [state, setState] = useState<State>({ insights: null, loading: false, error: null })
+interface UseAiInsightsResult extends State {
+  isStale: boolean
+  regenerate: () => Promise<void>
+}
 
+export function useAiInsights(
+  sessionId: string | undefined,
+  currentResponseCount: number | undefined,
+  ready: boolean
+): UseAiInsightsResult {
+  const [state, setState] = useState<State>({
+    insights: null,
+    cachedAt: null,
+    loading: false,
+    regenerating: false,
+    error: null,
+  })
+
+  // Cache-first fetch
   useEffect(() => {
     if (!sessionId || !ready || !isSupabaseConfigured()) return
 
     let cancelled = false
-    setState({ insights: null, loading: true, error: null })
+    setState((s) => ({ ...s, loading: true, error: null }))
 
-    // 1. Try cache first (fast path via RLS-gated table read)
-    const loadFromCache = async () => {
+    const run = async () => {
+      // 1. Try cache
       const { data: cached } = await supabase
         .from('tte_ai_insights')
-        .select('insights')
+        .select('insights, response_count_at_generation')
         .eq('session_id', sessionId)
         .maybeSingle()
-      if (cached?.insights && !cancelled) {
-        setState({ insights: cached.insights as AiInsights, loading: false, error: null })
-        return true
-      }
-      return false
-    }
 
-    // 2. Fall back to invoking the edge function (which generates + caches)
-    const loadFromFunction = async () => {
+      if (cancelled) return
+
+      if (cached?.insights) {
+        setState({
+          insights: cached.insights as AiInsights,
+          cachedAt: cached.response_count_at_generation ?? null,
+          loading: false,
+          regenerating: false,
+          error: null,
+        })
+        return
+      }
+
+      // 2. No cache yet, fall through to on-demand generation (edge function)
+      //    This path only runs if the DB trigger hasn't fired / finished yet.
       try {
         const { data, error } = await supabase.functions.invoke('tte-ai-insights', {
           body: { session_id: sessionId },
         })
         if (cancelled) return
         if (error) {
-          setState({ insights: null, loading: false, error: error.message })
+          setState({
+            insights: null,
+            cachedAt: null,
+            loading: false,
+            regenerating: false,
+            error: error.message,
+          })
           return
         }
         if (data?.insights) {
-          setState({ insights: data.insights as AiInsights, loading: false, error: null })
+          setState({
+            insights: data.insights as AiInsights,
+            cachedAt: currentResponseCount ?? null,
+            loading: false,
+            regenerating: false,
+            error: null,
+          })
         } else {
-          setState({ insights: null, loading: false, error: 'No insights returned' })
+          setState({
+            insights: null,
+            cachedAt: null,
+            loading: false,
+            regenerating: false,
+            error: 'No insights returned',
+          })
         }
       } catch (e) {
-        if (!cancelled) setState({ insights: null, loading: false, error: String(e) })
+        if (!cancelled) {
+          setState({
+            insights: null,
+            cachedAt: null,
+            loading: false,
+            regenerating: false,
+            error: String(e),
+          })
+        }
       }
     }
 
-    ;(async () => {
-      const hit = await loadFromCache()
-      if (!hit && !cancelled) await loadFromFunction()
-    })()
-
+    run()
     return () => {
       cancelled = true
     }
-  }, [sessionId, ready])
+  }, [sessionId, ready, currentResponseCount])
 
-  return state
+  const regenerate = useCallback(async () => {
+    if (!sessionId || !isSupabaseConfigured()) return
+    setState((s) => ({ ...s, regenerating: true, error: null }))
+    try {
+      const { data, error } = await supabase.functions.invoke('tte-ai-insights', {
+        body: { session_id: sessionId, force: true },
+      })
+      if (error) {
+        setState((s) => ({ ...s, regenerating: false, error: error.message }))
+        return
+      }
+      if (data?.insights) {
+        setState({
+          insights: data.insights as AiInsights,
+          cachedAt: currentResponseCount ?? null,
+          loading: false,
+          regenerating: false,
+          error: null,
+        })
+      } else {
+        setState((s) => ({ ...s, regenerating: false, error: 'No insights returned' }))
+      }
+    } catch (e) {
+      setState((s) => ({ ...s, regenerating: false, error: String(e) }))
+    }
+  }, [sessionId, currentResponseCount])
+
+  const isStale =
+    state.insights !== null &&
+    state.cachedAt !== null &&
+    typeof currentResponseCount === 'number' &&
+    currentResponseCount > state.cachedAt
+
+  return { ...state, isStale, regenerate }
 }
