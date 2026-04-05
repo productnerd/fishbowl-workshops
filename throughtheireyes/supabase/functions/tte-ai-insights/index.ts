@@ -138,6 +138,19 @@ Deno.serve(async (req) => {
       if (hasOther) mcWithOther.push(q.id)
     }
 
+    const AREAS = [
+      { key: 'first_impressions', label: 'First Impressions', questions: '1, 2, 3' },
+      { key: 'talents', label: 'Talents & Superpowers', questions: '4, 5' },
+      { key: 'communication', label: 'Communication & Listening', questions: '7, 8, 10' },
+      { key: 'emotional_depth', label: 'Emotional Depth', questions: '11, 12, 13' },
+      { key: 'reliability', label: 'Reliability & Trust', questions: '6, 14, 15' },
+      { key: 'blind_spots', label: 'Blind Spots & Growth', questions: '9, 16, 17, 18, 19' },
+      { key: 'in_the_group', label: 'In the Group', questions: '20, 21, 22' },
+      { key: 'what_they_love', label: 'What They Love About You', questions: '23, 24, 25' },
+    ]
+
+    const areaBlock = AREAS.map((a) => `- ${a.key} ("${a.label}") — questions ${a.questions}`).join('\n')
+
     const systemPrompt = `You are an insightful analyst for a feedback app called "Through Their Eyes". Anonymous friends have answered 25 questions about a person named ${name}, and your job is to synthesize the results into warm, specific, cross-referenced insights that ${name} will read about themselves.
 
 Voice & tone:
@@ -145,19 +158,45 @@ Voice & tone:
 - Warm, grounded, specific. Not sycophantic. Not clinical. Think "wise friend who read everything carefully."
 - Ground every claim in what respondents actually wrote. No invention.
 - Look ACROSS questions for patterns (e.g. if "underestimates themselves" shows up in blind spots AND hidden talents AND final message, say so).
+- Advice must be concrete and practical — something you could do this week, not vague affirmations.
+
+The 8 canonical areas (use these exact keys):
+${areaBlock}
 
 Output format — return ONLY valid JSON, no markdown, no commentary. Shape:
 {
+  "openingSummary": {
+    "headline": "One punchy line (max 12 words) capturing the meta-finding — the thing that jumps out across all 25 answers",
+    "sections": [
+      { "area": "first_impressions", "insight": "2-3 sentences synthesizing this area — what the data says about you here, specific and warm" },
+      { "area": "talents", "insight": "..." },
+      { "area": "communication", "insight": "..." },
+      { "area": "emotional_depth", "insight": "..." },
+      { "area": "reliability", "insight": "..." },
+      { "area": "blind_spots", "insight": "..." },
+      { "area": "in_the_group", "insight": "..." },
+      { "area": "what_they_love", "insight": "..." }
+    ]
+  },
   "mc": {
     "<questionId>": { "otherSummary": "2-3 sentences on what the 'Other' respondents added, whether they cluster around any theme, and how that compares to the canonical winners" }
   },
   "freetext": {
     "<questionId>": { "summary": "2-4 sentence synthesis — what people agree on, what's unexpected, what resonates with answers to other questions. Be specific, quotable, short." }
   },
-  "global": "One short paragraph (3-5 sentences) pulling together the meta-insight across all 25 answers — the headline finding."
+  "advice": [
+    { "area": "first_impressions", "title": "Short imperative (max 6 words)", "action": "2-3 sentences of concrete, practical advice grounded in what respondents said. Must be actionable this week." },
+    { "area": "talents", "title": "...", "action": "..." },
+    { "area": "communication", "title": "...", "action": "..." },
+    { "area": "emotional_depth", "title": "...", "action": "..." },
+    { "area": "reliability", "title": "...", "action": "..." },
+    { "area": "blind_spots", "title": "...", "action": "..." },
+    { "area": "in_the_group", "title": "...", "action": "..." },
+    { "area": "what_they_love", "title": "...", "action": "..." }
+  ]
 }
 
-Only include "mc" entries for the question IDs listed as having Other answers. Include every freetext question in "freetext".`
+"openingSummary.sections" MUST contain all 8 areas in the order above. "advice" MUST contain all 8 areas in the order above. Only include "mc" entries for the question IDs listed as having Other answers. Include every freetext question in "freetext".`
 
     const userPrompt = `# The 25 Questions\n\n${qBlock}\n\n# Anonymous Responses (n=${responses.length})\n\n${answerBlock}\n\n# Questions with "Other" free-text answers\n\nOnly include these IDs in the "mc" object: ${mcWithOther.length ? mcWithOther.join(', ') : '(none — return "mc": {})'}\n\nAll freetext question IDs to cover: 3, 5, 10, 18, 19, 23, 24, 25\n\nReturn the JSON now.`
 
@@ -175,8 +214,8 @@ Only include "mc" entries for the question IDs listed as having Other answers. I
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 4000,
+        model: 'claude-opus-4-6',
+        max_tokens: 8000,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }],
       }),
@@ -188,7 +227,10 @@ Only include "mc" entries for the question IDs listed as having Other answers. I
     }
 
     const claudeJson = await claudeRes.json()
-    const rawText: string = claudeJson.content?.[0]?.text || ''
+    const textBlock = Array.isArray(claudeJson.content)
+      ? claudeJson.content.find((b: any) => b.type === 'text')
+      : null
+    const rawText: string = textBlock?.text || ''
     const cleaned = rawText
       .replace(/^```(?:json)?\s*/i, '')
       .replace(/```\s*$/i, '')

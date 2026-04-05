@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { aggregateResponses, topMcAnswers } from '../lib/aggregation'
+import { useAiInsights, type AreaKey } from '../lib/aiInsights'
 import type { Session, AggregatedResults } from '../types'
 import WrapCard from '../components/wrapped/WrapCard'
 import BarChart from '../components/wrapped/BarChart'
@@ -55,8 +56,11 @@ export default function Results() {
     load()
   }, [slug])
 
-  const totalCards = 25
-  const next = useCallback(() => setCardIndex((i) => Math.min(i + 1, totalCards - 1)), [])
+  const { insights, loading: aiLoading } = useAiInsights(session?.id, Boolean(data))
+
+  // Dynamic card count: 1 opening + 25 details, plus (1 advice intro + 8 advice) when insights are ready
+  const totalCards = 1 + 25 + (insights ? 1 + insights.advice.length : 0)
+  const next = useCallback(() => setCardIndex((i) => Math.min(i + 1, totalCards - 1)), [totalCards])
   const prev = useCallback(() => setCardIndex((i) => Math.max(i - 1, 0)), [])
 
   // Keyboard navigation
@@ -207,7 +211,28 @@ export default function Results() {
     <h2 className="text-2xl md:text-3xl font-bold leading-tight">{children}</h2>
   )
 
-  const cards: Array<{ gradient: string; content: React.ReactNode }> = [
+  const AREA_LABELS: Record<AreaKey, string> = {
+    first_impressions: 'First Impressions',
+    talents: 'Talents & Superpowers',
+    communication: 'Communication & Listening',
+    emotional_depth: 'Emotional Depth',
+    reliability: 'Reliability & Trust',
+    blind_spots: 'Blind Spots & Growth',
+    in_the_group: 'In the Group',
+    what_they_love: 'What They Love About You',
+  }
+  const AREA_GRADIENTS: Record<AreaKey, string> = {
+    first_impressions: 'warm',
+    talents: 'purple',
+    communication: 'ocean',
+    emotional_depth: 'sunset',
+    reliability: 'midnight',
+    blind_spots: 'forest',
+    in_the_group: 'purple',
+    what_they_love: 'golden',
+  }
+
+  const detailCards: Array<{ gradient: string; content: React.ReactNode }> = [
     // 1. First Impressions — the vibe
     {
       gradient: 'warm',
@@ -226,14 +251,16 @@ export default function Results() {
         <>
           <Kicker>First Impressions</Kicker>
           <Title>What they wrongly assumed about you at first</Title>
-          <motion.p
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring' }}
-            className="text-3xl font-black text-primary-light"
-          >
-            {toSecondPerson(mc(1)?.winner || '')}
-          </motion.p>
+          <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10">
+            <motion.p
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, type: 'spring' }}
+              className="text-3xl font-black text-primary-light"
+            >
+              {toSecondPerson(mc(1)?.winner || '')}
+            </motion.p>
+          </div>
           <BarChart items={topAnswersYou(1).map(a => ({ label: a.option, value: a.pct }))} />
         </>
       ),
@@ -256,14 +283,16 @@ export default function Results() {
         <>
           <Kicker>Your Superpower</Kicker>
           <Title>Your most underrated skill</Title>
-          <motion.p
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 150 }}
-            className="text-4xl md:text-5xl font-black bg-gradient-to-r from-primary-light to-accent bg-clip-text text-transparent"
-          >
-            {mc(4)?.winner}
-          </motion.p>
+          <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10">
+            <motion.p
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 150 }}
+              className="text-4xl md:text-5xl font-black bg-gradient-to-r from-primary-light to-accent bg-clip-text text-transparent"
+            >
+              {mc(4)?.winner}
+            </motion.p>
+          </div>
           <BarChart items={topAnswers(4).map(a => ({ label: a.option, value: a.pct }))} />
         </>
       ),
@@ -319,14 +348,16 @@ export default function Results() {
         <>
           <Kicker>In a Disagreement</Kicker>
           <Title>What you tend to do when things get tense</Title>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-2xl font-bold text-primary-light"
-          >
-            {mc(9)?.winner}
-          </motion.p>
+          <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10">
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-2xl font-bold text-primary-light"
+            >
+              {mc(9)?.winner}
+            </motion.p>
+          </div>
           <BarChart items={topAnswers(9).map(a => ({ label: a.option, value: a.pct }))} />
         </>
       ),
@@ -349,14 +380,16 @@ export default function Results() {
         <>
           <Kicker>When Times Are Hard</Kicker>
           <Title>The kind of friend you are when people are struggling</Title>
-          <motion.p
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring' }}
-            className="text-2xl font-bold text-primary-light"
-          >
-            {mc(11)?.winner}
-          </motion.p>
+          <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10">
+            <motion.p
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, type: 'spring' }}
+              className="text-2xl font-bold text-primary-light"
+            >
+              {mc(11)?.winner}
+            </motion.p>
+          </div>
           <BarChart items={topAnswers(11).map(a => ({ label: a.option, value: a.pct }))} />
         </>
       ),
@@ -368,14 +401,16 @@ export default function Results() {
         <>
           <Kicker>What You Hold Back</Kicker>
           <Title>The emotion you struggle most to express</Title>
-          <motion.p
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring' }}
-            className="text-5xl font-black text-accent"
-          >
-            {mc(12)?.winner}
-          </motion.p>
+          <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10">
+            <motion.p
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, type: 'spring' }}
+              className="text-5xl font-black text-accent"
+            >
+              {mc(12)?.winner}
+            </motion.p>
+          </div>
           <BarChart items={topAnswers(12).map(a => ({ label: a.option, value: a.pct }))} />
         </>
       ),
@@ -442,14 +477,16 @@ export default function Results() {
         <>
           <Kicker>The Growth Edge</Kicker>
           <Title>Where your friends want to see you level up</Title>
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-2xl font-bold text-primary-light"
-          >
-            {mc(17)?.winner}
-          </motion.p>
+          <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10">
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-2xl font-bold text-primary-light"
+            >
+              {mc(17)?.winner}
+            </motion.p>
+          </div>
           <BarChart items={topAnswers(17).map(a => ({ label: a.option, value: a.pct }))} />
         </>
       ),
@@ -472,14 +509,16 @@ export default function Results() {
         <>
           <Kicker>Your Role in the Group</Kicker>
           <Title>What you naturally become in a friend group</Title>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-4xl font-black bg-gradient-to-r from-primary-light to-accent bg-clip-text text-transparent"
-          >
-            {mc(20)?.winner}
-          </motion.p>
+          <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10">
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-4xl font-black bg-gradient-to-r from-primary-light to-accent bg-clip-text text-transparent"
+            >
+              {mc(20)?.winner}
+            </motion.p>
+          </div>
           <BarChart items={topAnswers(20).map(a => ({ label: a.option, value: a.pct }))} />
         </>
       ),
@@ -491,14 +530,16 @@ export default function Results() {
         <>
           <Kicker>If You Left</Kicker>
           <Title>What the group would lose without you</Title>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-3xl font-black text-primary-light"
-          >
-            {mc(21)?.winner}
-          </motion.p>
+          <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10">
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-3xl font-black text-primary-light"
+            >
+              {mc(21)?.winner}
+            </motion.p>
+          </div>
           <BarChart items={topAnswers(21).map(a => ({ label: a.option, value: a.pct }))} />
         </>
       ),
@@ -510,14 +551,16 @@ export default function Results() {
         <>
           <Kicker>The Annoying Truth 😅</Kicker>
           <Title>Your most annoying habit</Title>
-          <motion.p
-            initial={{ opacity: 0, rotate: -5 }}
-            animate={{ opacity: 1, rotate: 0 }}
-            transition={{ delay: 0.2, type: 'spring' }}
-            className="text-2xl font-bold text-accent"
-          >
-            {mc(22)?.winner}
-          </motion.p>
+          <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10">
+            <motion.p
+              initial={{ opacity: 0, rotate: -5 }}
+              animate={{ opacity: 1, rotate: 0 }}
+              transition={{ delay: 0.2, type: 'spring' }}
+              className="text-2xl font-bold text-accent"
+            >
+              {mc(22)?.winner}
+            </motion.p>
+          </div>
           <BarChart items={topAnswers(22).map(a => ({ label: a.option, value: a.pct }))} />
         </>
       ),
@@ -556,6 +599,93 @@ export default function Results() {
       ),
     },
   ]
+
+  // Build opening summary card from AI insights (first card after "Show me")
+  const adviceStartIndex = 1 + detailCards.length + 1 // opening + 25 details + advice intro
+  const openingCard: { gradient: string; content: React.ReactNode } = {
+    gradient: 'midnight',
+    content: (
+      <>
+        <Kicker>The Big Picture</Kicker>
+        {aiLoading && !insights ? (
+          <>
+            <Title>Reading every answer…</Title>
+            <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10">
+              <motion.div
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ repeat: Infinity, duration: 1.6 }}
+                className="text-text-secondary text-sm"
+              >
+                Synthesizing what {data.totalResponses} people said about you…
+              </motion.div>
+            </div>
+          </>
+        ) : insights ? (
+          <>
+            <Title>{insights.openingSummary.headline}</Title>
+            <div className="w-full flex flex-col gap-3">
+              {insights.openingSummary.sections.map((s) => (
+                <div
+                  key={s.area}
+                  className="bg-white/5 rounded-2xl p-4 border border-white/10 text-left"
+                >
+                  <p className="text-[10px] uppercase tracking-widest text-accent font-semibold mb-1">
+                    {AREA_LABELS[s.area]}
+                  </p>
+                  <p className="text-sm text-text-primary leading-relaxed">{s.insight}</p>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => setCardIndex(adviceStartIndex)}
+              className="mt-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-text-primary text-sm font-medium cursor-pointer transition-all"
+            >
+              Skip to advice ↓
+            </button>
+          </>
+        ) : (
+          <>
+            <Title>Your reveal, 25 cards deep</Title>
+            <p className="text-text-secondary text-sm">
+              Swipe through what {data.totalResponses} people said about you.
+            </p>
+          </>
+        )}
+      </>
+    ),
+  }
+
+  // Advice intro + 8 advice cards
+  const adviceCards: Array<{ gradient: string; content: React.ReactNode }> = insights
+    ? [
+        {
+          gradient: 'forest',
+          content: (
+            <>
+              <Kicker>What To Do With This</Kicker>
+              <Title>8 small things you could actually try</Title>
+              <p className="text-text-secondary text-sm">
+                Concrete, practical — one per area, grounded in what people wrote.
+              </p>
+            </>
+          ),
+        },
+        ...insights.advice.map((a) => ({
+          gradient: AREA_GRADIENTS[a.area] || 'purple',
+          content: (
+            <>
+              <Kicker>{AREA_LABELS[a.area]}</Kicker>
+              <Title>{a.title}</Title>
+              <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10 text-left">
+                <p className="text-base text-text-primary leading-relaxed">{a.action}</p>
+              </div>
+            </>
+          ),
+        })),
+      ]
+    : []
+
+  const cards = [openingCard, ...detailCards, ...adviceCards]
 
   return (
     <>
