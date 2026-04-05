@@ -59,7 +59,6 @@ export default function Results() {
 
   const {
     insights,
-    loading: aiLoading,
     regenerating,
     isStale,
     regenerate,
@@ -653,24 +652,18 @@ export default function Results() {
               Skip to advice ↓
             </button>
           </>
-        ) : aiLoading ? (
-          <>
-            <Title>Reading every answer…</Title>
-            <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10">
-              <motion.div
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ repeat: Infinity, duration: 1.6 }}
-                className="text-text-secondary text-sm"
-              >
-                Synthesizing what {data.totalResponses} people said about you…
-              </motion.div>
-            </div>
-          </>
         ) : (
           <>
-            <Title>Your reveal, 25 cards deep</Title>
+            <Title>Your report is being prepared.</Title>
+            <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10 text-left">
+              <p className="text-text-secondary text-sm leading-relaxed">
+                We generate your AI report in the background the moment the 5th response lands,
+                so by the time you visit it is already here. If you are seeing this message, the
+                report is still being written. Refresh in a minute and it will be waiting.
+              </p>
+            </div>
             <p className="text-text-secondary text-sm">
-              Swipe through what {data.totalResponses} people said about you.
+              In the meantime, you can still swipe through what {data.totalResponses} people said about you.
             </p>
           </>
         )}

@@ -23,9 +23,9 @@ export interface AiInsights {
 
 interface State {
   insights: AiInsights | null
-  cachedAt: number | null // response_count the cache was generated from
-  loading: boolean // initial fetch in progress (no cache yet)
-  regenerating: boolean // user clicked regenerate
+  cachedAt: number | null // response_count at the time the cache was generated
+  loading: boolean // initial cache read in progress
+  regenerating: boolean // user clicked Regenerate
   error: string | null
 }
 
@@ -34,6 +34,14 @@ interface UseAiInsightsResult extends State {
   regenerate: () => Promise<void>
 }
 
+// IMPORTANT: this hook READS from tte_ai_insights only. It never triggers
+// Claude from the browser. Generation happens in the background: the DB
+// trigger tte_sessions_ai_insights_trigger fires the edge function the
+// instant response_count crosses from <5 to >=5, so by the time the creator
+// visits the report it has already been written to tte_ai_insights.
+//
+// The only exception is the regenerate() callback, which the user must
+// explicitly click when new responses have landed since the cached report.
 export function useAiInsights(
   sessionId: string | undefined,
   currentResponseCount: number | undefined,
@@ -47,7 +55,6 @@ export function useAiInsights(
     error: null,
   })
 
-  // Cache-first fetch
   useEffect(() => {
     if (!sessionId || !ready || !isSupabaseConfigured()) return
 
@@ -55,14 +62,24 @@ export function useAiInsights(
     setState((s) => ({ ...s, loading: true, error: null }))
 
     const run = async () => {
-      // 1. Try cache
-      const { data: cached } = await supabase
+      const { data: cached, error } = await supabase
         .from('tte_ai_insights')
         .select('insights, response_count_at_generation')
         .eq('session_id', sessionId)
         .maybeSingle()
 
       if (cancelled) return
+
+      if (error) {
+        setState({
+          insights: null,
+          cachedAt: null,
+          loading: false,
+          regenerating: false,
+          error: error.message,
+        })
+        return
+      }
 
       if (cached?.insights) {
         setState({
@@ -75,70 +92,24 @@ export function useAiInsights(
         return
       }
 
-      // 2. No cache yet, fall through to on-demand generation (edge function)
-      //    This path only runs if the DB trigger hasn't fired / finished yet.
-      try {
-        const { data, error } = await supabase.functions.invoke('tte-ai-insights', {
-          body: { session_id: sessionId },
-        })
-        if (cancelled) return
-        if (error) {
-          setState({
-            insights: null,
-            cachedAt: null,
-            loading: false,
-            regenerating: false,
-            error: error.message,
-          })
-          return
-        }
-        if (data?.insights) {
-          // Re-read from the cache so the UI always reflects persisted state,
-          // not an in-memory response.
-          const { data: stored } = await supabase
-            .from('tte_ai_insights')
-            .select('insights, response_count_at_generation')
-            .eq('session_id', sessionId)
-            .maybeSingle()
-          if (cancelled) return
-          setState({
-            insights: (stored?.insights ?? data.insights) as AiInsights,
-            cachedAt:
-              stored?.response_count_at_generation ??
-              (typeof data.response_count_at_generation === 'number'
-                ? data.response_count_at_generation
-                : currentResponseCount ?? null),
-            loading: false,
-            regenerating: false,
-            error: null,
-          })
-        } else {
-          setState({
-            insights: null,
-            cachedAt: null,
-            loading: false,
-            regenerating: false,
-            error: 'No insights returned',
-          })
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setState({
-            insights: null,
-            cachedAt: null,
-            loading: false,
-            regenerating: false,
-            error: String(e),
-          })
-        }
-      }
+      // No cache row yet. The DB trigger should have created one at the
+      // 5-response threshold. If we land here, generation is still in flight
+      // or the trigger has not been deployed. Surface a static "not ready"
+      // state. No in-browser generation, ever.
+      setState({
+        insights: null,
+        cachedAt: null,
+        loading: false,
+        regenerating: false,
+        error: null,
+      })
     }
 
     run()
     return () => {
       cancelled = true
     }
-  }, [sessionId, ready, currentResponseCount])
+  }, [sessionId, ready])
 
   const regenerate = useCallback(async () => {
     if (!sessionId || !isSupabaseConfigured()) return
@@ -156,10 +127,7 @@ export function useAiInsights(
         return
       }
 
-      // Re-read from the cache table to guarantee what we show is what got
-      // persisted. If the edge function's upsert silently failed, the row
-      // here will still have the old values and we surface an error instead
-      // of rendering an ephemeral in-memory report.
+      // Re-read the stored row so the UI always reflects persisted state.
       const { data: stored, error: storedErr } = await supabase
         .from('tte_ai_insights')
         .select('insights, response_count_at_generation')
@@ -171,19 +139,6 @@ export function useAiInsights(
           ...s,
           regenerating: false,
           error: 'Report was generated but could not be stored. Please try again.',
-        }))
-        return
-      }
-
-      const freshCount =
-        typeof data.response_count_at_generation === 'number'
-          ? data.response_count_at_generation
-          : stored.response_count_at_generation
-      if (stored.response_count_at_generation !== freshCount) {
-        setState((s) => ({
-          ...s,
-          regenerating: false,
-          error: 'Stored report is out of sync. Please try again.',
         }))
         return
       }
