@@ -59,8 +59,8 @@ export default function Results() {
 
   const { insights, loading: aiLoading } = useAiInsights(session?.id, Boolean(data))
 
-  // Dynamic card count: 1 opening + 25 details, plus (1 advice intro + 8 advice) when insights are ready
-  const totalCards = 1 + 25 + (insights ? 1 + insights.advice.length : 0)
+  // Dynamic card count: 1 opening + 25 details, plus 1 advice grid card when insights are ready
+  const totalCards = 1 + 25 + (insights ? 1 : 0)
   const next = useCallback(() => setCardIndex((i) => Math.min(i + 1, totalCards - 1)), [totalCards])
   const prev = useCallback(() => setCardIndex((i) => Math.max(i - 1, 0)), [])
 
@@ -222,17 +222,6 @@ export default function Results() {
     in_the_group: 'In the Group',
     what_they_love: 'What They Love About You',
   }
-  const AREA_GRADIENTS: Record<AreaKey, string> = {
-    first_impressions: 'warm',
-    talents: 'purple',
-    communication: 'ocean',
-    emotional_depth: 'sunset',
-    reliability: 'midnight',
-    blind_spots: 'forest',
-    in_the_group: 'purple',
-    what_they_love: 'golden',
-  }
-
   const detailCards: Array<{ gradient: string; content: React.ReactNode; wide?: boolean }> = [
     // 1. First Impressions — the vibe
     {
@@ -602,7 +591,8 @@ export default function Results() {
   ]
 
   // Build opening summary card from AI insights (first card after "Show me")
-  const adviceStartIndex = 1 + detailCards.length + 1 // opening + 25 details + advice intro
+  // Advice is a single card at the very end (index = 1 opening + 25 details = 26)
+  const adviceStartIndex = 1 + detailCards.length
   const openingCard: { gradient: string; content: React.ReactNode; wide?: boolean } = {
     gradient: 'midnight',
     wide: true,
@@ -659,35 +649,45 @@ export default function Results() {
     ),
   }
 
-  // Advice intro + 8 advice cards
+  // Single wide advice card (all 8 areas in a grid, mirrors the opening card)
   const adviceCards: Array<{ gradient: string; content: React.ReactNode; wide?: boolean }> = insights
     ? [
         {
           gradient: 'forest',
+          wide: true,
           content: (
             <>
               <Kicker>What To Do With This</Kicker>
               <Title>8 small things you could actually try</Title>
-              <p className="text-text-secondary text-sm">
-                Concrete, practical — one per area, grounded in what people wrote.
-              </p>
-            </>
-          ),
-        },
-        ...insights.advice.map((a) => ({
-          gradient: AREA_GRADIENTS[a.area] || 'purple',
-          content: (
-            <>
-              <Kicker>{AREA_LABELS[a.area]}</Kicker>
-              <Title>{a.title}</Title>
-              <div className="w-full bg-white/5 rounded-2xl p-6 border border-white/10 text-left">
-                <p className="text-base text-text-secondary leading-relaxed">
-                  <RichText text={a.action} />
-                </p>
+              <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-3">
+                {insights.advice.map((a) => {
+                  const bullets: string[] = Array.isArray(a.action) ? a.action : [a.action]
+                  return (
+                    <div
+                      key={a.area}
+                      className="bg-white/5 rounded-2xl p-4 border border-white/10 text-left h-full"
+                    >
+                      <p className="text-[10px] uppercase tracking-widest text-accent font-semibold mb-1">
+                        {AREA_LABELS[a.area]}
+                      </p>
+                      <p className="text-sm font-semibold text-text-primary mb-2">{a.title}</p>
+                      <ul className="flex flex-col gap-1.5 text-sm text-text-secondary leading-snug">
+                        {bullets.map((b, i) => (
+                          <li key={i} className="flex gap-2">
+                            <span className="text-accent shrink-0">•</span>
+                            <span>
+                              <RichText text={b} />
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )
+                })}
               </div>
             </>
           ),
-        })),
+        },
       ]
     : []
 
