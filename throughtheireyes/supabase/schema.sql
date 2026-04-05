@@ -85,8 +85,11 @@ create policy "tte_responses_insert_anyone"
   to anon, authenticated
   with check (true);
 
--- Responses only readable once 6+ collected (enforces anonymity threshold)
-create policy "tte_responses_select_after_six"
+-- Responses only readable once 5+ collected (enforces anonymity threshold).
+-- Must stay in sync with REQUIRED_RESPONSES in src/pages/Results.tsx.
+drop policy if exists "tte_responses_select_after_six" on public.tte_responses;
+drop policy if exists "tte_responses_select_after_threshold" on public.tte_responses;
+create policy "tte_responses_select_after_threshold"
   on public.tte_responses
   for select
   to anon, authenticated
@@ -94,6 +97,6 @@ create policy "tte_responses_select_after_six"
     exists (
       select 1 from public.tte_sessions s
       where s.id = tte_responses.session_id
-      and s.response_count >= 6
+      and s.response_count >= 5
     )
   );
