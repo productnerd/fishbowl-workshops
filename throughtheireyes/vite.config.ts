@@ -4,5 +4,5 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: '/throughtheireyes/',
+  base: '/04-Responsive-profile/throughtheireyes/',
 })
