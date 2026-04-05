@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import Button from '../components/ui/Button'
+
+const MY_SESSION_KEY = 'tte_my_session'
+const REQUIRED_RESPONSES = 6
 
 function generateSlug(): string {
   const chars = 'abcdefghijkmnpqrstuvwxyz23456789'
@@ -13,25 +16,70 @@ function generateSlug(): string {
   return slug
 }
 
+function getShareLink(slug: string): string {
+  const base = window.location.origin + window.location.pathname
+  return `${base}#/s/${slug}`
+}
+
 export default function Create() {
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
-  const [shareLink, setShareLink] = useState('')
+  const [slug, setSlug] = useState<string | null>(null)
+  const [creatorName, setCreatorName] = useState('')
+  const [responseCount, setResponseCount] = useState(0)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
+  const [checkingExisting, setCheckingExisting] = useState(true)
+
+  // On mount: check if user already has a session
+  useEffect(() => {
+    const stored = localStorage.getItem(MY_SESSION_KEY)
+    if (!stored) {
+      setCheckingExisting(false)
+      return
+    }
+    try {
+      const { slug: storedSlug, creator_name } = JSON.parse(stored)
+      setSlug(storedSlug)
+      setCreatorName(creator_name)
+    } catch {
+      localStorage.removeItem(MY_SESSION_KEY)
+    }
+    setCheckingExisting(false)
+  }, [])
+
+  // Fetch latest response count whenever we have a slug
+  useEffect(() => {
+    if (!slug) return
+    const fetchCount = async () => {
+      if (isSupabaseConfigured()) {
+        const { data } = await supabase
+          .from('tte_sessions')
+          .select('response_count')
+          .eq('slug', slug)
+          .single()
+        if (data) setResponseCount(data.response_count || 0)
+      } else {
+        const sessions = JSON.parse(localStorage.getItem('tte_sessions') || '{}')
+        if (sessions[slug]) setResponseCount(sessions[slug].response_count || 0)
+      }
+    }
+    fetchCount()
+  }, [slug])
 
   const handleCreate = async () => {
     if (!name.trim()) return
     setLoading(true)
     setError('')
 
-    const slug = generateSlug()
+    const newSlug = generateSlug()
+    const trimmedName = name.trim()
 
     if (isSupabaseConfigured()) {
       const { error: dbError } = await supabase.from('tte_sessions').insert({
-        creator_name: name.trim(),
-        slug,
+        creator_name: trimmedName,
+        slug: newSlug,
         response_count: 0,
       })
       if (dbError) {
@@ -40,53 +88,74 @@ export default function Create() {
         return
       }
     } else {
-      // Demo mode: store in localStorage
       const sessions = JSON.parse(localStorage.getItem('tte_sessions') || '{}')
-      sessions[slug] = {
+      sessions[newSlug] = {
         id: crypto.randomUUID(),
-        creator_name: name.trim(),
-        slug,
+        creator_name: trimmedName,
+        slug: newSlug,
         created_at: new Date().toISOString(),
         response_count: 0,
       }
       localStorage.setItem('tte_sessions', JSON.stringify(sessions))
     }
 
-    const base = window.location.origin + window.location.pathname
-    setShareLink(`${base}#/s/${slug}`)
+    // Persist "my session" so the user comes back here next time
+    localStorage.setItem(
+      MY_SESSION_KEY,
+      JSON.stringify({ slug: newSlug, creator_name: trimmedName })
+    )
+
+    setSlug(newSlug)
+    setCreatorName(trimmedName)
     setLoading(false)
   }
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(shareLink)
+    if (!slug) return
+    await navigator.clipboard.writeText(getShareLink(slug))
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      await navigator.share({
-        title: 'Through Their Eyes',
-        text: `Hey! I want to see myself through your eyes. Answer a few anonymous questions about me?`,
-        url: shareLink,
-      })
-    } else {
-      handleCopy()
-    }
+  const handleStartOver = () => {
+    if (!confirm('Start over with a new name? Your current link and responses will still exist, but this browser will forget about them.')) return
+    localStorage.removeItem(MY_SESSION_KEY)
+    setSlug(null)
+    setCreatorName('')
+    setName('')
+    setResponseCount(0)
   }
 
-  if (shareLink) {
+  if (checkingExisting) {
+    return (
+      <div className="card-screen">
+        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }} className="text-4xl">
+          👁
+        </motion.div>
+      </div>
+    )
+  }
+
+  // Share / status screen
+  if (slug) {
+    const shareLink = getShareLink(slug)
+    const remaining = Math.max(0, REQUIRED_RESPONSES - responseCount)
+    const unlocked = responseCount >= REQUIRED_RESPONSES
+    const progressPct = Math.min(100, (responseCount / REQUIRED_RESPONSES) * 100)
+
     return (
       <div className="card-screen text-center">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center gap-6 max-w-lg"
+          className="flex flex-col items-center gap-6 max-w-lg w-full"
         >
           <div className="text-6xl">🔗</div>
-          <h1 className="text-3xl font-bold">Your link is ready!</h1>
+          <h1 className="text-3xl font-bold">
+            Hey {creatorName}!
+          </h1>
           <p className="text-text-secondary">
-            Share this with at least 6 friends. Once they all answer, your results will unlock.
+            Share this link with at least 6 friends. Once they all answer, your results will unlock.
           </p>
 
           <div className="w-full p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-3">
@@ -103,21 +172,52 @@ export default function Create() {
             </button>
           </div>
 
-          <Button onClick={handleShare}>
-            Share with friends
-          </Button>
+          {/* Progress */}
+          <div className="w-full bg-white/5 rounded-2xl p-5 border border-white/10">
+            <div className="flex justify-between text-sm mb-3">
+              <span className="text-text-secondary">Responses</span>
+              <span className="text-primary-light font-semibold">
+                {responseCount} / {REQUIRED_RESPONSES}
+              </span>
+            </div>
+            <div className="h-3 bg-white/10 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPct}%` }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
+                className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
+              />
+            </div>
+            <p className="mt-3 text-sm">
+              {unlocked ? (
+                <span className="text-success font-semibold">✨ Your results are ready!</span>
+              ) : (
+                <span className="text-text-secondary">
+                  <span className="text-primary-light font-bold">{remaining}</span> more{' '}
+                  {remaining === 1 ? 'response' : 'responses'} to unlock your report
+                </span>
+              )}
+            </p>
+          </div>
+
+          {unlocked && (
+            <Button onClick={() => navigate(`/results/${slug}`)}>
+              See your results →
+            </Button>
+          )}
 
           <button
-            onClick={() => navigate(`/results/${shareLink.split('/s/')[1]}`)}
-            className="text-sm text-text-secondary hover:text-text-primary cursor-pointer transition-colors mt-2"
+            onClick={handleStartOver}
+            className="text-xs text-text-secondary hover:text-text-primary cursor-pointer transition-colors mt-2"
           >
-            Go to your results page →
+            Start over with a new name
           </button>
         </motion.div>
       </div>
     )
   }
 
+  // Name entry screen
   return (
     <div className="card-screen text-center">
       <motion.div

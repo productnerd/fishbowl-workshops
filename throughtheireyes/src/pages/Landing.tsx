@@ -1,9 +1,15 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/ui/Button'
 
 export default function Landing() {
   const navigate = useNavigate()
+  const [hasSession, setHasSession] = useState(false)
+
+  useEffect(() => {
+    setHasSession(Boolean(localStorage.getItem('tte_my_session')))
+  }, [])
 
   return (
     <div className="card-screen text-center relative overflow-hidden">
@@ -53,7 +59,7 @@ export default function Landing() {
           className="flex flex-col gap-4 items-center"
         >
           <Button onClick={() => navigate('/create')}>
-            Create your link
+            {hasSession ? 'View your link' : 'Create your link'}
           </Button>
           <p className="text-xs text-text-secondary">
             Free. Anonymous. No sign-up needed.
