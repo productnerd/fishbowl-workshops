@@ -20,9 +20,10 @@ export default function VirtueSlider({
 }) {
   return (
     <div className="w-full select-none">
-      <div className="mb-2.5 flex items-baseline justify-between">
-        <span className="kicker text-ink">{virtueLabel}</span>
-        <span className="kicker text-cyan-deep">aim for the middle</span>
+      <div className="mb-2.5 grid grid-cols-[1fr_auto_1fr] items-baseline gap-2">
+        <span className="text-[13px] font-semibold text-ink-soft">{deficientLabel}</span>
+        <span className="kicker whitespace-nowrap text-center text-ink">{virtueLabel}</span>
+        <span className="text-right text-[13px] font-semibold text-ink-soft">{excessiveLabel}</span>
       </div>
 
       <div className="card-3d flex gap-2 bg-sand p-2.5">
@@ -53,10 +54,6 @@ export default function VirtueSlider({
         })}
       </div>
 
-      <div className="mt-2 flex justify-between text-[13px] font-semibold text-ink-soft">
-        <span>← {deficientLabel}</span>
-        <span>{excessiveLabel} →</span>
-      </div>
     </div>
   )
 }

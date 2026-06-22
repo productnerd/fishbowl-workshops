@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { REQUIRED_RESPONSES } from '@fishbowl/feedback-core'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import VirtueSlider from '../components/VirtueSlider'
+import { getResponseCount } from '../lib/data'
 
 const rise = (delay: number) => ({
   initial: { opacity: 0, y: 24 },
@@ -20,6 +22,27 @@ const STEPS = [
 export default function Landing() {
   const navigate = useNavigate()
   const [demo, setDemo] = useState(4)
+  const [mySlug, setMySlug] = useState<string | null>(null)
+  const [myCount, setMyCount] = useState(0)
+
+  // If this browser already created a link, change the CTA accordingly.
+  useEffect(() => {
+    const stored = localStorage.getItem('fishbowl_my_session')
+    if (!stored) return
+    try {
+      const { slug } = JSON.parse(stored)
+      if (slug) {
+        setMySlug(slug)
+        getResponseCount(slug).then(setMyCount)
+      }
+    } catch {
+      localStorage.removeItem('fishbowl_my_session')
+    }
+  }, [])
+
+  const reportReady = mySlug != null && myCount >= REQUIRED_RESPONSES
+  const ctaLabel = !mySlug ? 'Make your link →' : reportReady ? 'Check out report →' : 'See progress →'
+  const onCta = () => navigate(!mySlug ? '/create' : reportReady ? `/r/${mySlug}` : '/create')
 
   return (
     <div className="mx-auto min-h-dvh w-full max-w-6xl px-5 pb-24 sm:px-8">
@@ -53,8 +76,8 @@ export default function Landing() {
             report worth reading: not a score, a <span className="font-semibold text-ink">mirror</span>.
           </motion.p>
           <motion.div {...rise(0.3)} className="mt-9 flex flex-wrap items-center gap-4">
-            <Button variant="red" className="!text-xl" onClick={() => navigate('/create')}>
-              Make your link →
+            <Button variant="red" className="!text-xl" onClick={onCta}>
+              {ctaLabel}
             </Button>
             <span className="text-sm font-semibold text-ink-soft">Free · no sign-up for them</span>
           </motion.div>
@@ -145,8 +168,8 @@ export default function Landing() {
           <p className="max-w-md text-lg text-paper-hi/90">
             No names. No logins for them. Just the truth, told kindly.
           </p>
-          <Button variant="paper" className="!text-xl" onClick={() => navigate('/create')}>
-            Make your link →
+          <Button variant="paper" className="!text-xl" onClick={onCta}>
+            {ctaLabel}
           </Button>
         </Card>
         <p className="mt-10 text-center kicker text-ink-soft">🐟 Fishbowl · see yourself clearly</p>
