@@ -24,7 +24,7 @@ export default function LikertScale({
               type="button"
               onClick={() => onChange(s)}
               className={`depress-sm grid h-16 flex-1 cursor-pointer place-items-center rounded-2xl border-[2.5px] border-ink font-display text-xl font-black ${
-                filled ? 'bg-red text-paper-hi' : 'bg-paper-hi text-ink-soft/70'
+                filled ? 'bg-pink text-ink sc-pink' : 'bg-paper-hi text-ink-soft/70'
               } ${isSel ? 'is-on' : ''}`}
             >
               {s}

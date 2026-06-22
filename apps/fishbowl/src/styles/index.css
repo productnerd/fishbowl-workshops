@@ -8,10 +8,12 @@
   --color-sand-deep: #d3bf96;
   --color-ink: #2a2420;
   --color-ink-soft: #5a4f45;
-  --color-red: #cc4326;
-  --color-red-deep: #a2311a;
+  --color-pink: #efa6c1;
+  --color-pink-deep: #a83f6f;
+  --color-pink-shadow: #5e2746;
   --color-blue: #1366ac;
   --color-blue-deep: #0e4f8a;
+  --color-navy: #0c2c52;
 
   --font-display: "Fraunces", Georgia, serif;
   --font-body: "Hanken Grotesk", system-ui, sans-serif;
@@ -29,11 +31,11 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     background-image:
-      radial-gradient(115% 75% at 50% -12%, rgba(204, 67, 38, 0.07), transparent 58%),
+      radial-gradient(115% 75% at 50% -12%, rgba(239, 166, 193, 0.12), transparent 58%),
       radial-gradient(95% 60% at 102% 104%, rgba(19, 102, 172, 0.07), transparent 55%);
     background-attachment: fixed;
   }
-  ::selection { background: var(--color-red); color: var(--color-paper-hi); }
+  ::selection { background: var(--color-pink); color: var(--color-ink); }
 }
 
 /* Paper grit / grain overlay — the materiality. */
@@ -70,36 +72,40 @@ body::after {
   }
   /* The signature 3D, cartoon-ish container: thick ink outline, big curve,
      chunky offset shadow. */
+  /* Offset shadow hue follows the component (--sc), defaulting to ink. */
   .card-3d {
     border: 2.5px solid var(--color-ink);
     border-radius: 28px;
-    box-shadow: 6px 7px 0 0 var(--color-ink);
+    box-shadow: 6px 7px 0 0 var(--sc, var(--color-ink));
     background: var(--color-paper-hi);
   }
-  .shadow-chunky { box-shadow: 6px 7px 0 0 var(--color-ink); }
-  .shadow-chunky-sm { box-shadow: 4px 5px 0 0 var(--color-ink); }
-  /* Press / lift physicality on interactive elements. */
-  /* Raised by default (chunky offset shadow). Hover lifts higher. Press pushes
-     DOWN into the surface with a concave inset shadow — physical + skeuomorphic. */
-  .press { transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.1s cubic-bezier(0.2, 0.8, 0.2, 1); }
-  .press:hover { transform: translate(-2px, -3px); box-shadow: 8px 10px 0 0 var(--color-ink); }
-  .press:active { transform: translate(5px, 6px); box-shadow: inset 0 3px 8px rgba(20, 16, 12, 0.55); }
+  .shadow-chunky { box-shadow: 6px 7px 0 0 var(--sc, var(--color-ink)); }
+  .shadow-chunky-sm { box-shadow: 4px 5px 0 0 var(--sc, var(--color-ink)); }
 
-  /* Selectable option: raised, and STAYS pressed-in when selected (.is-on) —
-     pushed down with a concave inset shadow, like a real key held down. */
+  /* Hue the chunky shadow to match coloured components. */
+  .sc-pink { --sc: var(--color-pink-shadow); }
+  .sc-navy { --sc: var(--color-navy); }
+
+  /* Press physics: on press the button travels DOWN with a concave inset shadow
+     (the press animation). Hover changes ONLY the shadow (no jump), so releasing
+     never pops the button back up — it just settles. Selected options stay down. */
+  .press { transition: transform 0.07s ease-out, box-shadow 0.07s ease-out; }
+  .press:hover { box-shadow: 8px 10px 0 0 var(--sc, var(--color-ink)); }
+  .press:active { transform: translate(5px, 6px); box-shadow: inset 0 3px 9px rgba(20, 16, 12, 0.6); }
+
   .depress {
-    box-shadow: 4px 5px 0 0 var(--color-ink);
-    transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 4px 5px 0 0 var(--sc, var(--color-ink));
+    transition: transform 0.07s ease-out, box-shadow 0.07s ease-out;
   }
-  .depress:hover:not(.is-on) { transform: translate(-1px, -2px); box-shadow: 5px 7px 0 0 var(--color-ink); }
+  .depress:hover:not(.is-on) { box-shadow: 6px 8px 0 0 var(--sc, var(--color-ink)); }
   .depress:active,
-  .depress.is-on { transform: translate(4px, 5px); box-shadow: inset 0 3px 7px rgba(20, 16, 12, 0.5); }
+  .depress.is-on { transform: translate(4px, 5px); box-shadow: inset 0 3px 8px rgba(20, 16, 12, 0.55); }
 
   .depress-sm {
-    box-shadow: 3px 4px 0 0 var(--color-ink);
-    transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 3px 4px 0 0 var(--sc, var(--color-ink));
+    transition: transform 0.07s ease-out, box-shadow 0.07s ease-out;
   }
-  .depress-sm:hover:not(.is-on) { transform: translate(-1px, -1px); box-shadow: 4px 5px 0 0 var(--color-ink); }
+  .depress-sm:hover:not(.is-on) { box-shadow: 4px 6px 0 0 var(--sc, var(--color-ink)); }
   .depress-sm:active,
-  .depress-sm.is-on { transform: translate(3px, 4px); box-shadow: inset 0 2px 6px rgba(20, 16, 12, 0.5); }
+  .depress-sm.is-on { transform: translate(3px, 4px); box-shadow: inset 0 2px 7px rgba(20, 16, 12, 0.55); }
 }

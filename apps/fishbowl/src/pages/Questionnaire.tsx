@@ -108,7 +108,7 @@ export default function Questionnaire() {
       {/* progress */}
       <div className="sticky top-0 z-10 -mx-5 bg-paper/85 px-5 pb-3 pt-5 backdrop-blur-sm">
         <div className="mb-2 flex items-center justify-between">
-          <span className="kicker text-red-deep">{q.section}</span>
+          <span className="kicker text-pink-deep">{q.section}</span>
           <span className="kicker text-ink-soft">
             {i + 1} / {questions.length}
           </span>
@@ -170,7 +170,7 @@ export default function Questionnaire() {
             {submitting ? 'Sending…' : 'Submit ✓'}
           </Button>
         ) : (
-          <Button variant="red" onClick={() => go(1)} disabled={!answered}>
+          <Button variant="pink" onClick={() => go(1)} disabled={!answered}>
             Next →
           </Button>
         )}

@@ -26,14 +26,14 @@ export default function VirtueSlider({
 
   return (
     <div className="w-full select-none">
-      {/* one line at the top: vice · virtue · vice */}
-      <div className="mb-3 grid grid-cols-[1fr_auto_1fr] items-baseline gap-2">
-        <span className="text-[13px] font-semibold text-ink-soft">{deficientLabel}</span>
+      {/* one line, all caps: vice · VIRTUE · vice */}
+      <div className="mb-3 grid grid-cols-[1fr_auto_1fr] items-baseline gap-3">
+        <span className="kicker text-ink-soft">{deficientLabel}</span>
         <span className="kicker whitespace-nowrap text-center text-ink">{virtueLabel}</span>
-        <span className="text-right text-[13px] font-semibold text-ink-soft">{excessiveLabel}</span>
+        <span className="kicker text-right text-ink-soft">{excessiveLabel}</span>
       </div>
 
-      {/* 9 keys, no outer tray — each a tactile raised key that stays pressed when chosen */}
+      {/* 9 keys, no outer tray — tactile raised keys that stay pressed when chosen */}
       <div className="flex gap-1.5">
         {SEGMENTS.map((s) => {
           const isSel = value === s
@@ -46,7 +46,7 @@ export default function VirtueSlider({
               onClick={() => onChange?.(s)}
               aria-label={`Position ${s} of 9`}
               className={`depress-sm relative grid h-12 flex-1 cursor-pointer place-items-center rounded-lg border-[2.5px] border-ink ${
-                isSel ? `${balanced ? 'bg-blue' : 'bg-red'} is-on` : isCenter ? 'bg-blue/25' : 'bg-paper-hi'
+                isSel ? `${balanced ? 'bg-blue sc-navy' : 'bg-pink sc-pink'} is-on` : isCenter ? 'bg-blue/25' : 'bg-paper-hi'
               }`}
             >
               {isCenter && !isSel && <span className="text-base leading-none text-blue-deep">✦</span>}
@@ -55,19 +55,18 @@ export default function VirtueSlider({
         })}
       </div>
 
-      {/* characteristic behaviours: vice (3) · virtue (3) · vice (3) */}
+      {/* characteristic behaviours, aligned to their pole: vice (left) · virtue (center) · vice (right) */}
       {showTraits && (
-        <div className="mt-6 grid grid-cols-3 gap-2.5 text-center">
+        <div className="mt-6 grid grid-cols-3 gap-2.5">
           {[
-            { head: deficientLabel, traits: deficientTraits, tone: 'text-red-deep', center: false },
-            { head: virtueLabel, traits: virtueTraits, tone: 'text-blue-deep', center: true },
-            { head: excessiveLabel, traits: excessiveTraits, tone: 'text-red-deep', center: false },
+            { traits: deficientTraits, align: 'text-left', center: false },
+            { traits: virtueTraits, align: 'text-center', center: true },
+            { traits: excessiveTraits, align: 'text-right', center: false },
           ].map((col, ci) => (
             <div
               key={ci}
-              className={col.center ? 'rounded-2xl border-2 border-blue/35 bg-blue/10 px-2 py-3' : 'px-1 py-3'}
+              className={`${col.align} ${col.center ? 'rounded-2xl border-2 border-blue/35 bg-blue/10 px-3 py-3' : 'py-3'}`}
             >
-              <p className={`kicker mb-2.5 ${col.tone}`}>{col.head}</p>
               <ul className="space-y-2">
                 {(col.traits ?? []).map((t, ti) => (
                   <li key={ti} className="text-base font-medium leading-tight text-ink">

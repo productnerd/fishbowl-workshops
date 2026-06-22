@@ -2,11 +2,11 @@ import { generateSlug, type Session } from '@fishbowl/feedback-core'
 import { supabase } from './supabase'
 
 // Fishbowl runs Supabase-only (the backend is live; no localStorage fallback).
-export async function createSession(name: string): Promise<string> {
+export async function createSession(name: string, context?: string): Promise<string> {
   const slug = generateSlug()
   const { error } = await supabase
     .from('fishbowl_sessions')
-    .insert({ creator_name: name, slug, response_count: 0 })
+    .insert({ creator_name: name, slug, response_count: 0, context: context ?? null })
   if (error) throw error
   return slug
 }

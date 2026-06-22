@@ -14,7 +14,7 @@ const rise = (delay: number) => ({
 })
 
 const STEPS = [
-  { n: '01', tone: 'red' as const, title: 'Share one link', body: 'Send it to five or more colleagues. It takes them about five minutes.' },
+  { n: '01', tone: 'pink' as const, title: 'Share one link', body: 'Send it to five or more colleagues. It takes them about five minutes.' },
   { n: '02', tone: 'blue' as const, title: 'They answer anonymously', body: 'Sliders, quick scales, and a few honest words. No names. Ever.' },
   { n: '03', tone: 'sand' as const, title: 'Get your Wrapped', body: 'An interactive report: your strengths, your blind spots, and where you land.' },
 ]
@@ -55,7 +55,7 @@ export default function Landing() {
       {/* Hero */}
       <section className="grid items-center gap-10 pt-6 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:pt-12">
         <div>
-          <motion.p {...rise(0.05)} className="kicker mb-5 text-red-deep">
+          <motion.p {...rise(0.05)} className="kicker mb-5 text-pink-deep">
             workplace feedback, reimagined
           </motion.p>
           <motion.h1 {...rise(0.12)} className="display text-[clamp(3rem,9vw,6.5rem)]">
@@ -63,7 +63,7 @@ export default function Landing() {
             <br />
             the way your
             <br />
-            <span className="relative inline-block text-red">
+            <span className="relative inline-block text-pink-deep">
               team does
               <svg className="absolute -bottom-3 left-0 w-full" height="16" viewBox="0 0 300 16" fill="none" preserveAspectRatio="none">
                 <path d="M3 11C70 4 230 3 297 9" stroke="var(--color-blue)" strokeWidth="5" strokeLinecap="round" />
@@ -76,7 +76,7 @@ export default function Landing() {
             report worth reading: not a score, a <span className="font-semibold text-ink">mirror</span>.
           </motion.p>
           <motion.div {...rise(0.3)} className="mt-9 flex flex-wrap items-center gap-4">
-            <Button variant="red" className="!text-xl" onClick={onCta}>
+            <Button variant="pink" className="!text-xl" onClick={onCta}>
               {ctaLabel}
             </Button>
             <span className="text-sm font-semibold text-ink-soft">Free · no sign-up for them</span>
@@ -116,7 +116,7 @@ export default function Landing() {
               <Card tone={s.tone} className="h-full p-6">
                 <span className="display text-5xl opacity-90">{s.n}</span>
                 <h3 className="serif mt-3 text-2xl font-semibold">{s.title}</h3>
-                <p className={`mt-2 leading-relaxed ${s.tone === 'red' ? 'text-paper-hi/90' : 'text-ink-soft'}`}>
+                <p className={`mt-2 leading-relaxed ${s.tone === 'blue' ? 'text-paper-hi/85' : 'text-ink/75'}`}>
                   {s.body}
                 </p>
               </Card>
@@ -132,10 +132,10 @@ export default function Landing() {
         </motion.h2>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <motion.div {...rise(0.1)} className="lg:row-span-2">
-            <Card tone="ink" className="flex h-full flex-col justify-between p-6">
-              <p className="kicker text-blue">your percentile</p>
+            <Card tone="blue" className="flex h-full flex-col justify-between p-6">
+              <p className="kicker text-paper-hi/70">your percentile</p>
               <div>
-                <p className="display text-7xl text-blue">8%</p>
+                <p className="display text-7xl text-paper-hi">8%</p>
                 <p className="serif text-2xl text-paper-hi">top, on follow-through</p>
               </div>
               <p className="text-sm text-paper-hi/70">Ranked against everyone who has been Fishbowled.</p>
@@ -143,11 +143,11 @@ export default function Landing() {
           </motion.div>
           <motion.div {...rise(0.16)} className="sm:col-span-1 lg:col-span-3">
             <Card tone="paper" className="p-6">
-              <p className="kicker mb-3 text-red-deep">three things they appreciate</p>
+              <p className="kicker mb-3 text-pink-deep">three things they appreciate</p>
               <ul className="space-y-2.5 text-lg">
-                <li className="flex gap-3"><span className="text-red">❤</span> A <span className="font-semibold">brilliant, generous mind</span> who lifts the team.</li>
-                <li className="flex gap-3"><span className="text-red">❤</span> <span className="font-semibold">Dependable under pressure</span>, the steady one in chaos.</li>
-                <li className="flex gap-3"><span className="text-red">❤</span> Quietly sets a <span className="font-semibold">high standard</span> for everyone.</li>
+                <li className="flex gap-3"><span className="text-pink-deep">❤</span> A <span className="font-semibold">brilliant, generous mind</span> who lifts the team.</li>
+                <li className="flex gap-3"><span className="text-pink-deep">❤</span> <span className="font-semibold">Dependable under pressure</span>, the steady one in chaos.</li>
+                <li className="flex gap-3"><span className="text-pink-deep">❤</span> Quietly sets a <span className="font-semibold">high standard</span> for everyone.</li>
               </ul>
             </Card>
           </motion.div>
@@ -163,9 +163,9 @@ export default function Landing() {
 
       {/* Footer CTA */}
       <motion.section {...rise(0.05)} className="pt-24">
-        <Card tone="red" className="flex flex-col items-center gap-6 px-6 py-14 text-center">
-          <p className="display text-4xl text-paper-hi sm:text-6xl">Ready to look?</p>
-          <p className="max-w-md text-lg text-paper-hi/90">
+        <Card tone="pink" className="flex flex-col items-center gap-6 px-6 py-14 text-center">
+          <p className="display text-4xl text-ink sm:text-6xl">Ready to look?</p>
+          <p className="max-w-md text-lg text-ink/80">
             No names. No logins for them. Just the truth, told kindly.
           </p>
           <Button variant="paper" className="!text-xl" onClick={onCta}>

@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
 
     const { data: session, error: sessionErr } = await supabase
       .from('fishbowl_sessions')
-      .select('id, creator_name, response_count')
+      .select('id, creator_name, response_count, context')
       .eq('id', session_id)
       .single()
     if (sessionErr || !session) {
@@ -121,6 +121,7 @@ Deno.serve(async (req) => {
     }
 
     const name = session.creator_name
+    const workContext = session.context ? String(session.context).trim() : ''
     const val = (r: any, id: number) => r.answers?.[id] ?? r.answers?.[String(id)]
 
     // ── Deterministic aggregation ──
@@ -166,7 +167,12 @@ Deno.serve(async (req) => {
       ...competencyStats.map((c) => ({ dimension: c.dimension, label: c.statement, score: c.average / 5 })),
     ].sort((a, b) => b.score - a.score)
     const topStrengthDims = goodness.slice(0, 3).map((g) => g.dimension)
-    const growthDims = goodness.slice(-3).map((g) => g.dimension)
+    // Growth tips target the BIGGEST VICES: the virtues furthest from the mean.
+    const growthDims = virtueStats
+      .slice()
+      .sort((a, b) => a.balanceScore - b.balanceScore)
+      .slice(0, 3)
+      .map((v) => v.dimension)
 
     // ── Build the prompt (prose only) ──
     const statsBlock = [
@@ -183,10 +189,10 @@ Deno.serve(async (req) => {
       ...freetext.map((f) => `- ${f.dimension} ("${f.prompt}"):\n${f.answers.map((a) => `    • ${a}`).join('\n') || '    (none)'}`),
     ].join('\n')
 
-    const systemPrompt = `You are an insightful, kind workplace-feedback analyst for an app called "Fishbowl". ${responses.length} colleagues anonymously assessed a person named ${name} on Aristotelian virtues (the good is the MEAN between two vices), competencies, situational tendencies, and free text. Write a warm, specific, honest report that ${name} will read about themselves.
+    const systemPrompt = `You are an insightful, kind workplace-feedback analyst for an app called "Fishbowl". ${responses.length} colleagues anonymously assessed a person named ${name} on Aristotelian virtues (the good is the MEAN between two vices), competencies, situational tendencies, and free text. Write a warm, specific, honest report that ${name} will read about themselves.${workContext ? ` Use this context about ${name}'s work to ground every insight and growth tip in their actual job: "${workContext}".` : ''}
 
 === VOICE ===
-Speak TO ${name} in second person ("you", "your"). Never use their name. Warm, mature, direct, constructive. Never sycophantic, never clinical, never preachy. No filler, no "it's important to note". Ground every claim in the data. The virtue ideal is the MIDDLE (3), not the maximum: too little AND too much are both weaknesses.
+Speak TO ${name} in second person ("you", "your"). Never use their name. Warm, mature, direct, constructive. Never sycophantic, never clinical, never preachy. No filler, no "it's important to note". Ground every claim in the data. The virtue ideal is the MIDDLE (5 on the 1-9 scale), not the maximum: too little AND too much are both weaknesses.
 
 === NO DASHES ===
 Never type "—" (U+2014) or "–" (U+2013) or " - " as a connector. Use commas, periods, colons, semicolons, parentheses. A single dash invalidates the response.
@@ -194,8 +200,8 @@ Never type "—" (U+2014) or "–" (U+2013) or " - " as a connector. Use commas,
 === BOLD ===
 In every blurb/interpretation/appreciation and advice bullet, wrap 2 to 3 key phrases in **double asterisks**. Never bold full sentences. The "headline" and advice "title" must NOT contain bold.
 
-=== ADVICE BULLETS ===
-Each growthEdge "actions" MUST be a JSON array of EXACTLY 2 short bullets, each its own sentence, MAX 14 words, each with one **bold** segment, attacking from two DIFFERENT angles (one behavioral, one mindset). Do not split one idea in half.
+=== GROWTH TIPS (growthEdges) ===
+The growthEdges are ${name}'s BIGGEST VICES: the virtues furthest from the balanced middle. For each, give a short title and TWO concrete tips for what to DO to move back toward the mean. "actions" MUST be a JSON array of EXACTLY 2 bullets, each its own sentence, MAX 16 words, each with one **bold** segment, from two DIFFERENT angles (one behavioural, one mindset).${workContext ? ` Make the tips SPECIFIC and practical for their role and company (see the work context above).` : ''}
 
 === OUTPUT (JSON only, no code fences) ===
 {
@@ -203,7 +209,7 @@ Each growthEdge "actions" MUST be a JSON array of EXACTLY 2 short bullets, each 
   "virtues": { ${virtueStats.map((v) => `"${v.dimension}": "2 sentences on where you land between ${v.deficientPole} and ${v.excessivePole} and what it means at work"`).join(', ')} },
   "competencies": { ${competencyStats.map((c) => `"${c.dimension}": "1 to 2 sentence interpretation"`).join(', ')} },
   "topStrengths": [ ${topStrengthDims.map((d) => `{ "dimension": "${d}", "label": "<=4 words", "blurb": "2 sentences celebrating this strength specifically" }`).join(', ')} ],
-  "growthEdges": [ ${growthDims.map((d) => `{ "dimension": "${d}", "title": "<=5 words imperative, no bold", "actions": ["bullet 1", "bullet 2"] }`).join(', ')} ],
+  "growthEdges": [ ${growthDims.map((d) => `{ "dimension": "${d}", "title": "<=5 words imperative, no bold", "actions": ["concrete tip 1", "concrete tip 2"] }`).join(', ')} ],
   "appreciations": ["3 distinct themes synthesized from the appreciation free-text, each 1 sentence with **bold**", "...", "..."],
   "closing": "2 warm sentences sending them off."
 }

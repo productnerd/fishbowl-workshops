@@ -16,7 +16,7 @@ function Rich({ text }: { text: string }) {
     <>
       {text.split(/(\*\*[^*]+\*\*)/g).map((p, i) =>
         p.startsWith('**') && p.endsWith('**') ? (
-          <strong key={i} className="font-bold text-ink">
+          <strong key={i} className="font-bold">
             {p.slice(2, -2)}
           </strong>
         ) : (
@@ -118,14 +118,14 @@ export default function Results() {
 
   const cards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode }[] = [
     {
-      tone: 'red',
+      tone: 'pink',
       node: (
         <div className="flex min-h-[60vh] flex-col justify-center">
-          <p className="kicker text-paper-hi/80">your fishbowl</p>
-          <h1 className="display mt-4 text-[clamp(2.4rem,7vw,4.5rem)] text-paper-hi">
+          <p className="kicker text-ink/70">your fishbowl</p>
+          <h1 className="display mt-4 text-[clamp(2.4rem,7vw,4.5rem)] text-ink">
             <Rich text={insights.headline} />
           </h1>
-          <p className="mt-6 text-paper-hi/80">{session.response_count} colleagues. One honest mirror.</p>
+          <p className="mt-6 text-ink/70">{session.response_count} colleagues. One honest mirror.</p>
         </div>
       ),
     },
@@ -133,7 +133,7 @@ export default function Results() {
       tone: 'paper',
       node: (
         <div>
-          <p className="kicker mb-5 text-red-deep">where you shine</p>
+          <p className="kicker mb-5 text-pink-deep">where you shine</p>
           <div className="flex flex-col gap-4">
             {insights.topStrengths.map((s) => (
               <div key={s.dimension} className="rounded-2xl border-[2.5px] border-ink bg-sand p-4 shadow-chunky-sm">
@@ -172,12 +172,12 @@ export default function Results() {
       tone: 'blue',
       node: (
         <div className="flex min-h-[55vh] flex-col justify-center">
-          <p className="kicker text-ink">most balanced</p>
+          <p className="kicker text-paper-hi/80">most balanced</p>
           {pct[mostBalanced.dimension] != null && (
-            <p className="display mt-2 text-7xl text-ink">top {pct[mostBalanced.dimension]}%</p>
+            <p className="display mt-2 text-7xl text-paper-hi">top {pct[mostBalanced.dimension]}%</p>
           )}
-          <p className="serif mt-1 text-3xl">on {mostBalanced.name}</p>
-          <p className="mt-5 text-lg leading-relaxed text-ink">
+          <p className="serif mt-1 text-3xl text-paper-hi">on {mostBalanced.name}</p>
+          <p className="mt-5 text-lg leading-relaxed text-paper-hi/90">
             <Rich text={mostBalanced.blurb} />
           </p>
         </div>
@@ -187,7 +187,7 @@ export default function Results() {
       tone: 'paper',
       node: (
         <div>
-          <p className="kicker mb-1 text-red-deep">at work</p>
+          <p className="kicker mb-1 text-pink-deep">at work</p>
           <h2 className="display mb-5 text-3xl">How they rate you</h2>
           <div className="flex flex-col gap-4">
             {insights.competencies.map((c) => (
@@ -201,11 +201,11 @@ export default function Results() {
       tone: 'sand',
       node: (
         <div>
-          <p className="kicker mb-5 text-red-deep">what they appreciate</p>
+          <p className="kicker mb-5 text-pink-deep">what they appreciate</p>
           <ul className="flex flex-col gap-4">
             {insights.appreciations.map((a, i) => (
               <li key={i} className="flex gap-3 text-xl leading-relaxed">
-                <span className="text-red">❤</span>
+                <span className="text-pink-deep">❤</span>
                 <span>
                   <Rich text={a} />
                 </span>
@@ -312,7 +312,7 @@ export default function Results() {
             the end ✦
           </span>
         ) : (
-          <Button variant="red" onClick={() => go(1)}>
+          <Button variant="pink" onClick={() => go(1)}>
             Next →
           </Button>
         )}

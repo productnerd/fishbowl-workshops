@@ -22,7 +22,7 @@ export default function VirtueGauge({
     <div>
       <div className="mb-1.5 flex items-baseline justify-between">
         <span className={big ? 'display text-2xl' : 'kicker text-ink'}>{name}</span>
-        <span className={`kicker ${tendency === 'balanced' ? 'text-blue-deep' : 'text-red-deep'}`}>{label}</span>
+        <span className={`kicker ${tendency === 'balanced' ? 'text-blue-deep' : 'text-pink-deep'}`}>{label}</span>
       </div>
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((s) => {
@@ -32,13 +32,13 @@ export default function VirtueGauge({
             <div
               key={s}
               className={`${big ? 'h-10' : 'h-7'} flex-1 rounded-md border-2 border-ink ${
-                sel ? (tendency === 'balanced' ? 'bg-blue' : 'bg-red') : center ? 'bg-blue/25' : 'bg-paper-hi'
+                sel ? (tendency === 'balanced' ? 'bg-blue' : 'bg-pink') : center ? 'bg-blue/25' : 'bg-paper-hi'
               }`}
             />
           )
         })}
       </div>
-      <div className="mt-1 flex justify-between text-[11px] font-semibold text-ink-soft">
+      <div className="mt-1 flex justify-between text-[10px] font-bold uppercase tracking-wide text-ink-soft">
         <span>{deficientPole}</span>
         <span>{excessivePole}</span>
       </div>

@@ -1,17 +1,17 @@
 import type { ReactNode } from 'react'
 
-type Variant = 'red' | 'ink' | 'blue' | 'paper'
+type Variant = 'pink' | 'ink' | 'blue' | 'paper'
 const variants: Record<Variant, string> = {
-  red: 'bg-red text-paper-hi',
+  pink: 'bg-pink text-ink sc-pink',
   ink: 'bg-ink text-paper-hi',
-  blue: 'bg-blue text-ink',
+  blue: 'bg-blue text-paper-hi sc-navy',
   paper: 'bg-paper-hi text-ink',
 }
 
 export default function Button({
   children,
   onClick,
-  variant = 'red',
+  variant = 'pink',
   type = 'button',
   disabled = false,
   className = '',

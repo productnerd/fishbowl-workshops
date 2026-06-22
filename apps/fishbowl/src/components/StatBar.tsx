@@ -17,7 +17,7 @@ export default function StatBar({
         </span>
       </div>
       <div className="h-5 overflow-hidden rounded-full border-[2.5px] border-ink bg-paper-hi">
-        <div className="h-full rounded-r-full bg-red" style={{ width: `${(value / 5) * 100}%` }} />
+        <div className="h-full rounded-r-full bg-pink" style={{ width: `${(value / 5) * 100}%` }} />
       </div>
     </div>
   )

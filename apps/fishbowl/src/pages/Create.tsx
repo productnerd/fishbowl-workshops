@@ -11,6 +11,7 @@ const KEY = 'fishbowl_my_session'
 export default function Create() {
   const navigate = useNavigate()
   const [name, setName] = useState('')
+  const [context, setContext] = useState('')
   const [slug, setSlug] = useState<string | null>(null)
   const [creator, setCreator] = useState('')
   const [count, setCount] = useState(0)
@@ -41,7 +42,7 @@ export default function Create() {
     if (!name.trim()) return
     setLoading(true)
     try {
-      const s = await createSession(name.trim())
+      const s = await createSession(name.trim(), context.trim() || undefined)
       localStorage.setItem(KEY, JSON.stringify({ slug: s, creator_name: name.trim() }))
       setSlug(s)
       setCreator(name.trim())
@@ -68,7 +69,7 @@ export default function Create() {
     return (
       <div className="mx-auto grid min-h-dvh max-w-lg place-items-center px-5 py-12">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full">
-          <p className="kicker mb-4 text-red-deep">your link is live</p>
+          <p className="kicker mb-4 text-pink-deep">your link is live</p>
           <h1 className="display text-5xl">Hey {creator}.</h1>
           <p className="mt-3 text-lg text-ink-soft">
             Send this to {REQUIRED_RESPONSES}+ colleagues. When {REQUIRED_RESPONSES} have answered, your
@@ -83,7 +84,7 @@ export default function Create() {
             />
             <button
               onClick={copy}
-              className="press shrink-0 cursor-pointer rounded-xl border-[2.5px] border-ink bg-red px-4 py-2 font-display font-black text-paper-hi shadow-chunky-sm"
+              className="press shrink-0 cursor-pointer rounded-xl border-[2.5px] border-ink bg-pink sc-pink px-4 py-2 font-display font-black text-ink shadow-chunky-sm"
             >
               {copied ? 'Copied!' : 'Copy'}
             </button>
@@ -106,7 +107,7 @@ export default function Create() {
 
           {unlocked && (
             <div className="mt-7">
-              <Button variant="red" onClick={() => navigate(`/r/${slug}`)} className="!text-xl">
+              <Button variant="pink" onClick={() => navigate(`/r/${slug}`)} className="!text-xl">
                 See your report →
               </Button>
             </div>
@@ -132,8 +133,16 @@ export default function Create() {
           maxLength={40}
           className="mt-7 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-6 py-4 text-center font-display text-2xl font-black text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/50 focus:shadow-chunky"
         />
+        <textarea
+          value={context}
+          onChange={(e) => setContext(e.target.value)}
+          placeholder="Optional: your role + what your team or company does. This sharpens the AI report and its advice."
+          rows={3}
+          maxLength={400}
+          className="mt-4 w-full resize-none rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-left text-base text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/55 focus:shadow-chunky"
+        />
         <div className="mt-7">
-          <Button variant="red" onClick={create} disabled={!name.trim() || loading} className="!text-xl">
+          <Button variant="pink" onClick={create} disabled={!name.trim() || loading} className="!text-xl">
             {loading ? 'Creating…' : 'Create my link →'}
           </Button>
         </div>

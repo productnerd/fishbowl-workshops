@@ -17,7 +17,7 @@ export default function ScenarioChoice({
             type="button"
             onClick={() => onSelect(o)}
             className={`depress cursor-pointer rounded-2xl border-[2.5px] border-ink px-5 py-4 text-left text-lg font-semibold ${
-              sel ? 'bg-red text-paper-hi is-on' : 'bg-paper-hi text-ink'
+              sel ? 'bg-pink text-ink is-on sc-pink' : 'bg-paper-hi text-ink'
             }`}
           >
             {o}
