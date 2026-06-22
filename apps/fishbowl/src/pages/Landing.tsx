@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Card from '../components/Card'
 import Button from '../components/Button'
@@ -17,6 +18,7 @@ const STEPS = [
 ]
 
 export default function Landing() {
+  const navigate = useNavigate()
   const [demo, setDemo] = useState(4)
 
   return (
@@ -56,7 +58,7 @@ export default function Landing() {
             report worth reading: not a score, a <span className="font-semibold text-ink">mirror</span>.
           </motion.p>
           <motion.div {...rise(0.3)} className="mt-9 flex flex-wrap items-center gap-4">
-            <Button variant="red" className="!text-xl">
+            <Button variant="red" className="!text-xl" onClick={() => navigate('/create')}>
               Make your link →
             </Button>
             <span className="text-sm font-semibold text-ink-soft">Free · no sign-up for them</span>
@@ -148,7 +150,7 @@ export default function Landing() {
           <p className="max-w-md text-lg text-paper-hi/90">
             No names. No logins for them. Just the truth, told kindly.
           </p>
-          <Button variant="paper" className="!text-xl">
+          <Button variant="paper" className="!text-xl" onClick={() => navigate('/create')}>
             Make your link →
           </Button>
         </Card>
