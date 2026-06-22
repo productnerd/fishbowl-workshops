@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { REQUIRED_RESPONSES } from '@fishbowl/feedback-core'
+import { REQUIRED_RESPONSES, buildShareLink } from '@fishbowl/feedback-core'
 import { createSession, getResponseCount } from '../lib/data'
 import Card from '../components/Card'
 import Button from '../components/Button'
 
 const KEY = 'fishbowl_my_session'
-const shareLink = (slug: string) => `${window.location.origin}/s/${slug}`
 
 export default function Create() {
   const navigate = useNavigate()
@@ -54,7 +53,7 @@ export default function Create() {
 
   const copy = async () => {
     if (!slug) return
-    await navigator.clipboard.writeText(shareLink(slug))
+    await navigator.clipboard.writeText(buildShareLink(slug))
     setCopied(true)
     setTimeout(() => setCopied(false), 1800)
   }
@@ -79,7 +78,7 @@ export default function Create() {
           <Card tone="paper" className="mt-7 flex items-center gap-3 p-3">
             <input
               readOnly
-              value={shareLink(slug)}
+              value={buildShareLink(slug)}
               className="min-w-0 flex-1 truncate bg-transparent px-2 font-mono text-sm text-ink outline-none"
             />
             <button

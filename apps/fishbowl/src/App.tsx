@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Landing from './pages/Landing'
 import Create from './pages/Create'
 import Questionnaire from './pages/Questionnaire'
@@ -7,7 +7,7 @@ import Results from './pages/Results'
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/create" element={<Create />} />
@@ -16,6 +16,6 @@ export default function App() {
         <Route path="/r/:slug" element={<Results />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   )
 }

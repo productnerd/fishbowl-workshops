@@ -1,0 +1,54 @@
+name: Deploy Fishbowl
+
+on:
+  push:
+    branches:
+      - master
+      - main
+      - 'claude/**'
+    paths:
+      - 'apps/fishbowl/**'
+      - 'packages/**'
+      - '.github/workflows/deploy-fishbowl.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-fishbowl
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies (workspace root)
+        run: npm install --legacy-peer-deps
+
+      - name: Build
+        run: npm run build -w @fishbowl/fishbowl
+        env:
+          VITE_BASE: /fishbowl/
+
+      # Fishbowl is the flagship app: it serves from the gh-pages ROOT
+      # (https://productnerd.github.io/fishbowl/). clean-exclude protects the
+      # sibling sites — B2C at throughtheireyes/, the static profile/.
+      - name: Deploy to gh-pages root
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: apps/fishbowl/dist
+          target-folder: .
+          branch: gh-pages
+          clean: true
+          clean-exclude: |
+            throughtheireyes
+            profile
+            README.md
+            Rakefile
