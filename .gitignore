@@ -1,0 +1,19 @@
+# Dependencies (single hoisted install at the workspace root)
+node_modules
+
+# Build output
+dist
+dist-ssr
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Local / editor
+*.local
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.sw?

@@ -7,7 +7,8 @@ on:
       - main
       - 'claude/**'
     paths:
-      - 'throughtheireyes/**'
+      - 'apps/throughtheireyes/**'
+      - 'packages/**'
       - '.github/workflows/deploy-throughtheireyes.yml'
   workflow_dispatch:
 
@@ -21,9 +22,6 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: throughtheireyes
     steps:
       - uses: actions/checkout@v4
 
@@ -31,16 +29,18 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install dependencies
+      # Install at the workspace ROOT so npm workspaces + shared packages resolve
+      # and react/react-dom/framer-motion/react-router-dom dedupe to a single copy.
+      - name: Install dependencies (workspace root)
         run: npm install --legacy-peer-deps
 
       - name: Build
-        run: npm run build
+        run: npm run build -w @fishbowl/throughtheireyes
 
       - name: Deploy to gh-pages/throughtheireyes
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: throughtheireyes/dist
+          folder: apps/throughtheireyes/dist
           target-folder: throughtheireyes
           branch: gh-pages
           clean: true
