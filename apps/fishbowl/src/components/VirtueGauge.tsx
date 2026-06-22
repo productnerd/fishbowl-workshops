@@ -1,7 +1,6 @@
 import type { Tendency } from '@fishbowl/feedback-core'
 
-// Compact bipolar gauge: 5 segments, the subject's mean marked, center = the virtue.
-// Communicates BALANCE (the Aristotelian point), not a percentile.
+// Compact bipolar gauge (1-9, 5 = the virtue). Communicates BALANCE, not a percentile.
 export default function VirtueGauge({
   name,
   mu,
@@ -17,23 +16,23 @@ export default function VirtueGauge({
   excessivePole: string
   big?: boolean
 }) {
-  const pos = Math.min(5, Math.max(1, Math.round(mu)))
+  const pos = Math.min(9, Math.max(1, Math.round(mu)))
   const label = tendency === 'balanced' ? 'in balance' : tendency === 'excessive' ? 'leans too far' : 'leans too little'
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between">
         <span className={big ? 'display text-2xl' : 'kicker text-ink'}>{name}</span>
-        <span className={`kicker ${tendency === 'balanced' ? 'text-cyan-deep' : 'text-red-deep'}`}>{label}</span>
+        <span className={`kicker ${tendency === 'balanced' ? 'text-blue-deep' : 'text-red-deep'}`}>{label}</span>
       </div>
-      <div className="flex gap-1.5">
-        {[1, 2, 3, 4, 5].map((s) => {
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((s) => {
           const sel = s === pos
-          const center = s === 3
+          const center = s === 5
           return (
             <div
               key={s}
-              className={`${big ? 'h-12' : 'h-9'} flex-1 rounded-xl border-[2.5px] border-ink ${
-                sel ? (tendency === 'balanced' ? 'bg-cyan' : 'bg-red') : center ? 'bg-cyan/25' : 'bg-paper-hi'
+              className={`${big ? 'h-10' : 'h-7'} flex-1 rounded-md border-2 border-ink ${
+                sel ? (tendency === 'balanced' ? 'bg-blue' : 'bg-red') : center ? 'bg-blue/25' : 'bg-paper-hi'
               }`}
             />
           )

@@ -8,16 +8,16 @@ export function stdDev(scores: number[]): number {
   return Math.sqrt(variance)
 }
 
-// Aristotelian classification of a virtue mean (1-5, 3 = the mean).
+// Aristotelian classification of a virtue mean (1-9, 5 = the mean).
 export function classifyTendency(mu: number): Tendency {
-  if (mu < 2.5) return 'deficient'
-  if (mu <= 3.5) return 'balanced'
+  if (mu < 4) return 'deficient'
+  if (mu <= 6) return 'balanced'
   return 'excessive'
 }
 
-// 1 = perfectly balanced (mu=3); 0 = an extreme pole (mu=1 or 5).
+// 1 = perfectly balanced (mu=5); 0 = an extreme pole (mu=1 or 9).
 export function balanceScore(mu: number): number {
-  return 1 - Math.abs(mu - 3) / 2
+  return 1 - Math.abs(mu - 5) / 4
 }
 
 export function aggregateResponses(

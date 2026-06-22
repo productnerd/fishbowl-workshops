@@ -13,7 +13,7 @@ export default function StatBar({
         <span className="font-semibold">{label}</span>
         <span className="shrink-0 font-mono text-sm text-ink-soft">
           {value.toFixed(1)}
-          {percent != null && percent <= 40 && <span className="text-cyan-deep"> · top {percent}%</span>}
+          {percent != null && percent <= 40 && <span className="text-blue-deep"> · top {percent}%</span>}
         </span>
       </div>
       <div className="h-5 overflow-hidden rounded-full border-[2.5px] border-ink bg-paper-hi">

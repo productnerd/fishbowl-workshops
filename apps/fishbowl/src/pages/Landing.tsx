@@ -15,7 +15,7 @@ const rise = (delay: number) => ({
 
 const STEPS = [
   { n: '01', tone: 'red' as const, title: 'Share one link', body: 'Send it to five or more colleagues. It takes them about five minutes.' },
-  { n: '02', tone: 'cyan' as const, title: 'They answer anonymously', body: 'Sliders, quick scales, and a few honest words. No names. Ever.' },
+  { n: '02', tone: 'blue' as const, title: 'They answer anonymously', body: 'Sliders, quick scales, and a few honest words. No names. Ever.' },
   { n: '03', tone: 'sand' as const, title: 'Get your Wrapped', body: 'An interactive report: your strengths, your blind spots, and where you land.' },
 ]
 
@@ -66,7 +66,7 @@ export default function Landing() {
             <span className="relative inline-block text-red">
               team does
               <svg className="absolute -bottom-3 left-0 w-full" height="16" viewBox="0 0 300 16" fill="none" preserveAspectRatio="none">
-                <path d="M3 11C70 4 230 3 297 9" stroke="var(--color-cyan)" strokeWidth="5" strokeLinecap="round" />
+                <path d="M3 11C70 4 230 3 297 9" stroke="var(--color-blue)" strokeWidth="5" strokeLinecap="round" />
               </svg>
             </span>
             .
@@ -86,7 +86,7 @@ export default function Landing() {
         {/* Virtue slider teaser */}
         <motion.div {...rise(0.4)}>
           <Card tone="paper" className="p-6 sm:p-7">
-            <p className="kicker mb-1 text-cyan-deep">the idea</p>
+            <p className="kicker mb-1 text-blue-deep">the idea</p>
             <p className="serif mb-5 text-2xl leading-tight">
               Every strength, taken too far, becomes a flaw.
             </p>
@@ -99,7 +99,7 @@ export default function Landing() {
               excessiveLabel="Reckless"
             />
             <p className="mt-5 text-[15px] leading-relaxed text-ink-soft">
-              Your team places you between two extremes. The <span className="font-semibold text-cyan-deep">sweet spot is the middle</span> — and Fishbowl shows you exactly where you land on ten of them.
+              Your team places you between two extremes. The <span className="font-semibold text-blue-deep">sweet spot is the middle</span> — and Fishbowl shows you exactly where you land on ten of them.
             </p>
           </Card>
         </motion.div>
@@ -133,9 +133,9 @@ export default function Landing() {
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <motion.div {...rise(0.1)} className="lg:row-span-2">
             <Card tone="ink" className="flex h-full flex-col justify-between p-6">
-              <p className="kicker text-cyan">your percentile</p>
+              <p className="kicker text-blue">your percentile</p>
               <div>
-                <p className="display text-7xl text-cyan">8%</p>
+                <p className="display text-7xl text-blue">8%</p>
                 <p className="serif text-2xl text-paper-hi">top, on follow-through</p>
               </div>
               <p className="text-sm text-paper-hi/70">Ranked against everyone who has been Fishbowled.</p>

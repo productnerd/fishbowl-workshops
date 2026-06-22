@@ -1,19 +1,120 @@
 import type { Question } from '@fishbowl/feedback-core'
 
 // Mirrors supabase/functions/fishbowl-ai-insights QUESTIONS (ids must match).
-// Placeholder content — wording will change; structure is the contract.
+// Virtue sliders are a 1-9 bipolar scale: 1 = deficiency vice, 5 = the virtue,
+// 9 = excess vice. Placeholder content — wording will change; structure is the contract.
 export const questions: Question[] = [
-  // ── Character: 10 Aristotelian virtue sliders (1 & 5 are vices, 3 is the virtue) ──
-  { id: 1, type: 'virtue', dimension: 'courage', section: 'Character', sectionDescription: 'Place {name} between two extremes. The middle is the virtue.', text: 'On facing risk and hard calls, {name} is…', virtue: { name: 'Courage', deficientPole: 'Avoids all risk', excessivePole: 'Recklessly bold' } },
-  { id: 2, type: 'virtue', dimension: 'candor', section: 'Character', sectionDescription: 'Place {name} between two extremes. The middle is the virtue.', text: 'On directness, {name} is…', virtue: { name: 'Candor', deficientPole: 'Evasive', excessivePole: 'Brutally blunt' } },
-  { id: 3, type: 'virtue', dimension: 'confidence', section: 'Character', sectionDescription: 'Place {name} between two extremes. The middle is the virtue.', text: 'On self-assurance, {name} is…', virtue: { name: 'Confidence', deficientPole: 'Self-deprecating', excessivePole: 'Arrogant' } },
-  { id: 4, type: 'virtue', dimension: 'drive', section: 'Character', sectionDescription: 'Place {name} between two extremes. The middle is the virtue.', text: 'On ambition, {name} is…', virtue: { name: 'Drive', deficientPole: 'Complacent', excessivePole: 'Ruthless' } },
-  { id: 5, type: 'virtue', dimension: 'composure', section: 'Character', sectionDescription: 'Place {name} between two extremes. The middle is the virtue.', text: 'Under pressure, {name} is…', virtue: { name: 'Composure', deficientPole: 'A pushover', excessivePole: 'Short-fused' } },
-  { id: 6, type: 'virtue', dimension: 'collaboration', section: 'Character', sectionDescription: 'Place {name} between two extremes. The middle is the virtue.', text: 'On working with others, {name} is…', virtue: { name: 'Collaboration', deficientPole: 'A lone wolf', excessivePole: 'Cannot decide alone' } },
-  { id: 7, type: 'virtue', dimension: 'rigor', section: 'Character', sectionDescription: 'Place {name} between two extremes. The middle is the virtue.', text: 'On attention to detail, {name} is…', virtue: { name: 'Rigor', deficientPole: 'Sloppy', excessivePole: 'Cannot ship' } },
-  { id: 8, type: 'virtue', dimension: 'receptiveness', section: 'Character', sectionDescription: 'Place {name} between two extremes. The middle is the virtue.', text: 'On taking input, {name} is…', virtue: { name: 'Receptiveness', deficientPole: 'Defensive', excessivePole: 'Over-accommodating' } },
-  { id: 9, type: 'virtue', dimension: 'generosity', section: 'Character', sectionDescription: 'Place {name} between two extremes. The middle is the virtue.', text: 'On sharing credit and helping, {name} is…', virtue: { name: 'Generosity', deficientPole: 'Credit-hoarding', excessivePole: 'Self-sacrificing' } },
-  { id: 10, type: 'virtue', dimension: 'decisiveness', section: 'Character', sectionDescription: 'Place {name} between two extremes. The middle is the virtue.', text: 'On making decisions, {name} is…', virtue: { name: 'Decisiveness', deficientPole: 'Indecisive', excessivePole: 'Impulsive' } },
+  // ── Character: 10 Aristotelian virtue sliders ──
+  {
+    id: 1, type: 'virtue', dimension: 'courage', section: 'Character',
+    sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
+    text: 'On facing risk and hard calls, {name} is…',
+    virtue: {
+      name: 'Courage', deficientPole: 'Avoids all risk', excessivePole: 'Recklessly bold',
+      deficientTraits: ['Sits on decisions', 'Waits to be told', 'Plays it too safe'],
+      virtueTraits: ['Takes smart risks', 'Speaks up when it counts', 'Acts despite doubt'],
+      excessiveTraits: ['Leaps before looking', 'Ignores real warnings', 'Bets too big'],
+    },
+  },
+  {
+    id: 2, type: 'virtue', dimension: 'candor', section: 'Character',
+    sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
+    text: 'On directness, {name} is…',
+    virtue: {
+      name: 'Candor', deficientPole: 'Evasive', excessivePole: 'Brutally blunt',
+      deficientTraits: ['Softens the truth', 'Holds back concerns', 'Hints instead of saying'],
+      virtueTraits: ['Says hard things kindly', 'Gives honest feedback', 'Names the real issue'],
+      excessiveTraits: ['Bruises with bluntness', 'Has no filter', 'Truth over tact, always'],
+    },
+  },
+  {
+    id: 3, type: 'virtue', dimension: 'confidence', section: 'Character',
+    sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
+    text: 'On self-assurance, {name} is…',
+    virtue: {
+      name: 'Confidence', deficientPole: 'Self-deprecating', excessivePole: 'Arrogant',
+      deficientTraits: ['Downplays their work', 'Defers too easily', 'Apologizes reflexively'],
+      virtueTraits: ['Owns their strengths', 'Backs their judgment', 'Open to being wrong'],
+      excessiveTraits: ['Talks over others', 'Rarely admits fault', 'Assumes they know best'],
+    },
+  },
+  {
+    id: 4, type: 'virtue', dimension: 'drive', section: 'Character',
+    sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
+    text: 'On ambition, {name} is…',
+    virtue: {
+      name: 'Drive', deficientPole: 'Complacent', excessivePole: 'Ruthless',
+      deficientTraits: ['Coasts on enough', 'Avoids the stretch', 'Lets things slide'],
+      virtueTraits: ['Pushes for better', 'Sets a high bar', 'Knows when to rest'],
+      excessiveTraits: ['Wins at any cost', 'Burns people out', 'Never satisfied'],
+    },
+  },
+  {
+    id: 5, type: 'virtue', dimension: 'composure', section: 'Character',
+    sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
+    text: 'Under pressure, {name} is…',
+    virtue: {
+      name: 'Composure', deficientPole: 'A pushover', excessivePole: 'Short-fused',
+      deficientTraits: ['Caves under pressure', 'Avoids all conflict', 'Goes along to get along'],
+      virtueTraits: ['Stays cool under fire', 'Holds the line calmly', 'Picks battles well'],
+      excessiveTraits: ['Snaps when stressed', 'Quick to anger', 'Spreads the tension'],
+    },
+  },
+  {
+    id: 6, type: 'virtue', dimension: 'collaboration', section: 'Character',
+    sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
+    text: 'On working with others, {name} is…',
+    virtue: {
+      name: 'Collaboration', deficientPole: 'A lone wolf', excessivePole: 'Cannot decide alone',
+      deficientTraits: ['Works in a silo', 'Skips the loop-in', 'Hoards the context'],
+      virtueTraits: ['Pulls people in', 'Shares the work', 'Decides when needed'],
+      excessiveTraits: ['Needs consensus for all', 'Stalls without buy-in', 'Cannot move solo'],
+    },
+  },
+  {
+    id: 7, type: 'virtue', dimension: 'rigor', section: 'Character',
+    sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
+    text: 'On attention to detail, {name} is…',
+    virtue: {
+      name: 'Rigor', deficientPole: 'Sloppy', excessivePole: 'Cannot ship',
+      deficientTraits: ['Skips the details', 'Ships half-checked', 'Misses the obvious'],
+      virtueTraits: ['Catches what matters', 'Right level of polish', 'Knows when it is done'],
+      excessiveTraits: ['Polishes forever', 'Nitpicks endlessly', 'Perfect over shipped'],
+    },
+  },
+  {
+    id: 8, type: 'virtue', dimension: 'receptiveness', section: 'Character',
+    sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
+    text: 'On taking input, {name} is…',
+    virtue: {
+      name: 'Receptiveness', deficientPole: 'Defensive', excessivePole: 'Over-accommodating',
+      deficientTraits: ['Bristles at feedback', 'Defends first', 'Dismisses input'],
+      virtueTraits: ['Hears people out', 'Updates their view', 'Holds their own too'],
+      excessiveTraits: ['Bends to every opinion', 'Loses their position', 'Agrees too fast'],
+    },
+  },
+  {
+    id: 9, type: 'virtue', dimension: 'generosity', section: 'Character',
+    sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
+    text: 'On sharing credit and helping, {name} is…',
+    virtue: {
+      name: 'Generosity', deficientPole: 'Credit-hoarding', excessivePole: 'Self-sacrificing',
+      deficientTraits: ['Takes the credit', 'Slow to help', 'Keeps the spotlight'],
+      virtueTraits: ['Shares the credit', 'Lifts others up', 'Helps within reason'],
+      excessiveTraits: ['Gives until depleted', 'Cannot say no', 'Neglects own work'],
+    },
+  },
+  {
+    id: 10, type: 'virtue', dimension: 'decisiveness', section: 'Character',
+    sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
+    text: 'On making decisions, {name} is…',
+    virtue: {
+      name: 'Decisiveness', deficientPole: 'Indecisive', excessivePole: 'Impulsive',
+      deficientTraits: ['Sits on the fence', 'Reopens settled calls', 'Waits for certainty'],
+      virtueTraits: ['Decides on what is known', 'Commits and moves', 'Adjusts as needed'],
+      excessiveTraits: ['Shoots from the hip', 'Skips the thinking', 'Acts then regrets'],
+    },
+  },
 
   // ── At Work: 6 competencies (1-5 agree, higher is better) ──
   { id: 11, type: 'likert', dimension: 'follow_through', scoring: 'higher-is-best', section: 'At Work', sectionDescription: 'How much do you agree?', text: '{name} reliably delivers on what they commit to.', lowLabel: 'Disagree', highLabel: 'Agree' },

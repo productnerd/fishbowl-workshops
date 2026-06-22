@@ -32,8 +32,15 @@ export interface Question {
   allowOther?: boolean
   // scenario: maps each chosen option to a tendency
   optionTendencies?: Record<string, Tendency>
-  // virtue: bipolar 1-5 slider, 1 & 5 are vices, 3 is the virtue
-  virtue?: { name: string; deficientPole: string; excessivePole: string }
+  // virtue: bipolar 1-9 slider, 1 & 9 are vices, 5 is the virtue
+  virtue?: {
+    name: string
+    deficientPole: string
+    excessivePole: string
+    deficientTraits?: string[]
+    virtueTraits?: string[]
+    excessiveTraits?: string[]
+  }
 }
 
 export interface Session {

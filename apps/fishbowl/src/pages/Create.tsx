@@ -97,7 +97,7 @@ export default function Create() {
               </span>
             </div>
             <div className="h-4 overflow-hidden rounded-full border-2 border-ink bg-paper-hi">
-              <motion.div className="h-full bg-cyan" animate={{ width: `${pct}%` }} transition={{ ease: 'easeOut', duration: 0.7 }} />
+              <motion.div className="h-full bg-blue" animate={{ width: `${pct}%` }} transition={{ ease: 'easeOut', duration: 0.7 }} />
             </div>
             <p className="mt-3 text-sm font-semibold text-ink-soft">
               {unlocked ? '✨ Your report is ready.' : `${remaining} more to unlock your report.`}

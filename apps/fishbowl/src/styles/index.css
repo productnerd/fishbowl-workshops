@@ -10,8 +10,8 @@
   --color-ink-soft: #5a4f45;
   --color-red: #cc4326;
   --color-red-deep: #a2311a;
-  --color-cyan: #1f9e97;
-  --color-cyan-deep: #157a74;
+  --color-blue: #1366ac;
+  --color-blue-deep: #0e4f8a;
 
   --font-display: "Fraunces", Georgia, serif;
   --font-body: "Hanken Grotesk", system-ui, sans-serif;
@@ -30,7 +30,7 @@
     text-rendering: optimizeLegibility;
     background-image:
       radial-gradient(115% 75% at 50% -12%, rgba(204, 67, 38, 0.07), transparent 58%),
-      radial-gradient(95% 60% at 102% 104%, rgba(31, 158, 151, 0.06), transparent 55%);
+      radial-gradient(95% 60% at 102% 104%, rgba(19, 102, 172, 0.07), transparent 55%);
     background-attachment: fixed;
   }
   ::selection { background: var(--color-red); color: var(--color-paper-hi); }
@@ -79,24 +79,27 @@ body::after {
   .shadow-chunky { box-shadow: 6px 7px 0 0 var(--color-ink); }
   .shadow-chunky-sm { box-shadow: 4px 5px 0 0 var(--color-ink); }
   /* Press / lift physicality on interactive elements. */
-  .press { transition: transform 0.13s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.13s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  /* Raised by default (chunky offset shadow). Hover lifts higher. Press pushes
+     DOWN into the surface with a concave inset shadow — physical + skeuomorphic. */
+  .press { transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.1s cubic-bezier(0.2, 0.8, 0.2, 1); }
   .press:hover { transform: translate(-2px, -3px); box-shadow: 8px 10px 0 0 var(--color-ink); }
-  .press:active { transform: translate(3px, 4px); box-shadow: 2px 2px 0 0 var(--color-ink); }
+  .press:active { transform: translate(5px, 6px); box-shadow: inset 0 3px 8px rgba(20, 16, 12, 0.55); }
 
-  /* Tactile option button: raised by default, and STAYS depressed when selected
-     (.is-on) — pushed into its shadow like a real key you've pressed in. */
+  /* Selectable option: raised, and STAYS pressed-in when selected (.is-on) —
+     pushed down with a concave inset shadow, like a real key held down. */
   .depress {
     box-shadow: 4px 5px 0 0 var(--color-ink);
-    transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.12s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .depress:hover:not(.is-on) { transform: translate(-1px, -2px); box-shadow: 5px 7px 0 0 var(--color-ink); }
   .depress:active,
-  .depress.is-on { transform: translate(4px, 5px); box-shadow: 0 0 0 0 var(--color-ink); }
+  .depress.is-on { transform: translate(4px, 5px); box-shadow: inset 0 3px 7px rgba(20, 16, 12, 0.5); }
 
   .depress-sm {
     box-shadow: 3px 4px 0 0 var(--color-ink);
-    transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.12s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
+  .depress-sm:hover:not(.is-on) { transform: translate(-1px, -1px); box-shadow: 4px 5px 0 0 var(--color-ink); }
   .depress-sm:active,
-  .depress-sm.is-on { transform: translate(3px, 4px); box-shadow: 0 0 0 0 var(--color-ink); }
+  .depress-sm.is-on { transform: translate(3px, 4px); box-shadow: inset 0 2px 6px rgba(20, 16, 12, 0.5); }
 }

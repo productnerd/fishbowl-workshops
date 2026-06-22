@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
 
-type Variant = 'red' | 'ink' | 'cyan' | 'paper'
+type Variant = 'red' | 'ink' | 'blue' | 'paper'
 const variants: Record<Variant, string> = {
   red: 'bg-red text-paper-hi',
   ink: 'bg-ink text-paper-hi',
-  cyan: 'bg-cyan text-ink',
+  blue: 'bg-blue text-ink',
   paper: 'bg-paper-hi text-ink',
 }
 

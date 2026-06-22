@@ -114,7 +114,7 @@ export default function Questionnaire() {
           </span>
         </div>
         <div className="h-3 overflow-hidden rounded-full border-2 border-ink bg-paper-hi">
-          <motion.div className="h-full bg-cyan" animate={{ width: `${pct}%` }} transition={{ ease: 'easeOut' }} />
+          <motion.div className="h-full bg-blue" animate={{ width: `${pct}%` }} transition={{ ease: 'easeOut' }} />
         </div>
       </div>
 
@@ -140,6 +140,9 @@ export default function Questionnaire() {
                 virtueLabel={q.virtue.name}
                 deficientLabel={q.virtue.deficientPole}
                 excessiveLabel={q.virtue.excessivePole}
+                deficientTraits={q.virtue.deficientTraits}
+                virtueTraits={q.virtue.virtueTraits}
+                excessiveTraits={q.virtue.excessiveTraits}
               />
             )}
             {q.type === 'likert' && (
@@ -163,7 +166,7 @@ export default function Questionnaire() {
           ← Back
         </button>
         {isLast ? (
-          <Button variant="cyan" onClick={submit} disabled={!answered || submitting}>
+          <Button variant="blue" onClick={submit} disabled={!answered || submitting}>
             {submitting ? 'Sending…' : 'Submit ✓'}
           </Button>
         ) : (

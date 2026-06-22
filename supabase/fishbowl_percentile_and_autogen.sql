@@ -27,10 +27,10 @@ as $$
       and s.dimension_means is not null
   ),
   scored as (
-    select case when p_higher_is_best then m else 1 - abs(m - 3) / 2 end as g from vals
+    select case when p_higher_is_best then m else 1 - abs(m - 5) / 4 end as g from vals
   ),
   me as (
-    select case when p_higher_is_best then p_score else 1 - abs(p_score - 3) / 2 end as g
+    select case when p_higher_is_best then p_score else 1 - abs(p_score - 5) / 4 end as g
   )
   select jsonb_build_object(
     'n_subjects', (select count(*) from scored),

@@ -66,7 +66,7 @@ const stdDev = (xs: number[]) => {
   const m = mean(xs)
   return Math.sqrt(xs.reduce((a, b) => a + (b - m) ** 2, 0) / xs.length)
 }
-const classifyTendency = (mu: number): Tendency => (mu < 2.5 ? 'deficient' : mu <= 3.5 ? 'balanced' : 'excessive')
+const classifyTendency = (mu: number): Tendency => (mu < 4 ? 'deficient' : mu <= 6 ? 'balanced' : 'excessive')
 const round = (n: number, p = 2) => Math.round(n * 10 ** p) / 10 ** p
 
 const corsHeaders = {
@@ -127,10 +127,10 @@ Deno.serve(async (req) => {
     const dimensionMeans: Record<string, number> = {}
 
     const virtueStats = VIRTUES.map((q) => {
-      const scores = responses.map((r: any) => Number(val(r, q.id))).filter((n: number) => n >= 1 && n <= 5)
-      const mu = scores.length ? mean(scores) : 3
+      const scores = responses.map((r: any) => Number(val(r, q.id))).filter((n: number) => n >= 1 && n <= 9)
+      const mu = scores.length ? mean(scores) : 5
       dimensionMeans[q.dimension] = round(mu)
-      return { dimension: q.dimension, name: q.virtue!.name, deficientPole: q.virtue!.deficientPole, excessivePole: q.virtue!.excessivePole, mu: round(mu), sigma: round(stdDev(scores)), tendency: classifyTendency(mu), balanceScore: round(1 - Math.abs(mu - 3) / 2, 3) }
+      return { dimension: q.dimension, name: q.virtue!.name, deficientPole: q.virtue!.deficientPole, excessivePole: q.virtue!.excessivePole, mu: round(mu), sigma: round(stdDev(scores)), tendency: classifyTendency(mu), balanceScore: round(1 - Math.abs(mu - 5) / 4, 3) }
     })
 
     const competencyStats = COMPETENCIES.map((q) => {
@@ -170,8 +170,8 @@ Deno.serve(async (req) => {
 
     // ── Build the prompt (prose only) ──
     const statsBlock = [
-      'VIRTUES (1=deficiency vice, 3=the virtue/mean, 5=excess vice):',
-      ...virtueStats.map((v) => `- ${v.dimension} (${v.name}): mean ${v.mu}/5 -> ${v.tendency} (${v.tendency === 'deficient' ? v.deficientPole : v.tendency === 'excessive' ? v.excessivePole : 'balanced'}), spread ${v.sigma}`),
+      'VIRTUES (1-9 scale; 1=deficiency vice, 5=the virtue/mean, 9=excess vice):',
+      ...virtueStats.map((v) => `- ${v.dimension} (${v.name}): mean ${v.mu}/9 -> ${v.tendency} (${v.tendency === 'deficient' ? v.deficientPole : v.tendency === 'excessive' ? v.excessivePole : 'balanced'}), spread ${v.sigma}`),
       '',
       'COMPETENCIES (1-5 agree, higher is better):',
       ...competencyStats.map((c) => `- ${c.dimension}: avg ${c.average}/5 — "${c.statement}"`),

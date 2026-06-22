@@ -14,9 +14,9 @@ function erf(x: number): number {
 const normalCdf = (z: number) => 0.5 * (1 + erf(z / Math.SQRT2))
 
 // "Goodness" on a higher-is-better axis: raw score for competencies, balance
-// (closeness to the mean 3) for virtues.
+// (closeness to the virtuous mean 5 on the 1-9 scale) for virtues.
 const goodness = (score: number, higherIsBest: boolean) =>
-  higherIsBest ? score : 1 - Math.abs(score - 3) / 2
+  higherIsBest ? score : 1 - Math.abs(score - 5) / 4
 
 // Returns the subject's "top X%" for a dimension. Uses the live population
 // percentile once >= 50 subjects exist; until then a seeded default norm.

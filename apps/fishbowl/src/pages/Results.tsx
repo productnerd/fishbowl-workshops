@@ -151,7 +151,7 @@ export default function Results() {
       tone: 'paper',
       node: (
         <div>
-          <p className="kicker mb-1 text-cyan-deep">your balance</p>
+          <p className="kicker mb-1 text-blue-deep">your balance</p>
           <h2 className="display mb-5 text-3xl">The ten virtues</h2>
           <div className="flex flex-col gap-4">
             {insights.virtues.map((v) => (
@@ -169,7 +169,7 @@ export default function Results() {
       ),
     },
     {
-      tone: 'cyan',
+      tone: 'blue',
       node: (
         <div className="flex min-h-[55vh] flex-col justify-center">
           <p className="kicker text-ink">most balanced</p>
@@ -219,7 +219,7 @@ export default function Results() {
       tone: 'paper',
       node: (
         <div>
-          <p className="kicker mb-5 text-cyan-deep">grow here</p>
+          <p className="kicker mb-5 text-blue-deep">grow here</p>
           <div className="flex flex-col gap-4">
             {insights.growthEdges.map((g) => (
               <div key={g.dimension} className="rounded-2xl border-[2.5px] border-ink bg-sand p-4 shadow-chunky-sm">
@@ -227,7 +227,7 @@ export default function Results() {
                 <ul className="mt-2 flex flex-col gap-1.5">
                   {g.actions.filter(Boolean).map((b, i) => (
                     <li key={i} className="flex gap-2 leading-snug text-ink-soft">
-                      <span className="text-cyan-deep">→</span>
+                      <span className="text-blue-deep">→</span>
                       <span>
                         <Rich text={b} />
                       </span>
@@ -244,7 +244,7 @@ export default function Results() {
       tone: 'ink',
       node: (
         <div className="flex min-h-[55vh] flex-col justify-center">
-          <p className="kicker text-cyan">one last thing</p>
+          <p className="kicker text-blue">one last thing</p>
           <p className="serif mt-4 text-3xl leading-snug text-paper-hi">
             <Rich text={insights.closing} />
           </p>
@@ -252,7 +252,7 @@ export default function Results() {
             <button
               onClick={regenerate}
               disabled={regenerating}
-              className="press mt-8 self-start cursor-pointer rounded-full border-[2.5px] border-paper-hi bg-cyan px-5 py-2.5 font-display font-black text-ink"
+              className="press mt-8 self-start cursor-pointer rounded-full border-[2.5px] border-paper-hi bg-blue px-5 py-2.5 font-display font-black text-ink"
             >
               {regenerating ? 'Refreshing…' : 'New answers came in · refresh'}
             </button>
@@ -308,7 +308,7 @@ export default function Results() {
           {idx + 1} / {total}
         </span>
         {idx === total - 1 ? (
-          <span className="rounded-full border-[2.5px] border-ink bg-cyan px-5 py-3 font-display font-black shadow-chunky-sm">
+          <span className="rounded-full border-[2.5px] border-ink bg-blue px-5 py-3 font-display font-black shadow-chunky-sm">
             the end ✦
           </span>
         ) : (
