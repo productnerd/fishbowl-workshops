@@ -35,8 +35,8 @@ export default function VirtueSlider({
               type="button"
               onClick={() => onChange?.(s)}
               aria-label={`Position ${s} of 5`}
-              className={`press relative h-14 flex-1 cursor-pointer rounded-2xl border-[2.5px] border-ink ${
-                selected ? 'bg-red' : isCenter ? 'bg-cyan/35' : 'bg-paper-hi'
+              className={`depress-sm relative h-14 flex-1 cursor-pointer rounded-2xl border-[2.5px] border-ink ${
+                selected ? 'bg-red is-on' : isCenter ? 'bg-cyan/35' : 'bg-paper-hi'
               }`}
             >
               {isCenter && !selected && (

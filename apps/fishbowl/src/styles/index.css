@@ -82,4 +82,21 @@ body::after {
   .press { transition: transform 0.13s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.13s cubic-bezier(0.2, 0.8, 0.2, 1); }
   .press:hover { transform: translate(-2px, -3px); box-shadow: 8px 10px 0 0 var(--color-ink); }
   .press:active { transform: translate(3px, 4px); box-shadow: 2px 2px 0 0 var(--color-ink); }
+
+  /* Tactile option button: raised by default, and STAYS depressed when selected
+     (.is-on) — pushed into its shadow like a real key you've pressed in. */
+  .depress {
+    box-shadow: 4px 5px 0 0 var(--color-ink);
+    transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.12s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .depress:hover:not(.is-on) { transform: translate(-1px, -2px); box-shadow: 5px 7px 0 0 var(--color-ink); }
+  .depress:active,
+  .depress.is-on { transform: translate(4px, 5px); box-shadow: 0 0 0 0 var(--color-ink); }
+
+  .depress-sm {
+    box-shadow: 3px 4px 0 0 var(--color-ink);
+    transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.12s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .depress-sm:active,
+  .depress-sm.is-on { transform: translate(3px, 4px); box-shadow: 0 0 0 0 var(--color-ink); }
 }

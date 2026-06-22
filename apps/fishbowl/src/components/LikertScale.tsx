@@ -17,14 +17,15 @@ export default function LikertScale({
       <div className="card-3d flex gap-2 bg-sand p-2.5">
         {SEGMENTS.map((s) => {
           const filled = value != null && s <= value
+          const isSel = value === s
           return (
             <button
               key={s}
               type="button"
               onClick={() => onChange(s)}
-              className={`press grid h-16 flex-1 cursor-pointer place-items-center rounded-2xl border-[2.5px] border-ink font-display text-xl font-black ${
+              className={`depress-sm grid h-16 flex-1 cursor-pointer place-items-center rounded-2xl border-[2.5px] border-ink font-display text-xl font-black ${
                 filled ? 'bg-red text-paper-hi' : 'bg-paper-hi text-ink-soft/70'
-              }`}
+              } ${isSel ? 'is-on' : ''}`}
             >
               {s}
             </button>

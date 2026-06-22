@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Question, Session } from '@fishbowl/feedback-core'
@@ -24,6 +24,7 @@ export default function Questionnaire() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [dir, setDir] = useState(1)
+  const advanceTimer = useRef<number | null>(null)
 
   useEffect(() => {
     if (!slug) return
@@ -35,6 +36,14 @@ export default function Questionnaire() {
       setLoading(false)
     })
   }, [slug])
+
+  // Clear any pending auto-advance on unmount.
+  useEffect(
+    () => () => {
+      if (advanceTimer.current !== null) window.clearTimeout(advanceTimer.current)
+    },
+    []
+  )
 
   if (loading) {
     return (
@@ -57,14 +66,31 @@ export default function Questionnaire() {
   const a = answers[q.id]
   const answered = a !== undefined && a !== ''
   const isLast = i === questions.length - 1
-  const set = (v: string | number) => setAnswers((prev) => ({ ...prev, [q.id]: v }))
-  const prevSection = i > 0 ? questions[i - 1].section : null
-  const newSection = q.section !== prevSection
-
+  const clearAdvance = () => {
+    if (advanceTimer.current !== null) {
+      window.clearTimeout(advanceTimer.current)
+      advanceTimer.current = null
+    }
+  }
   const go = (d: number) => {
+    clearAdvance()
     setDir(d)
     setI((c) => Math.min(Math.max(c + d, 0), questions.length - 1))
   }
+  const set = (v: string | number) => setAnswers((prev) => ({ ...prev, [q.id]: v }))
+  // Picking a discrete option auto-advances after a beat; free-text uses Next.
+  const handleSelect = (v: string | number) => {
+    set(v)
+    if (q.type !== 'freetext' && !isLast) {
+      clearAdvance()
+      advanceTimer.current = window.setTimeout(() => {
+        advanceTimer.current = null
+        go(1)
+      }, 500)
+    }
+  }
+  const prevSection = i > 0 ? questions[i - 1].section : null
+  const newSection = q.section !== prevSection
   const submit = async () => {
     setSubmitting(true)
     try {
@@ -110,17 +136,17 @@ export default function Questionnaire() {
               <VirtueSlider
                 id={`q${q.id}`}
                 value={(a as number) ?? null}
-                onChange={set}
+                onChange={handleSelect}
                 virtueLabel={q.virtue.name}
                 deficientLabel={q.virtue.deficientPole}
                 excessiveLabel={q.virtue.excessivePole}
               />
             )}
             {q.type === 'likert' && (
-              <LikertScale value={(a as number) ?? null} onChange={set} lowLabel={q.lowLabel || 'Disagree'} highLabel={q.highLabel || 'Agree'} />
+              <LikertScale value={(a as number) ?? null} onChange={handleSelect} lowLabel={q.lowLabel || 'Disagree'} highLabel={q.highLabel || 'Agree'} />
             )}
             {q.type === 'scenario' && q.options && (
-              <ScenarioChoice options={q.options} selected={(a as string) ?? null} onSelect={set} />
+              <ScenarioChoice options={q.options} selected={(a as string) ?? null} onSelect={handleSelect} />
             )}
             {q.type === 'freetext' && <FreeText value={(a as string) || ''} onChange={set} />}
           </motion.div>

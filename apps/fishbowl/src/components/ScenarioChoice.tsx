@@ -16,8 +16,8 @@ export default function ScenarioChoice({
             key={o}
             type="button"
             onClick={() => onSelect(o)}
-            className={`press cursor-pointer rounded-2xl border-[2.5px] border-ink px-5 py-4 text-left text-lg font-semibold ${
-              sel ? 'bg-red text-paper-hi shadow-chunky' : 'bg-paper-hi text-ink shadow-chunky-sm'
+            className={`depress cursor-pointer rounded-2xl border-[2.5px] border-ink px-5 py-4 text-left text-lg font-semibold ${
+              sel ? 'bg-red text-paper-hi is-on' : 'bg-paper-hi text-ink'
             }`}
           >
             {o}
