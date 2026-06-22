@@ -1,5 +1,10 @@
-export type QuestionType = 'mc' | 'rating' | 'freetext'
+export type QuestionType = 'mc' | 'rating' | 'freetext' | 'likert' | 'scenario' | 'virtue'
 
+// Where a person sits relative to the Aristotelian mean on a virtue dimension.
+export type Tendency = 'deficient' | 'balanced' | 'excessive'
+
+// B2C ("Through Their Eyes") question taxonomy. Optional now that the model is
+// shared — Fishbowl groups by the generic `dimension` field instead.
 export type QuestionCategory =
   | 'first_impressions'
   | 'strengths'
@@ -14,15 +19,21 @@ export type QuestionCategory =
 
 export interface Question {
   id: number
-  category: QuestionCategory
   type: QuestionType
-  text: string
-  options?: string[]
+  text: string // for 'likert', this is the statement being agreed/disagreed with
   section: string
   sectionDescription: string
+  category?: QuestionCategory // B2C grouping
+  dimension?: string // Fishbowl grouping key (e.g. 'courage', 'follow_through')
+  scoring?: 'mean-is-best' | 'higher-is-best' // virtue => mean-is-best; competency => higher-is-best
+  options?: string[]
   lowLabel?: string
   highLabel?: string
   allowOther?: boolean
+  // scenario: maps each chosen option to a tendency
+  optionTendencies?: Record<string, Tendency>
+  // virtue: bipolar 1-5 slider, 1 & 5 are vices, 3 is the virtue
+  virtue?: { name: string; deficientPole: string; excessivePole: string }
 }
 
 export interface Session {
@@ -31,6 +42,8 @@ export interface Session {
   slug: string
   created_at: string
   response_count: number
+  // Fishbowl: per-dimension subject means, stamped at report time (percentile layer).
+  dimension_means?: Record<string, number> | null
 }
 
 export interface Response {
@@ -40,10 +53,28 @@ export interface Response {
   completed_at: string
 }
 
+export interface VirtueResult {
+  mu: number // mean placement (1-5), 3 = the virtuous mean
+  sigma: number // spread — how differently people read this person
+  tendency: Tendency
+  balanceScore: number // 1 = perfectly balanced (mu=3), 0 = extreme pole
+  scores: number[]
+}
+
+export interface ScenarioResult {
+  counts: Record<string, number>
+  winner: string
+  winnerCount: number
+  tendencyTally: Record<Tendency, number>
+}
+
 export interface AggregatedResults {
   totalResponses: number
   creatorName: string
   mcResults: Record<number, { counts: Record<string, number>; winner: string; winnerCount: number }>
   ratingResults: Record<number, { average: number; scores: number[] }>
   freetextResults: Record<number, string[]>
+  likertResults: Record<number, { average: number; scores: number[] }>
+  virtueResults: Record<number, VirtueResult>
+  scenarioResults: Record<number, ScenarioResult>
 }
