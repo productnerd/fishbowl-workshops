@@ -25,12 +25,7 @@ export default function Landing() {
     <div className="mx-auto min-h-dvh w-full max-w-6xl px-5 pb-24 sm:px-8">
       {/* Nav */}
       <motion.nav {...rise(0)} className="flex items-center justify-between py-7">
-        <div className="flex items-center gap-2.5">
-          <span className="grid h-10 w-10 place-items-center rounded-2xl border-[2.5px] border-ink bg-cyan text-xl shadow-chunky-sm">
-            🐟
-          </span>
-          <span className="display text-2xl">Fishbowl</span>
-        </div>
+        <span className="display text-2xl">Fishbowl</span>
         <span className="kicker hidden text-ink-soft sm:block">anonymous · honest · yours</span>
       </motion.nav>
 
