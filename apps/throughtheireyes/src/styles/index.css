@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Pull the shared wrapped-ui kit's class names into Tailwind's content scan so
+   its utilities (bg-primary, from-accent, text-text-secondary, ...) are not
+   tree-shaken away. Path is relative to this file. */
+@source "../../../../packages/wrapped-ui/src/**/*.{ts,tsx}";
+
 @theme {
   --color-primary: #6C5CE7;
   --color-primary-light: #A29BFE;

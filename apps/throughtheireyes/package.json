@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@fishbowl/feedback-core": "*",
+    "@fishbowl/wrapped-ui": "*",
     "@supabase/supabase-js": "^2.99.2",
     "@tailwindcss/vite": "^4.2.1",
     "framer-motion": "^12.37.0",

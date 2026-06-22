@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
-import Button from '../components/ui/Button'
+import { Button } from '@fishbowl/wrapped-ui'
 import { REQUIRED_RESPONSES, generateSlug, buildShareLink } from '@fishbowl/feedback-core'
 
 const MY_SESSION_KEY = 'tte_my_session'

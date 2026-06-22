@@ -4,11 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { getQuestionsForName } from '../data/questions'
 import type { Question, Session } from '@fishbowl/feedback-core'
-import MultipleChoice from '../components/questions/MultipleChoice'
-import Rating from '../components/questions/Rating'
-import FreeText from '../components/questions/FreeText'
-import ProgressBar from '../components/ui/ProgressBar'
-import Button from '../components/ui/Button'
+import { MultipleChoice, Rating, FreeText, ProgressBar, Button } from '@fishbowl/wrapped-ui'
 
 const AUTO_ADVANCE_DELAY = 400
 
