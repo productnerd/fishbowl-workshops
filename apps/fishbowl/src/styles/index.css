@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+@theme {
+  /* Earthy, paper-soft palette — no pure white, no pure brown. */
+  --color-paper: #ece3cd;
+  --color-paper-hi: #f5eedc;
+  --color-sand: #e2d4b6;
+  --color-sand-deep: #d3bf96;
+  --color-ink: #2a2420;
+  --color-ink-soft: #5a4f45;
+  --color-red: #cc4326;
+  --color-red-deep: #a2311a;
+  --color-cyan: #1f9e97;
+  --color-cyan-deep: #157a74;
+
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Hanken Grotesk", system-ui, sans-serif;
+  --font-mono: "Spline Sans Mono", ui-monospace, monospace;
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+  html, body, #root { margin: 0; padding: 0; min-height: 100dvh; }
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-weight: 450;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    background-image:
+      radial-gradient(115% 75% at 50% -12%, rgba(204, 67, 38, 0.07), transparent 58%),
+      radial-gradient(95% 60% at 102% 104%, rgba(31, 158, 151, 0.06), transparent 55%);
+    background-attachment: fixed;
+  }
+  ::selection { background: var(--color-red); color: var(--color-paper-hi); }
+}
+
+/* Paper grit / grain overlay — the materiality. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 0.09;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.74' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
+}
+
+@layer components {
+  .display {
+    font-family: var(--font-display);
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: -0.025em;
+    font-variation-settings: "opsz" 144, "SOFT" 60, "WONK" 1;
+  }
+  .serif {
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 40, "SOFT" 40, "WONK" 0;
+  }
+  .kicker {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-size: 0.7rem;
+    font-weight: 500;
+  }
+  /* The signature 3D, cartoon-ish container: thick ink outline, big curve,
+     chunky offset shadow. */
+  .card-3d {
+    border: 2.5px solid var(--color-ink);
+    border-radius: 28px;
+    box-shadow: 6px 7px 0 0 var(--color-ink);
+    background: var(--color-paper-hi);
+  }
+  .shadow-chunky { box-shadow: 6px 7px 0 0 var(--color-ink); }
+  .shadow-chunky-sm { box-shadow: 4px 5px 0 0 var(--color-ink); }
+  /* Press / lift physicality on interactive elements. */
+  .press { transition: transform 0.13s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.13s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .press:hover { transform: translate(-2px, -3px); box-shadow: 8px 10px 0 0 var(--color-ink); }
+  .press:active { transform: translate(3px, 4px); box-shadow: 2px 2px 0 0 var(--color-ink); }
+}
