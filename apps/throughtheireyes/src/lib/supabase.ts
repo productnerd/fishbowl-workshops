@@ -1,10 +1,9 @@
-import { createClient } from '@supabase/supabase-js'
+import { createSupabaseClient, isSupabaseConfigured as cfg } from '@fishbowl/feedback-core'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+// App-local binding layer: inject this app's env into the generic core factory.
+const url = import.meta.env.VITE_SUPABASE_URL || ''
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createSupabaseClient(url, anonKey)
 
-// Check if Supabase is configured
-export const isSupabaseConfigured = () =>
-  Boolean(supabaseUrl && supabaseAnonKey)
+export const isSupabaseConfigured = () => cfg(url, anonKey)

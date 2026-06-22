@@ -3,23 +3,9 @@ import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import Button from '../components/ui/Button'
+import { REQUIRED_RESPONSES, generateSlug, buildShareLink } from '@fishbowl/feedback-core'
 
 const MY_SESSION_KEY = 'tte_my_session'
-const REQUIRED_RESPONSES = 5
-
-function generateSlug(): string {
-  const chars = 'abcdefghijkmnpqrstuvwxyz23456789'
-  let slug = ''
-  for (let i = 0; i < 8; i++) {
-    slug += chars[Math.floor(Math.random() * chars.length)]
-  }
-  return slug
-}
-
-function getShareLink(slug: string): string {
-  const base = window.location.origin + window.location.pathname
-  return `${base}#/s/${slug}`
-}
 
 export default function Create() {
   const navigate = useNavigate()
@@ -112,7 +98,7 @@ export default function Create() {
 
   const handleCopy = async () => {
     if (!slug) return
-    await navigator.clipboard.writeText(getShareLink(slug))
+    await navigator.clipboard.writeText(buildShareLink(slug))
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -138,7 +124,7 @@ export default function Create() {
 
   // Share / status screen
   if (slug) {
-    const shareLink = getShareLink(slug)
+    const shareLink = buildShareLink(slug)
     const remaining = Math.max(0, REQUIRED_RESPONSES - responseCount)
     const unlocked = responseCount >= REQUIRED_RESPONSES
     const progressPct = Math.min(100, (responseCount / REQUIRED_RESPONSES) * 100)

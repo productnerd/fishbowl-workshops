@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { aggregateResponses, topMcAnswers } from '../lib/aggregation'
 import { useAiInsights, type AreaKey } from '../lib/aiInsights'
-import type { Session, AggregatedResults } from '../types'
+import { REQUIRED_RESPONSES, type Session, type AggregatedResults } from '@fishbowl/feedback-core'
 import WrapCard from '../components/wrapped/WrapCard'
 import BarChart from '../components/wrapped/BarChart'
 import GaugeChart from '../components/wrapped/GaugeChart'
@@ -12,8 +12,6 @@ import QuoteCarousel from '../components/wrapped/QuoteCarousel'
 import ProgressDots from '../components/wrapped/ProgressDots'
 import RichText from '../components/wrapped/RichText'
 import Button from '../components/ui/Button'
-
-const REQUIRED_RESPONSES = 5
 
 export default function Results() {
   const { slug } = useParams<{ slug: string }>()

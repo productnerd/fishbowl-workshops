@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
-import type { Session } from '../types'
+import type { Session } from '@fishbowl/feedback-core'
 
 export default function Done() {
   const { slug } = useParams<{ slug: string }>()

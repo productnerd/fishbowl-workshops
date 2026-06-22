@@ -1,4 +1,4 @@
-import type { Question } from '../types'
+import type { Question } from '@fishbowl/feedback-core'
 
 // 25 questions, ~5 minutes.
 // Curated from a longer list — duplicates removed, only the most practically
