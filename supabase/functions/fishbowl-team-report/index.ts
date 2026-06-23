@@ -54,7 +54,8 @@ Deno.serve(async (req) => {
       new Set((body.emails || []).map((e: string) => String(e).trim().toLowerCase()).filter(Boolean))
     )
     if (emails.length === 0) {
-      return new Response(JSON.stringify({ error: 'no emails' }), { status: 200, headers: jsonHeaders })
+      // Password-only check (e.g. the gate before any team is added).
+      return new Response(JSON.stringify({ roster: [], allComplete: false, team: null }), { headers: jsonHeaders })
     }
 
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
