@@ -159,7 +159,6 @@ export default function Results() {
                 key={v.dimension}
                 name={v.name}
                 mu={v.mu}
-                tendency={v.tendency}
                 deficientPole={v.deficientPole}
                 excessivePole={v.excessivePole}
               />

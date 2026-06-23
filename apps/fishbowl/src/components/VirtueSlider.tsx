@@ -1,6 +1,10 @@
 const SEGMENTS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+// Pink ramp by distance from the virtuous middle (1 = nearest, 4 = the vice pole).
+const VICE_PINK = ['', '#f6cdda', '#efaac4', '#e486a6', '#d56690']
+const STAR_BLUE = '#bcd6ef'
 
-// Bipolar Aristotelian slider, 1-9: 1 & 9 are vices, 5 (the middle) is the virtue.
+// Bipolar Aristotelian slider, 1-9: the middle (5) is the virtue (dark Greek blue +
+// light star); choices grow pinker the closer they sit to a vice.
 export default function VirtueSlider({
   value,
   onChange,
@@ -33,23 +37,24 @@ export default function VirtueSlider({
         <span className="kicker text-right text-ink-soft">{excessiveLabel}</span>
       </div>
 
-      {/* 9 keys, no outer tray — tactile raised keys that stay pressed when chosen */}
+      {/* 9 keys, no outer tray — the middle is always the dark-blue virtue marker */}
       <div className="flex gap-1.5">
         {SEGMENTS.map((s) => {
           const isSel = value === s
-          const isCenter = s === 5
-          const balanced = s >= 4 && s <= 6
+          const center = s === 5
+          const selVice = isSel && !center
           return (
             <button
               key={id ? `${id}-${s}` : s}
               type="button"
               onClick={() => onChange?.(s)}
               aria-label={`Position ${s} of 9`}
+              style={selVice ? { backgroundColor: VICE_PINK[Math.abs(s - 5)] } : undefined}
               className={`depress-sm relative grid h-12 flex-1 cursor-pointer place-items-center rounded-lg border-[2.5px] border-ink ${
-                isSel ? `${balanced ? 'bg-blue sc-navy' : 'bg-pink sc-pink'} is-on` : isCenter ? 'bg-blue/25' : 'bg-paper-hi'
-              }`}
+                center ? 'bg-blue sc-navy' : selVice ? 'sc-pink' : 'bg-paper-hi'
+              } ${isSel ? 'is-on' : ''}`}
             >
-              {isCenter && !isSel && <span className="text-base leading-none text-blue-deep">✦</span>}
+              {center && <span className="text-base leading-none" style={{ color: STAR_BLUE }}>✦</span>}
             </button>
           )
         })}

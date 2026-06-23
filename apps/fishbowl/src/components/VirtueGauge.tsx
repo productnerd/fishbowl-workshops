@@ -1,18 +1,18 @@
-import type { Tendency } from '@fishbowl/feedback-core'
+// Pink ramp by distance from the virtuous middle (1 = nearest, 4 = the vice pole).
+const VICE_PINK = ['', '#f6cdda', '#efaac4', '#e486a6', '#d56690']
+const STAR_BLUE = '#bcd6ef'
 
-// Compact bipolar gauge (1-9, 5 = the virtue). The colour + position carry the
-// meaning (blue = balanced, pink = a vice); the ✦ marks the virtuous middle.
+// Compact bipolar gauge (1-9, 5 = the virtue). The middle is dark Greek blue with
+// a light star; the marked position grows pinker the closer it sits to a vice.
 export default function VirtueGauge({
   name,
   mu,
-  tendency,
   deficientPole,
   excessivePole,
   big = false,
 }: {
   name: string
   mu: number
-  tendency: Tendency
   deficientPole: string
   excessivePole: string
   big?: boolean
@@ -25,16 +25,17 @@ export default function VirtueGauge({
       </div>
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((s) => {
-          const sel = s === pos
           const center = s === 5
+          const isPos = s === pos && !center
           return (
             <div
               key={s}
+              style={isPos ? { backgroundColor: VICE_PINK[Math.abs(s - 5)] } : undefined}
               className={`${big ? 'h-10' : 'h-7'} grid flex-1 place-items-center rounded-md border-2 border-ink ${
-                sel ? (tendency === 'balanced' ? 'bg-blue' : 'bg-pink') : center ? 'bg-blue/25' : 'bg-paper-hi'
+                center ? 'bg-blue' : isPos ? '' : 'bg-paper-hi'
               }`}
             >
-              {center && <span className={`text-xs leading-none ${sel ? 'text-paper-hi' : 'text-blue-deep'}`}>✦</span>}
+              {center && <span className="text-xs leading-none" style={{ color: STAR_BLUE }}>✦</span>}
             </div>
           )
         })}
