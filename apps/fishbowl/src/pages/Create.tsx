@@ -11,6 +11,7 @@ const KEY = 'fishbowl_my_session'
 export default function Create() {
   const navigate = useNavigate()
   const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
   const [context, setContext] = useState('')
   const [slug, setSlug] = useState<string | null>(null)
   const [creator, setCreator] = useState('')
@@ -42,8 +43,8 @@ export default function Create() {
     if (!name.trim()) return
     setLoading(true)
     try {
-      const s = await createSession(name.trim(), context.trim() || undefined)
-      localStorage.setItem(KEY, JSON.stringify({ slug: s, creator_name: name.trim() }))
+      const s = await createSession(name.trim(), context.trim() || undefined, email.trim() || undefined)
+      localStorage.setItem(KEY, JSON.stringify({ slug: s, creator_name: name.trim(), email: email.trim() || null }))
       setSlug(s)
       setCreator(name.trim())
     } catch {
@@ -132,6 +133,14 @@ export default function Create() {
           autoFocus
           maxLength={40}
           className="mt-7 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-6 py-4 text-center font-display text-2xl font-black text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/50 focus:shadow-chunky"
+        />
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email (optional) — get notified + your report"
+          maxLength={120}
+          className="mt-4 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-left text-base text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/55 focus:shadow-chunky"
         />
         <textarea
           value={context}

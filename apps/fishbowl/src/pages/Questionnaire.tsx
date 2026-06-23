@@ -23,6 +23,7 @@ export default function Questionnaire() {
   const [answers, setAnswers] = useState<Record<number, string | number>>({})
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [email, setEmail] = useState('')
   const [dir, setDir] = useState(1)
   const advanceTimer = useRef<number | null>(null)
 
@@ -94,7 +95,7 @@ export default function Questionnaire() {
   const submit = async () => {
     setSubmitting(true)
     try {
-      await submitResponse(session.id, answers)
+      await submitResponse(session.id, answers, email.trim() || undefined)
     } catch {
       /* best effort */
     }
@@ -155,6 +156,21 @@ export default function Questionnaire() {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {isLast && (
+        <div className="pb-3">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Your email (optional) — get notified + your own Fishbowl"
+            className="w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-base text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/55 focus:shadow-chunky"
+          />
+          <p className="mt-1.5 text-center text-xs text-ink-soft">
+            Never shown to {session.creator_name}. You stay anonymous to them.
+          </p>
+        </div>
+      )}
 
       {/* nav */}
       <div className="sticky bottom-0 -mx-5 flex items-center justify-between gap-3 bg-paper/85 px-5 pb-5 pt-3 backdrop-blur-sm">
