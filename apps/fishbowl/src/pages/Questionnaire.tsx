@@ -14,6 +14,27 @@ function Screen({ children }: { children: ReactNode }) {
   return <div className="grid min-h-dvh place-items-center px-5">{children}</div>
 }
 
+// Snappy real-time read for returning respondents: their own lean (from their
+// own Fishbowl) vs how they're placing this person. Deliberately terse — often
+// just a few words, often nothing at all.
+function compareNudge(mine: number, theirs: number): string | null {
+  const dm = Math.round(mine) - 5
+  const dt = theirs - 5
+  const am = Math.abs(dm)
+  const at = Math.abs(dt)
+  if (am <= 1 && at <= 1) return null
+  const sm = Math.sign(dm)
+  const st = Math.sign(dt)
+  if (sm !== 0 && st !== 0 && sm !== st) {
+    return am >= 2 && at >= 2 ? 'Total opposites here. That can spark, or balance you out.' : 'Opposite of you.'
+  }
+  if (sm === st && am >= 2 && at >= 2) return 'Same strong lean as you.'
+  if (sm === st && am >= 1 && at >= 1) return 'You tilt this way too.'
+  if (am <= 1 && at >= 2) return 'Further out than you sit.'
+  if (at <= 1 && am >= 2) return 'You hold the middle better here.'
+  return null
+}
+
 export default function Questionnaire() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
@@ -25,6 +46,7 @@ export default function Questionnaire() {
   const [submitting, setSubmitting] = useState(false)
   const [email, setEmail] = useState('')
   const [dir, setDir] = useState(1)
+  const [myProfile, setMyProfile] = useState<Record<string, number> | null>(null)
   const advanceTimer = useRef<number | null>(null)
 
   useEffect(() => {
@@ -36,6 +58,22 @@ export default function Questionnaire() {
       }
       setLoading(false)
     })
+  }, [slug])
+
+  // If this respondent has their own Fishbowl (and isn't answering their own
+  // link), load their profile so we can show live "you vs them" reads.
+  useEffect(() => {
+    const stored = localStorage.getItem('fishbowl_my_session')
+    if (!stored) return
+    try {
+      const { slug: mySlug } = JSON.parse(stored)
+      if (!mySlug || mySlug === slug) return
+      getSession(mySlug).then((s) => {
+        if (s?.dimension_means) setMyProfile(s.dimension_means as Record<string, number>)
+      })
+    } catch {
+      /* ignore */
+    }
   }, [slug])
 
   // Clear any pending auto-advance on unmount.
@@ -82,13 +120,15 @@ export default function Questionnaire() {
   // Picking a discrete option auto-advances after a beat; free-text uses Next.
   const handleSelect = (v: string | number) => {
     set(v)
-    if (q.type !== 'freetext' && !isLast) {
-      clearAdvance()
-      advanceTimer.current = window.setTimeout(() => {
-        advanceTimer.current = null
-        go(1)
-      }, 500)
-    }
+    if (q.type === 'freetext' || isLast) return
+    // If a live nudge will show, don't auto-advance — let them read it, then tap Next.
+    const mine = q.dimension ? myProfile?.[q.dimension] : undefined
+    if (q.type === 'virtue' && mine != null && compareNudge(mine, v as number) != null) return
+    clearAdvance()
+    advanceTimer.current = window.setTimeout(() => {
+      advanceTimer.current = null
+      go(1)
+    }, 500)
   }
   const prevSection = i > 0 ? questions[i - 1].section : null
   const newSection = q.section !== prevSection
@@ -134,17 +174,33 @@ export default function Questionnaire() {
             <h2 className="display mb-8 text-[clamp(1.9rem,5vw,2.9rem)]">{q.text}</h2>
 
             {q.type === 'virtue' && q.virtue && (
-              <VirtueSlider
-                id={`q${q.id}`}
-                value={(a as number) ?? null}
-                onChange={handleSelect}
-                virtueLabel={q.virtue.name}
-                deficientLabel={q.virtue.deficientPole}
-                excessiveLabel={q.virtue.excessivePole}
-                deficientTraits={q.virtue.deficientTraits}
-                virtueTraits={q.virtue.virtueTraits}
-                excessiveTraits={q.virtue.excessiveTraits}
-              />
+              <>
+                <VirtueSlider
+                  id={`q${q.id}`}
+                  value={(a as number) ?? null}
+                  onChange={handleSelect}
+                  virtueLabel={q.virtue.name}
+                  deficientLabel={q.virtue.deficientPole}
+                  excessiveLabel={q.virtue.excessivePole}
+                  deficientTraits={q.virtue.deficientTraits}
+                  virtueTraits={q.virtue.virtueTraits}
+                  excessiveTraits={q.virtue.excessiveTraits}
+                />
+                {(() => {
+                  const mine = q.dimension ? myProfile?.[q.dimension] : undefined
+                  const msg = mine != null && typeof a === 'number' ? compareNudge(mine, a) : null
+                  return msg ? (
+                    <motion.p
+                      key={msg}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-5 text-center text-sm font-semibold text-blue-deep"
+                    >
+                      ✦ {msg}
+                    </motion.p>
+                  ) : null
+                })()}
+              </>
             )}
             {q.type === 'likert' && (
               <LikertScale value={(a as number) ?? null} onChange={handleSelect} lowLabel={q.lowLabel || 'Disagree'} highLabel={q.highLabel || 'Agree'} />
