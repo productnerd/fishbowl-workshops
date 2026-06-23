@@ -4,6 +4,7 @@ import Create from './pages/Create'
 import Questionnaire from './pages/Questionnaire'
 import Done from './pages/Done'
 import Results from './pages/Results'
+import ManagerReport from './pages/ManagerReport'
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/s/:slug" element={<Questionnaire />} />
         <Route path="/s/:slug/done" element={<Done />} />
         <Route path="/r/:slug" element={<Results />} />
+        <Route path="/manager-report" element={<ManagerReport />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </HashRouter>
