@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   REQUIRED_RESPONSES,
   deriveType,
+  deriveArchetype,
   type Session,
   type BigFiveScores,
   type EnergizerTags,
@@ -24,6 +25,7 @@ import LockedCard from '../components/LockedCard'
 import EntryModal from '../components/EntryModal'
 import EnergyOverlay from '../components/EnergyOverlay'
 import ResponsibilitiesLadder from '../components/ResponsibilitiesLadder'
+import InfoTip from '../components/InfoTip'
 
 function Rich({ text }: { text: string }) {
   return (
@@ -175,7 +177,10 @@ export default function Results() {
       tone: 'paper',
       node: (
         <div>
-          <p className="kicker mb-1 text-blue-deep">your balance</p>
+          <p className="kicker mb-1 text-blue-deep">
+            your balance
+            <InfoTip text="Aristotle's golden mean: every strength is the midpoint between two vices. The middle — not the extreme — is the virtue." />
+          </p>
           <h2 className="display mb-5 text-3xl">The ten virtues</h2>
           <div className="flex flex-col gap-4">
             {insights.virtues.map((v) => (
@@ -316,7 +321,10 @@ export default function Results() {
       tone: 'paper',
       node: (
         <div>
-          <p className="kicker mb-1 text-blue-deep">this is you, by you</p>
+          <p className="kicker mb-1 text-blue-deep">
+            this is you, by you
+            <InfoTip text="The Big Five (OCEAN) is the most empirically validated model in personality science — five stable, cross-cultural traits." />
+          </p>
           <h2 className="display mb-5 text-3xl">Your five traits</h2>
           {hasSelf && self?.big_five ? (
             <OceanDials scores={self.big_five} />
@@ -331,6 +339,34 @@ export default function Results() {
   ]
   cards.splice(1, 0, ...selfCards)
 
+  // Archetype: derived from the team virtue means (always) blended with the
+  // subject's Big Five when they've self-assessed. Renders from team alone.
+  const virtueMeans = Object.fromEntries(insights.virtues.map((v) => [v.dimension, v.mu]))
+  const archetype = deriveArchetype(hasSelf ? (self?.big_five ?? null) : null, virtueMeans)
+  if (archetype) {
+    const archCard = {
+      tone: 'ink' as const,
+      node: (
+        <div className="flex min-h-[55vh] flex-col justify-center text-center">
+          <p className="kicker text-blue">
+            your archetype
+            <InfoTip text="The 12 archetypes Mark & Pearson distilled from Jung. We read it from how you and your team already answered — earned, not self-claimed. A fun lens, not a test." />
+          </p>
+          <p className="display mt-3 text-[clamp(2.6rem,8vw,4rem)] text-paper-hi">{archetype.name}</p>
+          <p className="serif mt-2 text-lg text-paper-hi/80">{archetype.essence}</p>
+          <p className="mt-5 text-lg leading-relaxed text-paper-hi/90">
+            {archetype.cardTemplate.replace('{name}', session.creator_name)}
+          </p>
+          <p className="mt-5 text-sm text-paper-hi/60">
+            with a touch of {archetype.runnerUp}
+            {archetype.fromSelf ? '' : ' · take your self-read to sharpen this'}
+          </p>
+        </div>
+      ),
+    }
+    cards.splice(1, 0, archCard)
+  }
+
   // Energizers overlay: team layer shows at >=5; the subject's own markers overlay
   // once they've self-assessed (else a nudge to add their read).
   if (insights.energizers && insights.energizers.some((e) => e.n > 0)) {
@@ -339,7 +375,10 @@ export default function Results() {
       tone: 'paper' as const,
       node: (
         <div>
-          <p className="kicker mb-1 text-pink-deep">energy</p>
+          <p className="kicker mb-1 text-pink-deep">
+            energy
+            <InfoTip text="Marcus Buckingham's strengths idea: a strength is an activity that energizes you, not merely one you're good at. Lean into your energizers." />
+          </p>
           <h2 className="display mb-1 text-3xl">What lifts you, what drains you</h2>
           <p className="mb-5 text-sm text-ink-soft">
             How your {session.response_count} colleagues read your energy
@@ -367,7 +406,10 @@ export default function Results() {
       tone: 'paper' as const,
       node: (
         <div>
-          <p className="kicker mb-1 text-pink-deep">their role</p>
+          <p className="kicker mb-1 text-pink-deep">
+            their role
+            <InfoTip text="A behaviorally-anchored rating scale (BARS): describing performance at three concrete levels is more useful and less halo-biased than a single score." />
+          </p>
           <h2 className="display mb-1 text-3xl">How you deliver</h2>
           <p className="mb-5 text-sm text-ink-soft">
             Where your team puts you on what you own{hasSelf ? ', next to your own read' : ''}.
