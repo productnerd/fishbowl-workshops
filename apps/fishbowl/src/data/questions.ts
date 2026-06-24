@@ -129,6 +129,16 @@ export const questions: Question[] = [
   { id: 18, type: 'scenario', dimension: 'deadline_style', section: 'In the Moment', sectionDescription: 'Pick what feels most true.', text: 'Facing a slipping deadline, {name} tends to…', options: ['Quietly hope it works out', 'Flag it early and re-plan', 'Pull all-nighters and burn out'], optionTendencies: { 'Quietly hope it works out': 'deficient', 'Flag it early and re-plan': 'balanced', 'Pull all-nighters and burn out': 'excessive' } },
   { id: 19, type: 'scenario', dimension: 'feedback_style', section: 'In the Moment', sectionDescription: 'Pick what feels most true.', text: 'Given critical feedback, {name}…', options: ['Gets defensive', 'Considers it and adjusts', 'Over-corrects and loses their own view'], optionTendencies: { 'Gets defensive': 'deficient', 'Considers it and adjusts': 'balanced', 'Over-corrects and loses their own view': 'excessive' } },
 
+  // ── Energy: energizers vs drains (the subject self-tags too; report overlays) ──
+  {
+    id: 23,
+    type: 'energizer',
+    dimension: 'energizers',
+    section: 'Energy',
+    sectionDescription: 'Tap how each kind of work seems to leave {name}.',
+    text: 'Where does {name} get their energy?',
+  },
+
   // ── In Their Words: 3 free-text (synthesized, never shown verbatim) ──
   { id: 20, type: 'freetext', dimension: 'appreciation', section: 'In Their Words', sectionDescription: 'A few honest words. Stays anonymous.', text: 'What do you most appreciate about working with {name}?' },
   { id: 21, type: 'freetext', dimension: 'growth', section: 'In Their Words', sectionDescription: 'A few honest words. Stays anonymous.', text: 'What is one thing that would make {name} even more effective?' },

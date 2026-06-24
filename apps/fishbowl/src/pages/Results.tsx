@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { REQUIRED_RESPONSES, deriveType, type Session, type BigFiveScores } from '@fishbowl/feedback-core'
+import { REQUIRED_RESPONSES, deriveType, type Session, type BigFiveScores, type EnergizerTags } from '@fishbowl/feedback-core'
 import { getSession } from '../lib/data'
 import { getSelfReport, type SelfData } from '../lib/self'
 import { useAiInsights } from '../lib/aiInsights'
@@ -15,6 +15,7 @@ import OceanDials from '../components/OceanDials'
 import TypeCard from '../components/TypeCard'
 import LockedCard from '../components/LockedCard'
 import EntryModal from '../components/EntryModal'
+import EnergyOverlay from '../components/EnergyOverlay'
 
 function Rich({ text }: { text: string }) {
   return (
@@ -321,6 +322,35 @@ export default function Results() {
     },
   ]
   cards.splice(1, 0, ...selfCards)
+
+  // Energizers overlay: team layer shows at >=5; the subject's own markers overlay
+  // once they've self-assessed (else a nudge to add their read).
+  if (insights.energizers && insights.energizers.some((e) => e.n > 0)) {
+    const selfEnergizers = (self?.self_payload?.energizers as EnergizerTags | undefined) ?? null
+    const energyCard = {
+      tone: 'paper' as const,
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">energy</p>
+          <h2 className="display mb-1 text-3xl">What lifts you, what drains you</h2>
+          <p className="mb-5 text-sm text-ink-soft">
+            How your {session.response_count} colleagues read your energy
+            {hasSelf ? ', next to your own read' : ''}.
+          </p>
+          <EnergyOverlay team={insights.energizers} self={hasSelf ? selfEnergizers : null} />
+          {!hasSelf && (
+            <button
+              onClick={goSelf}
+              className="press mt-5 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-pink sc-pink px-5 py-3 font-display font-black text-ink shadow-chunky-sm"
+            >
+              Take your self-read to overlay your view →
+            </button>
+          )}
+        </div>
+      ),
+    }
+    cards.splice(cards.length - 1, 0, energyCard)
+  }
 
   const seenNudge = Boolean(slug && localStorage.getItem(`fishbowl_self_nudge_seen_${slug}`))
   const showEntryModal = selfLoaded && !hasSelf && !modalDismissed && !seenNudge

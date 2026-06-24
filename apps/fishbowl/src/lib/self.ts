@@ -44,6 +44,7 @@ export async function saveSelf(
     ocean_answers: Record<string, number>
     big_five: BigFiveScores
     mbti: MbtiType
+    self_payload?: Record<string, unknown>
     responsibilities?: string[]
     completed: boolean
   }

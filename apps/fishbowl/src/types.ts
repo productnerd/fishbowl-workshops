@@ -20,4 +20,6 @@ export interface FishbowlReport {
   growthEdges: { dimension: string; title: string; actions: string[] }[]
   appreciations: string[]
   closing: string
+  // Phase 2 — team energizers/drains aggregate (−2..2 mean per activity).
+  energizers?: { id: string; label: string; teamMean: number; n: number }[]
 }

@@ -1,4 +1,4 @@
-import { generateSlug, type Session } from '@fishbowl/feedback-core'
+import { generateSlug, type Session, type AnswerValue } from '@fishbowl/feedback-core'
 import { supabase } from './supabase'
 
 // Fishbowl runs Supabase-only (the backend is live; no localStorage fallback).
@@ -34,7 +34,7 @@ export async function getResponseCount(slug: string): Promise<number> {
 // recorded in a separate table — never on the answer row the subject can read.
 export async function submitResponse(
   sessionId: string,
-  answers: Record<number, string | number>,
+  answers: Record<string | number, AnswerValue>,
   email?: string
 ): Promise<void> {
   const { error } = await supabase.rpc('fishbowl_submit_response', {

@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { BIG_FIVE_ITEMS, scoreBigFive, deriveType, type BigFiveScores, type MbtiType } from '@fishbowl/feedback-core'
+import {
+  BIG_FIVE_ITEMS,
+  scoreBigFive,
+  deriveType,
+  type BigFiveScores,
+  type MbtiType,
+  type EnergizerTags,
+} from '@fishbowl/feedback-core'
 import { requestMagicLink, saveSelf } from '../lib/self'
 import { getSubjectAuth } from '../lib/subjectAuth'
 import LikertScale from '../components/LikertScale'
@@ -9,13 +16,15 @@ import Button from '../components/Button'
 import Card from '../components/Card'
 import OceanDials from '../components/OceanDials'
 import TypeCard from '../components/TypeCard'
+import EnergizerTagger from '../components/EnergizerTagger'
 
 export default function SelfAssessment() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const authed = Boolean(getSubjectAuth())
 
-  const [phase, setPhase] = useState<'email' | 'quiz' | 'reveal'>(authed ? 'quiz' : 'email')
+  const [phase, setPhase] = useState<'email' | 'quiz' | 'reveal' | 'energizers'>(authed ? 'quiz' : 'email')
+  const [energizerTags, setEnergizerTags] = useState<EnergizerTags>({})
 
   // ── email gate ──
   const [email, setEmail] = useState('')
@@ -61,7 +70,13 @@ export default function SelfAssessment() {
   const save = async () => {
     if (!slug || !bigFive || !mbti) return
     setSaving(true)
-    await saveSelf(slug, { ocean_answers: answers, big_five: bigFive, mbti, completed: true })
+    await saveSelf(slug, {
+      ocean_answers: answers,
+      big_five: bigFive,
+      mbti,
+      self_payload: { energizers: energizerTags },
+      completed: true,
+    })
     navigate(`/r/${slug}`)
   }
 
@@ -128,6 +143,28 @@ export default function SelfAssessment() {
               <p className="kicker mb-4 text-blue-deep">your five traits</p>
               <OceanDials scores={bigFive} />
             </Card>
+          </div>
+          <div className="mt-7 flex justify-center">
+            <Button variant="pink" onClick={() => setPhase('energizers')} className="!text-xl">
+              Next: your energy map →
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
+
+  if (phase === 'energizers') {
+    return (
+      <div className="mx-auto min-h-dvh w-full max-w-lg px-5 py-10">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+          <p className="kicker text-pink-deep">what lifts you, what drains you</p>
+          <h1 className="display mt-2 text-4xl">Your energy map</h1>
+          <p className="mt-3 text-ink-soft">
+            For each kind of work, tap how it usually leaves you. We'll compare this with how your team reads you.
+          </p>
+          <div className="mt-6">
+            <EnergizerTagger value={energizerTags} onChange={setEnergizerTags} />
           </div>
           <div className="mt-7 flex justify-center">
             <Button variant="pink" onClick={save} disabled={saving} className="!text-xl">

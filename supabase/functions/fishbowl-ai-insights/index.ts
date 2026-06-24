@@ -60,6 +60,22 @@ const COMPETENCIES = QUESTIONS.filter((q) => q.type === 'likert')
 const SCENARIOS = QUESTIONS.filter((q) => q.type === 'scenario')
 const FREETEXT = QUESTIONS.filter((q) => q.type === 'freetext')
 
+// Energizers vs Drains — mirrors packages/feedback-core/src/energizers.ts (ids must match).
+const ENERGIZER_ACTIVITIES = [
+  { id: 'connect', label: 'Talking to people & building relationships' },
+  { id: 'present', label: 'Presenting & public speaking' },
+  { id: 'deepwork', label: 'Deep-focus solo work' },
+  { id: 'plan', label: 'Planning & organizing ahead' },
+  { id: 'firefight', label: 'Firefighting & the unexpected' },
+  { id: 'mentor', label: 'Mentoring & developing others' },
+  { id: 'analyze', label: 'Analysis & working with data' },
+  { id: 'negotiate', label: 'Negotiating & persuading' },
+  { id: 'ideate', label: 'Brainstorming & new ideas' },
+  { id: 'execute', label: 'Detailed execution & finishing things' },
+  { id: 'lead', label: 'Leading & directing a group' },
+  { id: 'reflect', label: 'Giving & receiving feedback' },
+]
+
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0)
 const stdDev = (xs: number[]) => {
   if (!xs.length) return 0
@@ -160,6 +176,14 @@ Deno.serve(async (req) => {
       prompt: q.text.replace(/\{name\}/g, name),
       answers: (responses as any[]).map((r) => val(r, q.id)).filter((v) => typeof v === 'string' && v.trim()),
     }))
+
+    // Energizers vs Drains — team mean per activity (-2..2). Deterministic, no AI.
+    const energizerStats = ENERGIZER_ACTIVITIES.map((a) => {
+      const vals = (responses as any[])
+        .map((r) => (r.answers?.energizers || {})[a.id])
+        .filter((n: any) => typeof n === 'number' && n >= -2 && n <= 2)
+      return { id: a.id, label: a.label, teamMean: vals.length ? round(mean(vals), 2) : 0, n: vals.length }
+    })
 
     // Goodness per dimension to pick strengths/growth deterministically.
     const goodness = [
@@ -271,6 +295,7 @@ Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} 
       growthEdges: (prose.growthEdges || []).map((e: any) => ({ dimension: e.dimension, title: e.title || '', actions: toBullets(e.actions) })),
       appreciations: Array.isArray(prose.appreciations) ? prose.appreciations.slice(0, 3) : [],
       closing: prose.closing || '',
+      energizers: energizerStats,
     }
 
     // Stamp per-dimension means for the live percentile layer.

@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { Question, Session } from '@fishbowl/feedback-core'
+import type { Question, Session, EnergizerTags } from '@fishbowl/feedback-core'
 import { getSession, submitResponse } from '../lib/data'
 import { getQuestionsForName } from '../data/questions'
 import VirtueSlider from '../components/VirtueSlider'
 import LikertScale from '../components/LikertScale'
 import ScenarioChoice from '../components/ScenarioChoice'
 import FreeText from '../components/FreeText'
+import EnergizerTagger from '../components/EnergizerTagger'
 import Button from '../components/Button'
 
 function Screen({ children }: { children: ReactNode }) {
@@ -47,6 +48,7 @@ export default function Questionnaire() {
   const [email, setEmail] = useState('')
   const [dir, setDir] = useState(1)
   const [myProfile, setMyProfile] = useState<Record<string, number> | null>(null)
+  const [energizerTags, setEnergizerTags] = useState<EnergizerTags>({})
   const advanceTimer = useRef<number | null>(null)
 
   useEffect(() => {
@@ -103,7 +105,7 @@ export default function Questionnaire() {
 
   const q = questions[i]
   const a = answers[q.id]
-  const answered = a !== undefined && a !== ''
+  const answered = q.type === 'energizer' ? true : a !== undefined && a !== ''
   const isLast = i === questions.length - 1
   const clearAdvance = () => {
     if (advanceTimer.current !== null) {
@@ -135,7 +137,7 @@ export default function Questionnaire() {
   const submit = async () => {
     setSubmitting(true)
     try {
-      await submitResponse(session.id, answers, email.trim() || undefined)
+      await submitResponse(session.id, { ...answers, energizers: energizerTags }, email.trim() || undefined)
     } catch {
       /* best effort */
     }
@@ -209,6 +211,7 @@ export default function Questionnaire() {
               <ScenarioChoice options={q.options} selected={(a as string) ?? null} onSelect={handleSelect} />
             )}
             {q.type === 'freetext' && <FreeText value={(a as string) || ''} onChange={set} />}
+            {q.type === 'energizer' && <EnergizerTagger value={energizerTags} onChange={setEnergizerTags} />}
           </motion.div>
         </AnimatePresence>
       </div>

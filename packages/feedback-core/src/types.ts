@@ -1,4 +1,4 @@
-export type QuestionType = 'mc' | 'rating' | 'freetext' | 'likert' | 'scenario' | 'virtue'
+export type QuestionType = 'mc' | 'rating' | 'freetext' | 'likert' | 'scenario' | 'virtue' | 'energizer'
 
 // Where a person sits relative to the Aristotelian mean on a virtue dimension.
 export type Tendency = 'deficient' | 'balanced' | 'excessive'
@@ -68,10 +68,14 @@ export interface SelfAssessment {
   completed: boolean
 }
 
+// answers is keyed by question id (number) for scalar answers, plus namespaced
+// string keys for structured activities (e.g. `energizers` → {activityId: -2..2}).
+export type AnswerValue = string | number | Record<string, number>
+
 export interface Response {
   id: string
   session_id: string
-  answers: Record<number, string | number>
+  answers: Record<string | number, AnswerValue>
   completed_at: string
 }
 
