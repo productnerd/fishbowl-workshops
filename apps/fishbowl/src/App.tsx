@@ -5,6 +5,8 @@ import Questionnaire from './pages/Questionnaire'
 import Done from './pages/Done'
 import Results from './pages/Results'
 import ManagerReport from './pages/ManagerReport'
+import SelfAssessment from './pages/SelfAssessment'
+import ClaimToken from './pages/ClaimToken'
 import WaterBackground from './components/WaterBackground'
 
 export default function App() {
@@ -17,6 +19,8 @@ export default function App() {
         <Route path="/s/:slug" element={<Questionnaire />} />
         <Route path="/s/:slug/done" element={<Done />} />
         <Route path="/r/:slug" element={<Results />} />
+        <Route path="/self/:slug" element={<SelfAssessment />} />
+        <Route path="/claim/:token" element={<ClaimToken />} />
         <Route path="/manager-report" element={<ManagerReport />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

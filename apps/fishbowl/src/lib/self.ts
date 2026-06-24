@@ -1,0 +1,58 @@
+import type { BigFiveScores, MbtiType } from '@fishbowl/feedback-core'
+import { supabase } from './supabase'
+import { getSubjectAuth } from './subjectAuth'
+
+export interface SelfData {
+  big_five: BigFiveScores | null
+  mbti: MbtiType | null
+  completed: boolean
+  responsibilities: string[]
+  self_payload: Record<string, unknown>
+}
+
+// Subject asks for a private link by email. In dev (no Resend configured), the
+// edge fn returns the claim URL directly so the flow is testable.
+export async function requestMagicLink(email: string, slug: string): Promise<{ ok: boolean; devClaimUrl?: string }> {
+  const { data, error } = await supabase.functions.invoke('fishbowl-send-magic-link', { body: { email, slug } })
+  if (error) return { ok: false }
+  return { ok: true, devClaimUrl: data?.devClaimUrl }
+}
+
+export async function claimToken(
+  token: string
+): Promise<{ bearer: string; person_id: string; slug: string; has_self: boolean } | null> {
+  const { data, error } = await supabase.functions.invoke('fishbowl-claim-token', { body: { token } })
+  if (error || !data || data.error) return null
+  return data
+}
+
+// Fetches the subject's private self data (bearer-gated). authed=false when there's
+// no bearer or it doesn't own this slug — caller then treats self sections as locked.
+export async function getSelfReport(
+  slug: string
+): Promise<{ authed: boolean; hasSelf: boolean; self: SelfData | null }> {
+  const auth = getSubjectAuth()
+  if (!auth) return { authed: false, hasSelf: false, self: null }
+  const { data, error } = await supabase.functions.invoke('fishbowl-self-report', { body: { bearer: auth.bearer, slug } })
+  if (error || !data || data.error) return { authed: false, hasSelf: false, self: null }
+  return { authed: true, hasSelf: Boolean(data.hasSelf), self: (data.self as SelfData) ?? null }
+}
+
+export async function saveSelf(
+  slug: string,
+  payload: {
+    ocean_answers: Record<string, number>
+    big_five: BigFiveScores
+    mbti: MbtiType
+    responsibilities?: string[]
+    completed: boolean
+  }
+): Promise<{ ok: boolean }> {
+  const auth = getSubjectAuth()
+  if (!auth) return { ok: false }
+  const { data, error } = await supabase.functions.invoke('fishbowl-save-self', {
+    body: { bearer: auth.bearer, slug, ...payload },
+  })
+  if (error || !data || data.error) return { ok: false }
+  return { ok: true }
+}

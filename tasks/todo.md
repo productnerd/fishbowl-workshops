@@ -92,3 +92,30 @@ fishbowl/ (repo root)
 - Small-n free-text re-identification in B2B — consider AI-synthesizing rather than showing verbatim, or higher reveal threshold for free-text.
 - Move anon key in `auto_generate_trigger.sql` to Vault (low priority).
 - Edge fn does NOT import feedback-core (keep self-contained; avoid unproven Deno cross-import).
+
+---
+
+# Self-Assessment — Phase 1 (spec: `docs/self-assessment-spec.md`)
+
+Decision: **self-data is bearer-gated** (never slug-readable). Email delivery waits on Resend; dev claim-url fallback unblocks build/test.
+
+## Foundation
+- [ ] `feedback-core/personality.ts` — Big Five item bank (15), scoring, `deriveType()`, type-card copy
+- [ ] `feedback-core/types.ts` — `SelfAssessment`, `BigFiveScores`, `MbtiType`; export from index
+- [ ] Migration `supabase/fishbowl_self.sql` — session cols (`context`, `self_completed_at`); 3 tables RLS-on / no-anon-policies; apply via MCP
+
+## Identity (edge functions, service-role)
+- [ ] `fishbowl-send-magic-link` — mint+hash token, claim unclaimed session, Resend OR dev claimUrl; always `{ok:true}`
+- [ ] `fishbowl-claim-token` — consume token, mint 90d bearer → `{bearer,person_id,slug,has_self}`
+- [ ] `fishbowl-self-report` — verify ownership → `{teamReport,hasSelf,self,responseCount}`
+- [ ] `fishbowl-save-self` — verify, validate caps, upsert self row, stamp `self_completed_at`
+
+## Client + UI
+- [ ] `lib/subjectAuth.ts`, `lib/self.ts`
+- [ ] Components: `OceanDials`, `TypeCard`, `LockedCard`, `EntryModal`
+- [ ] Pages `SelfAssessment.tsx` (`/self/:slug`), `ClaimToken.tsx` (`/claim/:token`)
+- [ ] Wire `App.tsx` routes, `Create.tsx` hub, `Results.tsx` gating + entry modal
+
+## Verify + review
+- [ ] Build green; self-flow works via dev claim-url; gating renders; deploy
+- [ ] Adversarial review of token/bearer/RLS + anonymity invariant

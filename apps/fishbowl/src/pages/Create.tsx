@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { REQUIRED_RESPONSES, buildShareLink } from '@fishbowl/feedback-core'
-import { createSession, getResponseCount } from '../lib/data'
+import { createSession, getResponseCount, getSession } from '../lib/data'
 import Card from '../components/Card'
 import Button from '../components/Button'
 
@@ -19,6 +19,7 @@ export default function Create() {
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
   const [checking, setChecking] = useState(true)
+  const [selfDone, setSelfDone] = useState(false)
 
   useEffect(() => {
     const stored = localStorage.getItem(KEY)
@@ -37,6 +38,7 @@ export default function Create() {
   useEffect(() => {
     if (!slug) return
     getResponseCount(slug).then(setCount)
+    getSession(slug).then((s) => setSelfDone(Boolean(s?.self_completed_at)))
   }, [slug])
 
   const create = async () => {
@@ -77,7 +79,32 @@ export default function Create() {
             report unlocks.
           </p>
 
-          <Card tone="paper" className="mt-7 flex items-center gap-3 p-3">
+          <Card tone={selfDone ? 'sand' : 'blue'} className="mt-7 p-6">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className={`kicker ${selfDone ? 'text-blue-deep' : 'text-paper-hi/80'}`}>step 1 · take yours first</p>
+                <p className={`serif mt-1 text-xl font-semibold ${selfDone ? 'text-ink' : 'text-paper-hi'}`}>
+                  {selfDone ? 'Self-assessment done ✓' : 'Your self-assessment'}
+                </p>
+              </div>
+              {!selfDone && (
+                <button
+                  onClick={() => navigate(`/self/${slug}`)}
+                  className="press shrink-0 cursor-pointer rounded-full border-[2.5px] border-ink bg-pink sc-pink px-5 py-2.5 font-display font-black text-ink shadow-chunky-sm"
+                >
+                  Take it →
+                </button>
+              )}
+            </div>
+            <p className={`mt-2 text-sm ${selfDone ? 'text-ink-soft' : 'text-paper-hi/85'}`}>
+              {selfDone
+                ? "Your report will show your self-view next to your team's."
+                : 'Richer when you see yourself first (~2 min). You can share with colleagues in parallel.'}
+            </p>
+          </Card>
+
+          <p className="kicker mt-7 mb-2 text-pink-deep">step 2 · share with colleagues</p>
+          <Card tone="paper" className="flex items-center gap-3 p-3">
             <input
               readOnly
               value={buildShareLink(slug)}

@@ -1,15 +1,20 @@
 import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { REQUIRED_RESPONSES, type Session } from '@fishbowl/feedback-core'
+import { REQUIRED_RESPONSES, deriveType, type Session, type BigFiveScores } from '@fishbowl/feedback-core'
 import { getSession } from '../lib/data'
+import { getSelfReport, type SelfData } from '../lib/self'
 import { useAiInsights } from '../lib/aiInsights'
 import { topPercent } from '../lib/percentile'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import VirtueGauge from '../components/VirtueGauge'
 import StatBar from '../components/StatBar'
+import OceanDials from '../components/OceanDials'
+import TypeCard from '../components/TypeCard'
+import LockedCard from '../components/LockedCard'
+import EntryModal from '../components/EntryModal'
 
 function Rich({ text }: { text: string }) {
   return (
@@ -33,16 +38,26 @@ function Screen({ children }: { children: ReactNode }) {
 
 export default function Results() {
   const { slug } = useParams<{ slug: string }>()
+  const navigate = useNavigate()
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [pct, setPct] = useState<Record<string, number>>({})
   const [idx, setIdx] = useState(0)
+  const [self, setSelf] = useState<SelfData | null>(null)
+  const [hasSelf, setHasSelf] = useState(false)
+  const [selfLoaded, setSelfLoaded] = useState(false)
+  const [modalDismissed, setModalDismissed] = useState(false)
 
   useEffect(() => {
     if (!slug) return
     getSession(slug).then((s) => {
       setSession(s)
       setLoading(false)
+    })
+    getSelfReport(slug).then((r) => {
+      setSelf(r.self)
+      setHasSelf(r.hasSelf)
+      setSelfLoaded(true)
     })
   }, [slug])
 
@@ -261,11 +276,65 @@ export default function Results() {
     },
   ]
 
+  // ── Self layer (bearer-gated): Type card + OCEAN dials, locked until the
+  // subject self-assesses. Locked cards blur a teaser to make the nudge enticing.
+  const goSelf = () => navigate(`/self/${slug}`)
+  const teaserBig: BigFiveScores = {
+    openness: 74,
+    conscientiousness: 62,
+    extraversion: 58,
+    agreeableness: 67,
+    neuroticism: 34,
+    emotionalStability: 66,
+  }
+  const teaserType = deriveType(teaserBig)
+  const selfCards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode }[] = [
+    {
+      tone: 'blue',
+      node:
+        hasSelf && self?.mbti ? (
+          <div>
+            <p className="kicker mb-3 text-paper-hi/70">this is you, by you</p>
+            <TypeCard mbti={self.mbti} bare />
+          </div>
+        ) : (
+          <LockedCard caption="Take the 2-min self-read to reveal your type." onUnlock={goSelf}>
+            <TypeCard mbti={teaserType} bare />
+          </LockedCard>
+        ),
+    },
+    {
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-blue-deep">this is you, by you</p>
+          <h2 className="display mb-5 text-3xl">Your five traits</h2>
+          {hasSelf && self?.big_five ? (
+            <OceanDials scores={self.big_five} />
+          ) : (
+            <LockedCard caption="Take the 2-min self-read to reveal your traits." onUnlock={goSelf}>
+              <OceanDials scores={teaserBig} />
+            </LockedCard>
+          )}
+        </div>
+      ),
+    },
+  ]
+  cards.splice(1, 0, ...selfCards)
+
+  const seenNudge = Boolean(slug && localStorage.getItem(`fishbowl_self_nudge_seen_${slug}`))
+  const showEntryModal = selfLoaded && !hasSelf && !modalDismissed && !seenNudge
+  const dismissModal = () => {
+    setModalDismissed(true)
+    if (slug) localStorage.setItem(`fishbowl_self_nudge_seen_${slug}`, '1')
+  }
+
   const total = cards.length
   const go = (d: number) => setIdx((i) => Math.min(Math.max(i + d, 0), total - 1))
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-5 py-6">
+      {showEntryModal && <EntryModal onTakeNow={goSelf} onLater={dismissModal} />}
       {/* dots */}
       <div className="mb-4 flex gap-1.5">
         {cards.map((_, i) => (

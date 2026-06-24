@@ -51,6 +51,21 @@ export interface Session {
   response_count: number
   // Fishbowl: per-dimension subject means, stamped at report time (percentile layer).
   dimension_means?: Record<string, number> | null
+  // Self-assessment: stamped when the subject finishes theirs (drives the Create
+  // status pill). Non-sensitive flag; the self-assessment CONTENT is bearer-gated.
+  self_completed_at?: string | null
+}
+
+// The subject's private self-assessment. Read/written only through bearer-verified
+// service-role edge functions — never slug-readable.
+export interface SelfAssessment {
+  session_id: string
+  ocean_answers: Record<string, number>
+  big_five: import('./personality').BigFiveScores | null
+  mbti: import('./personality').MbtiType | null
+  self_payload: Record<string, unknown>
+  responsibilities: string[]
+  completed: boolean
 }
 
 export interface Response {
