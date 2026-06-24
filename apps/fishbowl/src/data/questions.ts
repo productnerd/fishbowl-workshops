@@ -151,6 +151,14 @@ export const questions: Question[] = [
     text: 'Rate {name} on each of their responsibilities.',
   },
 
+  // ── Phase 3 framework activities (each its own pooled module) ──
+  { id: 25, type: 'sixhats', dimension: 'hats', pool: 'hats', section: 'Thinking Style', sectionDescription: 'For each mode, where does {name} sit?', text: 'How does {name} balance the six thinking modes?' },
+  { id: 26, type: 'radical_candor', dimension: 'radical_candor', pool: 'candor', section: 'Feedback Style', sectionDescription: 'How much do you agree?', text: 'How does {name} handle care and challenge?' },
+  { id: 27, type: 'sdt', dimension: 'sdt', pool: 'sdt', section: 'After Working Together', sectionDescription: 'Spend 20 points on how it feels.', text: 'After working with {name}, you feel…' },
+  { id: 28, type: 'belbin', dimension: 'belbin', pool: 'belbin', section: 'Team Role', sectionDescription: 'Spend 20 chips on the roles they play.', text: 'What role does {name} play on the team?' },
+  { id: 29, type: 'via', dimension: 'via', pool: 'via', section: 'Signature Strengths', sectionDescription: 'Pick the 5 that fit best.', text: "{name}'s top character strengths" },
+  { id: 30, type: 'johari', dimension: 'johari', pool: 'johari', section: 'In a Word', sectionDescription: 'Pick 5 to 10 that fit.', text: 'Which words describe {name}?' },
+
   // ── In Their Words: 3 free-text (synthesized, never shown verbatim) ──
   { id: 20, type: 'freetext', dimension: 'appreciation', section: 'In Their Words', sectionDescription: 'A few honest words. Stays anonymous.', text: 'What do you most appreciate about working with {name}?' },
   { id: 21, type: 'freetext', dimension: 'growth', section: 'In Their Words', sectionDescription: 'A few honest words. Stays anonymous.', text: 'What is one thing that would make {name} even more effective?' },
@@ -172,7 +180,7 @@ export function getQuestionsForName(name: string): Question[] {
 // POOLED_PER_VISIT pooled modules are sampled by a fresh seed so the survey stays
 // ~18–22 items while full coverage accrues across responses. The aggregation
 // tolerates missing answers, so no single colleague needs to answer everything.
-const POOLED_PER_VISIT = 3
+const POOLED_PER_VISIT = 4
 
 function hashStr(s: string): number {
   let h = 2166136261

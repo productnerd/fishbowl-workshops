@@ -201,6 +201,70 @@ Deno.serve(async (req) => {
       return { index, label, teamTier, n }
     })
 
+    // ── Phase 3 frameworks — deterministic, key-agnostic aggregation ──
+    const R = responses as any[]
+    // Six Hats: mean 1-9 per hat key present.
+    const hatKeys = new Set<string>()
+    for (const r of R) for (const k of Object.keys(r.answers?.hats || {})) hatKeys.add(k)
+    const hatsStats = [...hatKeys].map((key) => {
+      const vals = R.map((r) => (r.answers?.hats || {})[key]).filter((n: any) => typeof n === 'number' && n >= 1 && n <= 9)
+      return { key, mu: vals.length ? round(mean(vals), 2) : 5, n: vals.length }
+    })
+    // Radical Candor: mean care / challenge (1-9), by id prefix.
+    const careVals: number[] = []
+    const challVals: number[] = []
+    for (const r of R) {
+      for (const [k, v] of Object.entries(r.answers?.radical_candor || {})) {
+        if (typeof v !== 'number') continue
+        if (k.startsWith('care')) careVals.push(v)
+        else if (k.startsWith('challenge')) challVals.push(v)
+      }
+    }
+    const radicalCandor = careVals.length || challVals.length
+      ? { teamCare: round(mean(careVals) || 5, 2), teamChallenge: round(mean(challVals) || 5, 2), n: Math.max(careVals.length, challVals.length) }
+      : null
+    // SDT: mean points per need key.
+    const sdtKeys = new Set<string>()
+    for (const r of R) for (const k of Object.keys(r.answers?.sdt || {})) sdtKeys.add(k)
+    const sdtStats = [...sdtKeys].map((key) => {
+      const vals = R.map((r) => (r.answers?.sdt || {})[key]).filter((n: any) => typeof n === 'number')
+      return { key, meanPoints: vals.length ? round(mean(vals), 1) : 0, n: vals.length }
+    })
+    // Belbin: team chip share per role key.
+    const belbinTotals: Record<string, number> = {}
+    let belbinGrand = 0
+    let belbinN = 0
+    for (const r of R) {
+      const b = r.answers?.belbin
+      if (!b || typeof b !== 'object') continue
+      let any = false
+      for (const [k, v] of Object.entries(b)) {
+        if (typeof v === 'number' && v > 0) { belbinTotals[k] = (belbinTotals[k] || 0) + v; belbinGrand += v; any = true }
+      }
+      if (any) belbinN++
+    }
+    const belbinStats = Object.entries(belbinTotals).map(([key, chips]) => ({ key, teamShare: belbinGrand ? round(chips / belbinGrand, 3) : 0, n: belbinN }))
+    // VIA: frequency tally of picked strength ids.
+    const viaCounts: Record<string, number> = {}
+    let viaN = 0
+    for (const r of R) {
+      const arr = r.answers?.via
+      if (!Array.isArray(arr)) continue
+      viaN++
+      for (const id of arr) if (typeof id === 'string') viaCounts[id] = (viaCounts[id] || 0) + 1
+    }
+    const viaStats = Object.entries(viaCounts).map(([id, count]) => ({ id, count, n: viaN })).sort((a, b) => b.count - a.count)
+    // Johari: adjective tally.
+    const johariCounts: Record<string, number> = {}
+    let johariN = 0
+    for (const r of R) {
+      const arr = r.answers?.johari
+      if (!Array.isArray(arr)) continue
+      johariN++
+      for (const w of arr) if (typeof w === 'string') johariCounts[w] = (johariCounts[w] || 0) + 1
+    }
+    const johariStats = { counts: Object.entries(johariCounts).map(([word, count]) => ({ word, count })).sort((a, b) => b.count - a.count), n: johariN }
+
     // Goodness per dimension to pick strengths/growth deterministically.
     const goodness = [
       ...virtueStats.map((v) => ({ dimension: v.dimension, label: v.name, score: v.balanceScore })),
@@ -313,6 +377,12 @@ Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} 
       closing: prose.closing || '',
       energizers: energizerStats,
       responsibilities: responsibilityStats,
+      hats: hatsStats,
+      radicalCandor,
+      sdt: sdtStats,
+      belbin: belbinStats,
+      via: viaStats,
+      johari: johariStats,
     }
 
     // Stamp per-dimension means for the live percentile layer.

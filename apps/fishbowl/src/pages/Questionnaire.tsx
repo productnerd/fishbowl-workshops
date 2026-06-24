@@ -1,7 +1,18 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { Question, Session, EnergizerTags, ResponsibilityTiers } from '@fishbowl/feedback-core'
+import type { Question, Session, EnergizerTags, ResponsibilityTiers, HatScores, CandorAnswers } from '@fishbowl/feedback-core'
+import {
+  SDT_NEEDS,
+  SDT_TOTAL,
+  BELBIN_ROLES,
+  BELBIN_TOTAL,
+  VIA_STRENGTHS,
+  VIA_PICK,
+  JOHARI_ADJECTIVES,
+  JOHARI_MIN,
+  JOHARI_MAX,
+} from '@fishbowl/feedback-core'
 import { getSession, submitResponse } from '../lib/data'
 import { playTick } from '../lib/sound'
 import { getColleagueSurvey } from '../data/questions'
@@ -11,6 +22,10 @@ import ScenarioChoice from '../components/ScenarioChoice'
 import FreeText from '../components/FreeText'
 import EnergizerTagger from '../components/EnergizerTagger'
 import TierTagger from '../components/TierTagger'
+import HatsTagger from '../components/HatsTagger'
+import CandorTagger from '../components/CandorTagger'
+import AllocationTagger from '../components/AllocationTagger'
+import ChipPicker from '../components/ChipPicker'
 import Button from '../components/Button'
 
 function Screen({ children }: { children: ReactNode }) {
@@ -52,6 +67,12 @@ export default function Questionnaire() {
   const [myProfile, setMyProfile] = useState<Record<string, number> | null>(null)
   const [energizerTags, setEnergizerTags] = useState<EnergizerTags>({})
   const [respTiers, setRespTiers] = useState<ResponsibilityTiers>({})
+  const [hats, setHats] = useState<HatScores>({})
+  const [candor, setCandor] = useState<CandorAnswers>({})
+  const [sdt, setSdt] = useState<Record<string, number>>({})
+  const [belbin, setBelbin] = useState<Record<string, number>>({})
+  const [via, setVia] = useState<string[]>([])
+  const [johari, setJohari] = useState<string[]>([])
   const advanceTimer = useRef<number | null>(null)
   // Fresh per-load seed → this respondent gets a sampled subset of pooled modules.
   const seedRef = useRef(Math.floor(Math.random() * 1e9))
@@ -110,7 +131,8 @@ export default function Questionnaire() {
 
   const q = questions[i]
   const a = answers[q.id]
-  const answered = q.type === 'energizer' || q.type === 'responsibilities' ? true : a !== undefined && a !== ''
+  const structuredTypes = ['energizer', 'responsibilities', 'sixhats', 'radical_candor', 'sdt', 'belbin', 'via', 'johari']
+  const answered = structuredTypes.includes(q.type) ? true : a !== undefined && a !== ''
   const isLast = i === questions.length - 1
   const myMean = q.dimension ? myProfile?.[q.dimension] : undefined
   const nudgeMsg = q.type === 'virtue' && myMean != null && typeof a === 'number' ? compareNudge(myMean, a) : null
@@ -149,7 +171,17 @@ export default function Questionnaire() {
     try {
       await submitResponse(
         session.id,
-        { ...answers, energizers: energizerTags, responsibility_tiers: respTiers },
+        {
+          ...answers,
+          energizers: energizerTags,
+          responsibility_tiers: respTiers,
+          hats,
+          radical_candor: candor,
+          sdt,
+          belbin,
+          via,
+          johari,
+        },
         email.trim() || undefined
       )
     } catch {
@@ -230,6 +262,44 @@ export default function Questionnaire() {
             {q.type === 'energizer' && <EnergizerTagger value={energizerTags} onChange={setEnergizerTags} />}
             {q.type === 'responsibilities' && (
               <TierTagger items={session.responsibilities || []} value={respTiers} onChange={setRespTiers} />
+            )}
+            {q.type === 'sixhats' && <HatsTagger value={hats} onChange={setHats} />}
+            {q.type === 'radical_candor' && (
+              <CandorTagger name={session.creator_name} value={candor} onChange={setCandor} />
+            )}
+            {q.type === 'sdt' && (
+              <AllocationTagger
+                buckets={SDT_NEEDS.map((s) => ({ key: s.key, label: s.label, sub: s.feelStem }))}
+                total={SDT_TOTAL}
+                value={sdt}
+                onChange={setSdt}
+              />
+            )}
+            {q.type === 'belbin' && (
+              <AllocationTagger
+                buckets={BELBIN_ROLES.map((r) => ({ key: r.key, label: r.name, sub: r.short }))}
+                total={BELBIN_TOTAL}
+                value={belbin}
+                onChange={setBelbin}
+              />
+            )}
+            {q.type === 'via' && (
+              <ChipPicker
+                options={VIA_STRENGTHS.map((s) => ({ id: s.id, label: s.name, group: s.virtue }))}
+                min={VIA_PICK}
+                max={VIA_PICK}
+                value={via}
+                onChange={setVia}
+              />
+            )}
+            {q.type === 'johari' && (
+              <ChipPicker
+                options={JOHARI_ADJECTIVES.map((w) => ({ id: w, label: w }))}
+                min={JOHARI_MIN}
+                max={JOHARI_MAX}
+                value={johari}
+                onChange={setJohari}
+              />
             )}
           </motion.div>
         </AnimatePresence>

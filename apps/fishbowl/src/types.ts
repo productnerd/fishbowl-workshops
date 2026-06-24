@@ -24,4 +24,11 @@ export interface FishbowlReport {
   energizers?: { id: string; label: string; teamMean: number; n: number }[]
   // Phase 2 — per-responsibility team tier (1=under, 2=meets, 3=exceeds) + spread.
   responsibilities?: { index: number; label: string; teamTier: number; n: number }[]
+  // Phase 3 — framework team aggregates (keys map to the feedback-core data modules).
+  hats?: { key: string; mu: number; n: number }[]
+  radicalCandor?: { teamCare: number; teamChallenge: number; n: number } | null
+  sdt?: { key: string; meanPoints: number; n: number }[]
+  belbin?: { key: string; teamShare: number; n: number }[]
+  via?: { id: string; count: number; n: number }[]
+  johari?: { counts: { word: string; count: number }[]; n: number }
 }

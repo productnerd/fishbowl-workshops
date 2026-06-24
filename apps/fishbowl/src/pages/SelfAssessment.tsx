@@ -7,10 +7,18 @@ import {
   deriveType,
   RESPONSIBILITY_TIERS,
   MAX_RESPONSIBILITIES,
+  BELBIN_ROLES,
+  BELBIN_TOTAL,
+  VIA_STRENGTHS,
+  VIA_PICK,
+  JOHARI_ADJECTIVES,
+  JOHARI_MIN,
+  JOHARI_MAX,
   type BigFiveScores,
   type MbtiType,
   type EnergizerTags,
   type ResponsibilityTiers,
+  type HatScores,
 } from '@fishbowl/feedback-core'
 import { requestMagicLink, saveSelf } from '../lib/self'
 import { getSubjectAuth } from '../lib/subjectAuth'
@@ -21,18 +29,27 @@ import Card from '../components/Card'
 import OceanDials from '../components/OceanDials'
 import TypeCard from '../components/TypeCard'
 import EnergizerTagger from '../components/EnergizerTagger'
+import HatsTagger from '../components/HatsTagger'
+import AllocationTagger from '../components/AllocationTagger'
+import ChipPicker from '../components/ChipPicker'
 
 export default function SelfAssessment() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const authed = Boolean(getSubjectAuth())
 
-  const [phase, setPhase] = useState<'email' | 'quiz' | 'reveal' | 'energizers' | 'responsibilities'>(
-    authed ? 'quiz' : 'email'
-  )
+  const [phase, setPhase] = useState<
+    'email' | 'quiz' | 'reveal' | 'energizers' | 'responsibilities' | 'frameworks'
+  >(authed ? 'quiz' : 'email')
   const [energizerTags, setEnergizerTags] = useState<EnergizerTags>({})
   const [responsibilities, setResponsibilities] = useState<string[]>([''])
   const [respTiers, setRespTiers] = useState<ResponsibilityTiers>({})
+  // Optional "deeper read" self inputs (name-neutral frameworks).
+  const [fwIdx, setFwIdx] = useState(0)
+  const [selfHats, setSelfHats] = useState<HatScores>({})
+  const [selfBelbin, setSelfBelbin] = useState<Record<string, number>>({})
+  const [selfVia, setSelfVia] = useState<string[]>([])
+  const [selfJohari, setSelfJohari] = useState<string[]>([])
 
   // ── email gate ──
   const [email, setEmail] = useState('')
@@ -85,7 +102,14 @@ export default function SelfAssessment() {
       big_five: bigFive,
       mbti,
       responsibilities: resp,
-      self_payload: { energizers: energizerTags, responsibility_tiers: respTiers },
+      self_payload: {
+        energizers: energizerTags,
+        responsibility_tiers: respTiers,
+        hats: selfHats,
+        belbin: selfBelbin,
+        via: selfVia,
+        johari: selfJohari,
+      },
       completed: true,
     })
     navigate(`/r/${slug}`)
@@ -242,10 +266,76 @@ export default function SelfAssessment() {
               + Add another
             </button>
           )}
-          <div className="mt-7 flex justify-center">
+          <div className="mt-7 flex flex-col items-center gap-3">
             <Button variant="pink" onClick={save} disabled={saving} className="!text-xl">
               {saving ? 'Saving…' : 'Save & see my report →'}
             </Button>
+            <button
+              onClick={() => setPhase('frameworks')}
+              className="cursor-pointer text-sm font-semibold text-blue-deep underline-offset-2 hover:underline"
+            >
+              Or add a deeper read (4 quick activities) →
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
+
+  if (phase === 'frameworks') {
+    const steps = ['sixhats', 'belbin', 'via', 'johari'] as const
+    const titles: Record<string, string> = {
+      sixhats: 'Your thinking hats',
+      belbin: 'Your team role',
+      via: 'Your signature strengths',
+      johari: 'Words for yourself',
+    }
+    const fw = steps[fwIdx]
+    const last = fwIdx === steps.length - 1
+    const next = () => (last ? save() : setFwIdx((i) => i + 1))
+    return (
+      <div className="mx-auto min-h-dvh w-full max-w-lg px-5 py-10">
+        <motion.div key={fw} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+          <p className="kicker text-pink-deep">
+            a deeper read · {fwIdx + 1} / {steps.length}
+          </p>
+          <h1 className="display mt-2 text-4xl">{titles[fw]}</h1>
+          <div className="mt-6">
+            {fw === 'sixhats' && <HatsTagger value={selfHats} onChange={setSelfHats} />}
+            {fw === 'belbin' && (
+              <AllocationTagger
+                buckets={BELBIN_ROLES.map((r) => ({ key: r.key, label: r.name, sub: r.short }))}
+                total={BELBIN_TOTAL}
+                value={selfBelbin}
+                onChange={setSelfBelbin}
+              />
+            )}
+            {fw === 'via' && (
+              <ChipPicker
+                options={VIA_STRENGTHS.map((s) => ({ id: s.id, label: s.name, group: s.virtue }))}
+                min={VIA_PICK}
+                max={VIA_PICK}
+                value={selfVia}
+                onChange={setSelfVia}
+              />
+            )}
+            {fw === 'johari' && (
+              <ChipPicker
+                options={JOHARI_ADJECTIVES.map((w) => ({ id: w, label: w }))}
+                min={JOHARI_MIN}
+                max={JOHARI_MAX}
+                value={selfJohari}
+                onChange={setSelfJohari}
+              />
+            )}
+          </div>
+          <div className="mt-7 flex flex-col items-center gap-3">
+            <Button variant="pink" onClick={next} disabled={saving} className="!text-xl">
+              {last ? (saving ? 'Saving…' : 'Save & see my report →') : 'Next →'}
+            </Button>
+            <button onClick={save} disabled={saving} className="cursor-pointer text-sm font-semibold text-ink-soft hover:underline">
+              Skip the rest, save now
+            </button>
           </div>
         </motion.div>
       </div>

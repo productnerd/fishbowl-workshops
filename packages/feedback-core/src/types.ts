@@ -7,6 +7,12 @@ export type QuestionType =
   | 'virtue'
   | 'energizer'
   | 'responsibilities'
+  | 'sixhats'
+  | 'radical_candor'
+  | 'sdt'
+  | 'belbin'
+  | 'via'
+  | 'johari'
 
 // Where a person sits relative to the Aristotelian mean on a virtue dimension.
 export type Tendency = 'deficient' | 'balanced' | 'excessive'
@@ -84,7 +90,7 @@ export interface SelfAssessment {
 
 // answers is keyed by question id (number) for scalar answers, plus namespaced
 // string keys for structured activities (e.g. `energizers` → {activityId: -2..2}).
-export type AnswerValue = string | number | Record<string, number>
+export type AnswerValue = string | number | string[] | Record<string, number>
 
 export interface Response {
   id: string

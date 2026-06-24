@@ -6,10 +6,16 @@ import {
   REQUIRED_RESPONSES,
   deriveType,
   deriveArchetype,
+  HATS,
+  SDT_NEEDS,
+  BELBIN_ROLES,
+  VIA_STRENGTHS,
+  CANDOR_ITEMS,
   type Session,
   type BigFiveScores,
   type EnergizerTags,
   type ResponsibilityTiers,
+  type HatScores,
 } from '@fishbowl/feedback-core'
 import { getSession } from '../lib/data'
 import { getSelfReport, type SelfData } from '../lib/self'
@@ -25,6 +31,12 @@ import LockedCard from '../components/LockedCard'
 import EntryModal from '../components/EntryModal'
 import EnergyOverlay from '../components/EnergyOverlay'
 import ResponsibilitiesLadder from '../components/ResponsibilitiesLadder'
+import HatsProfile from '../components/HatsProfile'
+import CandorPlot from '../components/CandorPlot'
+import SdtProfile from '../components/SdtProfile'
+import BelbinReport from '../components/BelbinReport'
+import ViaDeck from '../components/ViaDeck'
+import JohariWindow from '../components/JohariWindow'
 import InfoTip from '../components/InfoTip'
 
 function Rich({ text }: { text: string }) {
@@ -428,6 +440,127 @@ export default function Results() {
     }
     cards.splice(cards.length - 1, 0, respCard)
   }
+
+  // ── Phase 3 framework cards — team layer at >=5; self overlays once self-assessed ──
+  const sp = (self?.self_payload ?? {}) as Record<string, unknown>
+  const fwCards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode }[] = []
+
+  if (insights.hats?.some((h) => h.n > 0)) {
+    const team = insights.hats.map((h) => ({ key: h.key, label: HATS.find((x) => x.key === h.key)?.name ?? h.key, mu: h.mu, n: h.n }))
+    fwCards.push({
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-blue-deep">
+            thinking style
+            <InfoTip text="Edward de Bono's Six Thinking Hats — six modes of thought (facts, feelings, optimism, caution, creativity, process). We adapt them as a balance: too little / just right / too much." />
+          </p>
+          <h2 className="display mb-5 text-3xl">Six thinking hats</h2>
+          <HatsProfile team={team} self={hasSelf ? ((sp.hats as HatScores) ?? null) : null} />
+        </div>
+      ),
+    })
+  }
+
+  if (insights.radicalCandor && insights.radicalCandor.n > 0) {
+    const rc = insights.radicalCandor
+    const selfRC = hasSelf ? (sp.radical_candor as Record<string, number> | undefined) : undefined
+    const axisMean = (axis: 'care' | 'challenge') => {
+      if (!selfRC) return null
+      const vals = CANDOR_ITEMS.filter((i) => i.axis === axis)
+        .map((i) => selfRC[i.id])
+        .filter((v): v is number => typeof v === 'number')
+      return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null
+    }
+    fwCards.push({
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">
+            feedback style
+            <InfoTip text="Kim Scott's Radical Candor — caring personally while challenging directly. The other three corners (Ruinous Empathy, Obnoxious Aggression, Manipulative Insincerity) are common failure modes. Situational, not a fixed trait." />
+          </p>
+          <h2 className="display mb-5 text-3xl">Care × challenge</h2>
+          <CandorPlot teamCare={rc.teamCare} teamChallenge={rc.teamChallenge} selfCare={axisMean('care')} selfChallenge={axisMean('challenge')} />
+        </div>
+      ),
+    })
+  }
+
+  if (insights.sdt?.some((s) => s.n > 0)) {
+    const team = insights.sdt.map((s) => ({ key: s.key, label: SDT_NEEDS.find((x) => x.key === s.key)?.label ?? s.key, meanPoints: s.meanPoints, n: s.n }))
+    fwCards.push({
+      tone: 'sand',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-blue-deep">
+            what you fuel
+            <InfoTip text="Self-Determination Theory (Deci & Ryan): the needs people feel met — autonomy, competence, relatedness, plus purpose, safety and vitality. The lens flips: what do you leave in your colleagues' tanks?" />
+          </p>
+          <h2 className="display mb-5 text-3xl">What you fuel in others</h2>
+          <SdtProfile team={team} />
+        </div>
+      ),
+    })
+  }
+
+  if (insights.belbin?.some((b) => b.n > 0)) {
+    const team = insights.belbin.map((b) => {
+      const r = BELBIN_ROLES.find((x) => x.key === b.key)
+      return { key: b.key, name: r?.name ?? b.key, cluster: r?.cluster ?? 'Thinking', teamShare: b.teamShare, n: b.n }
+    })
+    fwCards.push({
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">
+            team role
+            <InfoTip text="Belbin's nine team roles — the distinct ways people contribute, grouped Thinking / Action / People. A lens for team composition, not a clinical test." />
+          </p>
+          <h2 className="display mb-5 text-3xl">The roles you play</h2>
+          <BelbinReport team={team} self={hasSelf ? ((sp.belbin as Record<string, number>) ?? null) : null} />
+        </div>
+      ),
+    })
+  }
+
+  if (insights.via?.length) {
+    const team = insights.via.map((v) => {
+      const s = VIA_STRENGTHS.find((x) => x.id === v.id)
+      return { id: v.id, name: s?.name ?? v.id, virtue: s?.virtue ?? '', count: v.count }
+    })
+    fwCards.push({
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-blue-deep">
+            signature strengths
+            <InfoTip text="The VIA Classification (Peterson & Seligman) — 24 character strengths under 6 virtues. Your signature strengths (the top few) feel the most energizing and authentic." />
+          </p>
+          <h2 className="display mb-5 text-3xl">Your top strengths</h2>
+          <ViaDeck team={team} self={hasSelf ? ((sp.via as string[]) ?? null) : null} total={insights.via[0]?.n ?? 0} />
+        </div>
+      ),
+    })
+  }
+
+  if (insights.johari && insights.johari.counts.length) {
+    fwCards.push({
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">
+            the window
+            <InfoTip text="The Johari Window (Luft & Ingham): comparing the words you pick for yourself with the words your team picks reveals your Open self, your Blind Spots, and what's Hidden. A reflective lens." />
+          </p>
+          <h2 className="display mb-5 text-3xl">Johari window</h2>
+          <JohariWindow teamCounts={insights.johari.counts} self={hasSelf ? ((sp.johari as string[]) ?? null) : null} n={insights.johari.n} />
+        </div>
+      ),
+    })
+  }
+
+  for (const c of fwCards) cards.splice(cards.length - 1, 0, c)
 
   const seenNudge = Boolean(slug && localStorage.getItem(`fishbowl_self_nudge_seen_${slug}`))
   const showEntryModal = selfLoaded && !hasSelf && !modalDismissed && !seenNudge
