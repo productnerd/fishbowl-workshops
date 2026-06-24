@@ -28,7 +28,11 @@ function randToken() {
 const APP = Deno.env.get('FISHBOWL_APP_URL') || 'https://productnerd.github.io/fishbowl/'
 const RESEND = Deno.env.get('RESEND_API_KEY')
 const FROM = Deno.env.get('FISHBOWL_FROM_EMAIL') || 'Fishbowl <onboarding@resend.dev>'
+// Returning the claim URL in the response is an account-takeover oracle, so it is
+// OFF unless this explicit dev flag is set — never merely because Resend is absent.
+const DEV_CLAIM = Deno.env.get('FISHBOWL_DEV_CLAIM') === '1'
 const TTL_MIN = 30
+const REISSUE_THROTTLE_MS = 60_000
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: cors })
@@ -63,6 +67,29 @@ Deno.serve(async (req) => {
       return ok({ ok: true }) // someone else owns it — silently no-op
     }
 
+    // Rate limit: if a live token for this (person, session) was issued in the
+    // last minute, don't reissue (anti email-bomb / token-flood). Still {ok:true}.
+    const { data: recent } = await sb
+      .from('fishbowl_magic_tokens')
+      .select('created_at')
+      .eq('person_id', personId)
+      .eq('session_id', session.id)
+      .is('consumed_at', null)
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (recent && Date.now() - new Date(recent.created_at).getTime() < REISSUE_THROTTLE_MS) {
+      return ok({ ok: true })
+    }
+    // Invalidate prior live tokens for this (person, session) — one link at a time.
+    await sb
+      .from('fishbowl_magic_tokens')
+      .update({ consumed_at: new Date().toISOString() })
+      .eq('person_id', personId)
+      .eq('session_id', session.id)
+      .is('consumed_at', null)
+
     const raw = randToken()
     const token_hash = await sha256hex(raw)
     const expires_at = new Date(Date.now() + TTL_MIN * 60_000).toISOString()
@@ -87,8 +114,9 @@ Deno.serve(async (req) => {
       }).catch(() => {})
       return ok({ ok: true })
     }
-    // Dev fallback (no Resend configured yet): hand the link back so the flow is testable.
-    return ok({ ok: true, devClaimUrl: claimUrl })
+    // Dev fallback: only when explicitly enabled (FISHBOWL_DEV_CLAIM=1).
+    if (DEV_CLAIM) return ok({ ok: true, devClaimUrl: claimUrl })
+    return ok({ ok: true })
   } catch (_e) {
     // Never leak; still look successful.
     return ok({ ok: true })

@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       hasSelf: Boolean(self?.completed),
       responseCount: session.response_count || 0,
     })
-  } catch (e) {
-    return ok({ error: String(e) }, 500)
+  } catch (_e) {
+    return ok({ error: 'internal' }, 500)
   }
 })

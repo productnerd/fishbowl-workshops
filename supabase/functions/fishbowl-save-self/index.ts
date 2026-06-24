@@ -65,13 +65,13 @@ Deno.serve(async (req) => {
       },
       { onConflict: 'session_id' }
     )
-    if (error) return ok({ error: error.message }, 500)
+    if (error) return ok({ error: 'could not save' }, 500)
 
     if (completed) {
       await sb.from('fishbowl_sessions').update({ self_completed_at: now }).eq('id', session.id)
     }
     return ok({ ok: true })
-  } catch (e) {
-    return ok({ error: String(e) }, 500)
+  } catch (_e) {
+    return ok({ error: 'internal' }, 500)
   }
 })

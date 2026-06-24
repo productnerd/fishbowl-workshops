@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
       slug: session?.slug ?? null,
       has_self: Boolean(self?.completed),
     })
-  } catch (e) {
-    return ok({ error: String(e) }, 500)
+  } catch (_e) {
+    return ok({ error: 'internal' }, 500)
   }
 })
