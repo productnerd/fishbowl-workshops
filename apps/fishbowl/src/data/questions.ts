@@ -117,26 +117,38 @@ export const questions: Question[] = [
   },
 
   // ── At Work: 6 competencies (1-5 agree, higher is better) ──
-  { id: 11, type: 'likert', dimension: 'follow_through', scoring: 'higher-is-best', section: 'At Work', sectionDescription: 'How much do you agree?', text: '{name} reliably delivers on what they commit to.', lowLabel: 'Disagree', highLabel: 'Agree' },
-  { id: 12, type: 'likert', dimension: 'clarity', scoring: 'higher-is-best', section: 'At Work', sectionDescription: 'How much do you agree?', text: '{name} communicates clearly and concisely.', lowLabel: 'Disagree', highLabel: 'Agree' },
-  { id: 13, type: 'likert', dimension: 'ownership', scoring: 'higher-is-best', section: 'At Work', sectionDescription: 'How much do you agree?', text: '{name} takes ownership when things go wrong.', lowLabel: 'Disagree', highLabel: 'Agree' },
-  { id: 14, type: 'likert', dimension: 'responsiveness', scoring: 'higher-is-best', section: 'At Work', sectionDescription: 'How much do you agree?', text: '{name} is responsive and easy to reach when needed.', lowLabel: 'Disagree', highLabel: 'Agree' },
-  { id: 15, type: 'likert', dimension: 'mentoring', scoring: 'higher-is-best', section: 'At Work', sectionDescription: 'How much do you agree?', text: '{name} helps others grow and shares knowledge generously.', lowLabel: 'Disagree', highLabel: 'Agree' },
-  { id: 16, type: 'likert', dimension: 'prioritization', scoring: 'higher-is-best', section: 'At Work', sectionDescription: 'How much do you agree?', text: '{name} focuses on what matters most.', lowLabel: 'Disagree', highLabel: 'Agree' },
+  { id: 11, type: 'likert', dimension: 'follow_through', pool: 'comp_a', scoring: 'higher-is-best', section: 'At Work', sectionDescription: 'How much do you agree?', text: '{name} reliably delivers on what they commit to.', lowLabel: 'Disagree', highLabel: 'Agree' },
+  { id: 12, type: 'likert', dimension: 'clarity', pool: 'comp_a', scoring: 'higher-is-best', section: 'At Work', sectionDescription: 'How much do you agree?', text: '{name} communicates clearly and concisely.', lowLabel: 'Disagree', highLabel: 'Agree' },
+  { id: 13, type: 'likert', dimension: 'ownership', pool: 'comp_a', scoring: 'higher-is-best', section: 'At Work', sectionDescription: 'How much do you agree?', text: '{name} takes ownership when things go wrong.', lowLabel: 'Disagree', highLabel: 'Agree' },
+  { id: 14, type: 'likert', dimension: 'responsiveness', pool: 'comp_b', scoring: 'higher-is-best', section: 'At Work', sectionDescription: 'How much do you agree?', text: '{name} is responsive and easy to reach when needed.', lowLabel: 'Disagree', highLabel: 'Agree' },
+  { id: 15, type: 'likert', dimension: 'mentoring', pool: 'comp_b', scoring: 'higher-is-best', section: 'At Work', sectionDescription: 'How much do you agree?', text: '{name} helps others grow and shares knowledge generously.', lowLabel: 'Disagree', highLabel: 'Agree' },
+  { id: 16, type: 'likert', dimension: 'prioritization', pool: 'comp_b', scoring: 'higher-is-best', section: 'At Work', sectionDescription: 'How much do you agree?', text: '{name} focuses on what matters most.', lowLabel: 'Disagree', highLabel: 'Agree' },
 
   // ── In the Moment: 3 scenarios ──
   { id: 17, type: 'scenario', dimension: 'conflict_style', section: 'In the Moment', sectionDescription: 'Pick what feels most true.', text: "When {name} disagrees with a teammate's approach, they usually…", options: ['Avoid it and let it slide', 'Raise it directly and hear them out', 'Push hard until they win'], optionTendencies: { 'Avoid it and let it slide': 'deficient', 'Raise it directly and hear them out': 'balanced', 'Push hard until they win': 'excessive' } },
-  { id: 18, type: 'scenario', dimension: 'deadline_style', section: 'In the Moment', sectionDescription: 'Pick what feels most true.', text: 'Facing a slipping deadline, {name} tends to…', options: ['Quietly hope it works out', 'Flag it early and re-plan', 'Pull all-nighters and burn out'], optionTendencies: { 'Quietly hope it works out': 'deficient', 'Flag it early and re-plan': 'balanced', 'Pull all-nighters and burn out': 'excessive' } },
-  { id: 19, type: 'scenario', dimension: 'feedback_style', section: 'In the Moment', sectionDescription: 'Pick what feels most true.', text: 'Given critical feedback, {name}…', options: ['Gets defensive', 'Considers it and adjusts', 'Over-corrects and loses their own view'], optionTendencies: { 'Gets defensive': 'deficient', 'Considers it and adjusts': 'balanced', 'Over-corrects and loses their own view': 'excessive' } },
+  { id: 18, type: 'scenario', dimension: 'deadline_style', pool: 'scenarios', section: 'In the Moment', sectionDescription: 'Pick what feels most true.', text: 'Facing a slipping deadline, {name} tends to…', options: ['Quietly hope it works out', 'Flag it early and re-plan', 'Pull all-nighters and burn out'], optionTendencies: { 'Quietly hope it works out': 'deficient', 'Flag it early and re-plan': 'balanced', 'Pull all-nighters and burn out': 'excessive' } },
+  { id: 19, type: 'scenario', dimension: 'feedback_style', pool: 'scenarios', section: 'In the Moment', sectionDescription: 'Pick what feels most true.', text: 'Given critical feedback, {name}…', options: ['Gets defensive', 'Considers it and adjusts', 'Over-corrects and loses their own view'], optionTendencies: { 'Gets defensive': 'deficient', 'Considers it and adjusts': 'balanced', 'Over-corrects and loses their own view': 'excessive' } },
 
   // ── Energy: energizers vs drains (the subject self-tags too; report overlays) ──
   {
     id: 23,
     type: 'energizer',
     dimension: 'energizers',
+    pool: 'energy',
     section: 'Energy',
     sectionDescription: 'Tap how each kind of work seems to leave {name}.',
     text: 'Where does {name} get their energy?',
+  },
+
+  // ── Their Role: rate the subject's own responsibilities (shown only if authored) ──
+  {
+    id: 24,
+    type: 'responsibilities',
+    dimension: 'responsibilities',
+    pool: 'role',
+    section: 'Their Role',
+    sectionDescription: 'How does {name} do on the things they own?',
+    text: 'Rate {name} on each of their responsibilities.',
   },
 
   // ── In Their Words: 3 free-text (synthesized, never shown verbatim) ──
@@ -145,10 +157,41 @@ export const questions: Question[] = [
   { id: 22, type: 'freetext', dimension: 'message', section: 'In Their Words', sectionDescription: 'A few honest words. Stays anonymous.', text: 'If {name} could read one thing from this feedback, what should it be?' },
 ]
 
+const withName = (q: Question, name: string): Question => ({
+  ...q,
+  text: q.text.replace(/\{name\}/g, name),
+  sectionDescription: q.sectionDescription.replace(/\{name\}/g, name),
+})
+
+// The full set (used by the self track / back-compat).
 export function getQuestionsForName(name: string): Question[] {
-  return questions.map((q) => ({
-    ...q,
-    text: q.text.replace(/\{name\}/g, name),
-    sectionDescription: q.sectionDescription.replace(/\{name\}/g, name),
-  }))
+  return questions.map((q) => withName(q, name))
+}
+
+// Per-respondent colleague survey: every colleague answers CORE (no `pool`);
+// POOLED_PER_VISIT pooled modules are sampled by a fresh seed so the survey stays
+// ~18–22 items while full coverage accrues across responses. The aggregation
+// tolerates missing answers, so no single colleague needs to answer everything.
+const POOLED_PER_VISIT = 3
+
+function hashStr(s: string): number {
+  let h = 2166136261
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return h >>> 0
+}
+
+export function getColleagueSurvey(name: string, seed: number, hasResponsibilities: boolean): Question[] {
+  const usable = questions.filter((q) => q.type !== 'responsibilities' || hasResponsibilities)
+  const pools = [...new Set(usable.filter((q) => q.pool).map((q) => q.pool as string))]
+  const sampled = new Set(
+    pools
+      .map((p) => ({ p, h: hashStr(`${seed}:${p}`) }))
+      .sort((a, b) => a.h - b.h)
+      .slice(0, POOLED_PER_VISIT)
+      .map((x) => x.p)
+  )
+  return usable.filter((q) => !q.pool || sampled.has(q.pool)).map((q) => withName(q, name))
 }

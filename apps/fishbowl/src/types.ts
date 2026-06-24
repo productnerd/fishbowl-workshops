@@ -22,4 +22,6 @@ export interface FishbowlReport {
   closing: string
   // Phase 2 — team energizers/drains aggregate (−2..2 mean per activity).
   energizers?: { id: string; label: string; teamMean: number; n: number }[]
+  // Phase 2 — per-responsibility team tier (1=under, 2=meets, 3=exceeds) + spread.
+  responsibilities?: { index: number; label: string; teamTier: number; n: number }[]
 }

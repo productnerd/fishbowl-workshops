@@ -1,4 +1,12 @@
-export type QuestionType = 'mc' | 'rating' | 'freetext' | 'likert' | 'scenario' | 'virtue' | 'energizer'
+export type QuestionType =
+  | 'mc'
+  | 'rating'
+  | 'freetext'
+  | 'likert'
+  | 'scenario'
+  | 'virtue'
+  | 'energizer'
+  | 'responsibilities'
 
 // Where a person sits relative to the Aristotelian mean on a virtue dimension.
 export type Tendency = 'deficient' | 'balanced' | 'excessive'
@@ -25,6 +33,9 @@ export interface Question {
   sectionDescription: string
   category?: QuestionCategory // B2C grouping
   dimension?: string // Fishbowl grouping key (e.g. 'courage', 'follow_through')
+  // Survey sampling: questions with no `pool` are CORE (every colleague answers);
+  // pooled questions share a module id and are sampled per respondent to cap length.
+  pool?: string
   scoring?: 'mean-is-best' | 'higher-is-best' // virtue => mean-is-best; competency => higher-is-best
   options?: string[]
   lowLabel?: string
@@ -54,6 +65,9 @@ export interface Session {
   // Self-assessment: stamped when the subject finishes theirs (drives the Create
   // status pill). Non-sensitive flag; the self-assessment CONTENT is bearer-gated.
   self_completed_at?: string | null
+  // Session-readable copy of the subject's responsibilities (so anon colleagues can
+  // rate them). The self-tiers stay in the bearer-gated self row.
+  responsibilities?: string[] | null
 }
 
 // The subject's private self-assessment. Read/written only through bearer-verified

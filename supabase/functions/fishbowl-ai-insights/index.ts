@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
 
     const { data: session, error: sessionErr } = await supabase
       .from('fishbowl_sessions')
-      .select('id, creator_name, response_count, context')
+      .select('id, creator_name, response_count, context, responsibilities')
       .eq('id', session_id)
       .single()
     if (sessionErr || !session) {
@@ -183,6 +183,22 @@ Deno.serve(async (req) => {
         .map((r) => (r.answers?.energizers || {})[a.id])
         .filter((n: any) => typeof n === 'number' && n >= -2 && n <= 2)
       return { id: a.id, label: a.label, teamMean: vals.length ? round(mean(vals), 2) : 0, n: vals.length }
+    })
+
+    // Responsibilities — team modal tier (1=under, 2=meets, 3=exceeds) per responsibility.
+    const sessionResp: string[] = Array.isArray(session.responsibilities) ? session.responsibilities : []
+    const responsibilityStats = sessionResp.map((label: string, index: number) => {
+      const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0 }
+      let n = 0
+      for (const r of responses as any[]) {
+        const v = (r.answers?.responsibility_tiers || {})[String(index)]
+        if (typeof v === 'number' && v >= 1 && v <= 3) {
+          counts[v]++
+          n++
+        }
+      }
+      const teamTier = n ? Number(Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0]) : 2
+      return { index, label, teamTier, n }
     })
 
     // Goodness per dimension to pick strengths/growth deterministically.
@@ -296,6 +312,7 @@ Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} 
       appreciations: Array.isArray(prose.appreciations) ? prose.appreciations.slice(0, 3) : [],
       closing: prose.closing || '',
       energizers: energizerStats,
+      responsibilities: responsibilityStats,
     }
 
     // Stamp per-dimension means for the live percentile layer.

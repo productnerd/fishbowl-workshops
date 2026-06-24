@@ -67,9 +67,11 @@ Deno.serve(async (req) => {
     )
     if (error) return ok({ error: 'could not save' }, 500)
 
-    if (completed) {
-      await sb.from('fishbowl_sessions').update({ self_completed_at: now }).eq('id', session.id)
-    }
+    // Mirror responsibilities onto the session so anonymous colleagues can rate them.
+    await sb
+      .from('fishbowl_sessions')
+      .update({ responsibilities, ...(completed ? { self_completed_at: now } : {}) })
+      .eq('id', session.id)
     return ok({ ok: true })
   } catch (_e) {
     return ok({ error: 'internal' }, 500)

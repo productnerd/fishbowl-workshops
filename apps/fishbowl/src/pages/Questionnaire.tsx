@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { Question, Session, EnergizerTags } from '@fishbowl/feedback-core'
+import type { Question, Session, EnergizerTags, ResponsibilityTiers } from '@fishbowl/feedback-core'
 import { getSession, submitResponse } from '../lib/data'
-import { getQuestionsForName } from '../data/questions'
+import { getColleagueSurvey } from '../data/questions'
 import VirtueSlider from '../components/VirtueSlider'
 import LikertScale from '../components/LikertScale'
 import ScenarioChoice from '../components/ScenarioChoice'
 import FreeText from '../components/FreeText'
 import EnergizerTagger from '../components/EnergizerTagger'
+import TierTagger from '../components/TierTagger'
 import Button from '../components/Button'
 
 function Screen({ children }: { children: ReactNode }) {
@@ -49,14 +50,17 @@ export default function Questionnaire() {
   const [dir, setDir] = useState(1)
   const [myProfile, setMyProfile] = useState<Record<string, number> | null>(null)
   const [energizerTags, setEnergizerTags] = useState<EnergizerTags>({})
+  const [respTiers, setRespTiers] = useState<ResponsibilityTiers>({})
   const advanceTimer = useRef<number | null>(null)
+  // Fresh per-load seed → this respondent gets a sampled subset of pooled modules.
+  const seedRef = useRef(Math.floor(Math.random() * 1e9))
 
   useEffect(() => {
     if (!slug) return
     getSession(slug).then((s) => {
       if (s) {
         setSession(s)
-        setQuestions(getQuestionsForName(s.creator_name))
+        setQuestions(getColleagueSurvey(s.creator_name, seedRef.current, (s.responsibilities?.length ?? 0) > 0))
       }
       setLoading(false)
     })
@@ -105,7 +109,7 @@ export default function Questionnaire() {
 
   const q = questions[i]
   const a = answers[q.id]
-  const answered = q.type === 'energizer' ? true : a !== undefined && a !== ''
+  const answered = q.type === 'energizer' || q.type === 'responsibilities' ? true : a !== undefined && a !== ''
   const isLast = i === questions.length - 1
   const clearAdvance = () => {
     if (advanceTimer.current !== null) {
@@ -137,7 +141,11 @@ export default function Questionnaire() {
   const submit = async () => {
     setSubmitting(true)
     try {
-      await submitResponse(session.id, { ...answers, energizers: energizerTags }, email.trim() || undefined)
+      await submitResponse(
+        session.id,
+        { ...answers, energizers: energizerTags, responsibility_tiers: respTiers },
+        email.trim() || undefined
+      )
     } catch {
       /* best effort */
     }
@@ -212,6 +220,9 @@ export default function Questionnaire() {
             )}
             {q.type === 'freetext' && <FreeText value={(a as string) || ''} onChange={set} />}
             {q.type === 'energizer' && <EnergizerTagger value={energizerTags} onChange={setEnergizerTags} />}
+            {q.type === 'responsibilities' && (
+              <TierTagger items={session.responsibilities || []} value={respTiers} onChange={setRespTiers} />
+            )}
           </motion.div>
         </AnimatePresence>
       </div>

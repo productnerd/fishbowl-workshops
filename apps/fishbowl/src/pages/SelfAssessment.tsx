@@ -5,9 +5,12 @@ import {
   BIG_FIVE_ITEMS,
   scoreBigFive,
   deriveType,
+  RESPONSIBILITY_TIERS,
+  MAX_RESPONSIBILITIES,
   type BigFiveScores,
   type MbtiType,
   type EnergizerTags,
+  type ResponsibilityTiers,
 } from '@fishbowl/feedback-core'
 import { requestMagicLink, saveSelf } from '../lib/self'
 import { getSubjectAuth } from '../lib/subjectAuth'
@@ -23,8 +26,12 @@ export default function SelfAssessment() {
   const navigate = useNavigate()
   const authed = Boolean(getSubjectAuth())
 
-  const [phase, setPhase] = useState<'email' | 'quiz' | 'reveal' | 'energizers'>(authed ? 'quiz' : 'email')
+  const [phase, setPhase] = useState<'email' | 'quiz' | 'reveal' | 'energizers' | 'responsibilities'>(
+    authed ? 'quiz' : 'email'
+  )
   const [energizerTags, setEnergizerTags] = useState<EnergizerTags>({})
+  const [responsibilities, setResponsibilities] = useState<string[]>([''])
+  const [respTiers, setRespTiers] = useState<ResponsibilityTiers>({})
 
   // ── email gate ──
   const [email, setEmail] = useState('')
@@ -70,11 +77,13 @@ export default function SelfAssessment() {
   const save = async () => {
     if (!slug || !bigFive || !mbti) return
     setSaving(true)
+    const resp = responsibilities.map((r) => r.trim()).filter(Boolean).slice(0, MAX_RESPONSIBILITIES)
     await saveSelf(slug, {
       ocean_answers: answers,
       big_five: bigFive,
       mbti,
-      self_payload: { energizers: energizerTags },
+      responsibilities: resp,
+      self_payload: { energizers: energizerTags, responsibility_tiers: respTiers },
       completed: true,
     })
     navigate(`/r/${slug}`)
@@ -166,6 +175,68 @@ export default function SelfAssessment() {
           <div className="mt-6">
             <EnergizerTagger value={energizerTags} onChange={setEnergizerTags} />
           </div>
+          <div className="mt-7 flex justify-center">
+            <Button variant="pink" onClick={() => setPhase('responsibilities')} className="!text-xl">
+              Next: your responsibilities →
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
+
+  if (phase === 'responsibilities') {
+    const setResp = (i: number, v: string) => setResponsibilities((rs) => rs.map((r, k) => (k === i ? v : r)))
+    const addRow = () => setResponsibilities((rs) => (rs.length < MAX_RESPONSIBILITIES ? [...rs, ''] : rs))
+    return (
+      <div className="mx-auto min-h-dvh w-full max-w-lg px-5 py-10">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+          <p className="kicker text-pink-deep">what you own</p>
+          <h1 className="display mt-2 text-4xl">Your responsibilities</h1>
+          <p className="mt-3 text-ink-soft">
+            List up to {MAX_RESPONSIBILITIES} core parts of your role and mark where you think you land. Your team
+            rates the same list — we'll show both.
+          </p>
+          <div className="mt-6 flex flex-col gap-4">
+            {responsibilities.map((r, i) => (
+              <div key={i} className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3 shadow-chunky-sm">
+                <input
+                  value={r}
+                  onChange={(e) => setResp(i, e.target.value)}
+                  placeholder={`Responsibility ${i + 1}`}
+                  maxLength={70}
+                  className="w-full rounded-xl bg-transparent px-2 py-1.5 text-base font-semibold text-ink outline-none placeholder:text-ink-soft/55"
+                />
+                {r.trim() && (
+                  <div className="mt-2 flex gap-1.5">
+                    {RESPONSIBILITY_TIERS.map((t) => {
+                      const sel = respTiers[i] === t.v
+                      return (
+                        <button
+                          key={t.v}
+                          type="button"
+                          onClick={() => setRespTiers((p) => ({ ...p, [i]: t.v }))}
+                          className={`depress-sm flex-1 cursor-pointer rounded-xl border-2 border-ink py-2 text-xs font-bold ${
+                            sel ? 'bg-blue text-paper-hi sc-navy is-on' : 'bg-sand text-ink'
+                          }`}
+                        >
+                          {t.emoji} {t.short}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          {responsibilities.length < MAX_RESPONSIBILITIES && (
+            <button
+              onClick={addRow}
+              className="press mt-3 cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-5 py-2.5 text-sm font-semibold text-ink shadow-chunky-sm"
+            >
+              + Add another
+            </button>
+          )}
           <div className="mt-7 flex justify-center">
             <Button variant="pink" onClick={save} disabled={saving} className="!text-xl">
               {saving ? 'Saving…' : 'Save & see my report →'}
