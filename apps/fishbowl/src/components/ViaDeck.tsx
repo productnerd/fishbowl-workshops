@@ -41,7 +41,8 @@ export default function ViaDeck({
   for (const t of team) byVirtue[t.virtue] = (byVirtue[t.virtue] ?? 0) + t.count
   const maxVirtue = Math.max(1, ...Object.values(byVirtue))
 
-  const fan = [-8, -4, 0, 4, 8]
+  // Subtle fan — small enough that rotated corners + the chunky shadow stay inside.
+  const fan = [-2, -1, 0, 1, 2]
 
   return (
     <div className="flex flex-col gap-6">
@@ -52,7 +53,7 @@ export default function ViaDeck({
           {top.map((s, i) => (
             <div
               key={s.id}
-              className="card-3d bg-paper-hi text-ink"
+              className="card-3d mx-auto w-[94%] bg-paper-hi p-4 text-ink"
               style={{ transform: `rotate(${fan[i] ?? 0}deg)` }}
             >
               <div className="flex items-baseline justify-between gap-3">
