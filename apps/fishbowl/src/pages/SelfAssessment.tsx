@@ -14,6 +14,7 @@ import {
 } from '@fishbowl/feedback-core'
 import { requestMagicLink, saveSelf } from '../lib/self'
 import { getSubjectAuth } from '../lib/subjectAuth'
+import { playTick } from '../lib/sound'
 import LikertScale from '../components/LikertScale'
 import Button from '../components/Button'
 import Card from '../components/Card'
@@ -59,6 +60,7 @@ export default function SelfAssessment() {
   const pct = ((i + 1) / BIG_FIVE_ITEMS.length) * 100
 
   const pick = (v: number) => {
+    playTick()
     const isLast = i === BIG_FIVE_ITEMS.length - 1
     const next = { ...answers, [q.id]: v }
     setAnswers(next)
@@ -215,7 +217,10 @@ export default function SelfAssessment() {
                         <button
                           key={t.v}
                           type="button"
-                          onClick={() => setRespTiers((p) => ({ ...p, [i]: t.v }))}
+                          onClick={() => {
+                            playTick()
+                            setRespTiers((p) => ({ ...p, [i]: t.v }))
+                          }}
                           className={`depress-sm flex-1 cursor-pointer rounded-xl border-2 border-ink py-2 text-xs font-bold ${
                             sel ? 'bg-blue text-paper-hi sc-navy is-on' : 'bg-sand text-ink'
                           }`}

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Question, Session, EnergizerTags, ResponsibilityTiers } from '@fishbowl/feedback-core'
 import { getSession, submitResponse } from '../lib/data'
+import { playTick } from '../lib/sound'
 import { getColleagueSurvey } from '../data/questions'
 import VirtueSlider from '../components/VirtueSlider'
 import LikertScale from '../components/LikertScale'
@@ -131,6 +132,7 @@ export default function Questionnaire() {
   const set = (v: string | number) => setAnswers((prev) => ({ ...prev, [q.id]: v }))
   // Picking a discrete option auto-advances after a beat; free-text uses Next.
   const handleSelect = (v: string | number) => {
+    playTick()
     set(v)
     if (q.type === 'freetext' || isLast) return
     // If a live nudge will show, don't auto-advance — let them read it, then tap Next.
@@ -171,14 +173,13 @@ export default function Questionnaire() {
         <div className="h-3 overflow-hidden rounded-full border-2 border-ink bg-paper-hi">
           <motion.div className="h-full bg-blue" animate={{ width: `${pct}%` }} transition={{ ease: 'easeOut' }} />
         </div>
-        {i > 0 && (
-          <button
-            onClick={() => go(-1)}
-            className="press mt-3 cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-4 py-1.5 text-sm font-semibold text-ink shadow-chunky-sm"
-          >
-            ← Back
-          </button>
-        )}
+        <button
+          onClick={() => go(-1)}
+          disabled={i === 0}
+          className="press mt-3 cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-4 py-1.5 text-sm font-semibold text-ink shadow-chunky-sm disabled:opacity-40 disabled:pointer-events-none"
+        >
+          ← Back
+        </button>
       </div>
 
       {/* question */}

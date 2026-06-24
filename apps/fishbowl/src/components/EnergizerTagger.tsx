@@ -1,4 +1,5 @@
 import { ENERGIZER_ACTIVITIES, ENERGIZER_SCALE, type EnergizerTags } from '@fishbowl/feedback-core'
+import { playTick } from '../lib/sound'
 
 // A grid for tagging each activity on the −2…+2 energize/drain scale. Used by the
 // subject (self) and by colleagues (third-person framing).
@@ -22,7 +23,10 @@ export default function EnergizerTagger({
                   key={s.v}
                   type="button"
                   title={s.label}
-                  onClick={() => onChange({ ...value, [a.id]: s.v })}
+                  onClick={() => {
+                    playTick()
+                    onChange({ ...value, [a.id]: s.v })
+                  }}
                   className={`depress-sm grid h-11 flex-1 cursor-pointer place-items-center rounded-xl border-2 border-ink text-lg ${
                     sel ? 'bg-blue sc-navy is-on' : 'bg-sand'
                   }`}

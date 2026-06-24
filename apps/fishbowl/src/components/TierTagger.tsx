@@ -1,4 +1,5 @@
 import { RESPONSIBILITY_TIERS, type ResponsibilityTiers } from '@fishbowl/feedback-core'
+import { playTick } from '../lib/sound'
 
 // Colleagues tier each of the subject's responsibilities. The "—" clears a row
 // (Haven't seen enough → excluded from the tally).
@@ -23,7 +24,10 @@ export default function TierTagger({
                 <button
                   key={t.v}
                   type="button"
-                  onClick={() => onChange({ ...value, [i]: t.v })}
+                  onClick={() => {
+                    playTick()
+                    onChange({ ...value, [i]: t.v })
+                  }}
                   className={`depress-sm flex-1 cursor-pointer rounded-xl border-2 border-ink py-2 text-xs font-bold ${
                     sel ? 'bg-blue text-paper-hi sc-navy is-on' : 'bg-sand text-ink'
                   }`}
