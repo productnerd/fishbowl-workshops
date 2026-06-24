@@ -67,6 +67,7 @@ export default function Questionnaire() {
   const [myProfile, setMyProfile] = useState<Record<string, number> | null>(null)
   const [energizerTags, setEnergizerTags] = useState<EnergizerTags>({})
   const [respTiers, setRespTiers] = useState<ResponsibilityTiers>({})
+  const [respNotes, setRespNotes] = useState<Record<number, string>>({})
   const [hats, setHats] = useState<HatScores>({})
   const [candor, setCandor] = useState<CandorAnswers>({})
   const [sdt, setSdt] = useState<Record<string, number>>({})
@@ -175,6 +176,7 @@ export default function Questionnaire() {
           ...answers,
           energizers: energizerTags,
           responsibility_tiers: respTiers,
+          responsibility_notes: respNotes,
           hats,
           radical_candor: candor,
           sdt,
@@ -261,7 +263,13 @@ export default function Questionnaire() {
             {q.type === 'freetext' && <FreeText value={(a as string) || ''} onChange={set} />}
             {q.type === 'energizer' && <EnergizerTagger value={energizerTags} onChange={setEnergizerTags} />}
             {q.type === 'responsibilities' && (
-              <TierTagger items={session.responsibilities || []} value={respTiers} onChange={setRespTiers} />
+              <TierTagger
+                items={session.responsibilities || []}
+                value={respTiers}
+                onChange={setRespTiers}
+                notes={respNotes}
+                onNotesChange={setRespNotes}
+              />
             )}
             {q.type === 'sixhats' && <HatsTagger value={hats} onChange={setHats} />}
             {q.type === 'radical_candor' && (

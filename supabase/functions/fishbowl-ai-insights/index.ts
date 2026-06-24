@@ -200,6 +200,12 @@ Deno.serve(async (req) => {
       const teamTier = n ? Number(Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0]) : 2
       return { index, label, teamTier, n }
     })
+    // Verbatim colleague notes per responsibility (synthesized by the AI, never shown raw).
+    const responsibilityNotes = sessionResp.map((_label: string, index: number) =>
+      (responses as any[])
+        .map((r) => (r.answers?.responsibility_notes || {})[String(index)])
+        .filter((t: any) => typeof t === 'string' && t.trim())
+    )
 
     // ── Phase 3 frameworks — deterministic, key-agnostic aggregation ──
     const R = responses as any[]
@@ -291,6 +297,16 @@ Deno.serve(async (req) => {
       '',
       'FREE TEXT:',
       ...freetext.map((f) => `- ${f.dimension} ("${f.prompt}"):\n${f.answers.map((a) => `    • ${a}`).join('\n') || '    (none)'}`),
+      ...(sessionResp.length
+        ? [
+            '',
+            'RESPONSIBILITIES (team tier 1=under / 2=meets / 3=exceeds, plus verbatim colleague notes on HOW they exceed/fall short):',
+            ...responsibilityStats.map(
+              (r) =>
+                `- [${r.index}] "${r.label}": team tier ${r.teamTier}/3 (n=${r.n})\n${(responsibilityNotes[r.index] || []).map((nt) => `    • ${nt}`).join('\n') || '    (no notes)'}`
+            ),
+          ]
+        : []),
     ].join('\n')
 
     const systemPrompt = `You are an insightful, kind workplace-feedback analyst for an app called "Fishbowl". ${responses.length} colleagues anonymously assessed a person named ${name} on Aristotelian virtues (the good is the MEAN between two vices), competencies, situational tendencies, and free text. Write a warm, specific, honest report that ${name} will read about themselves.${workContext ? ` Use this context about ${name}'s work to ground every insight and growth tip in their actual job: "${workContext}".` : ''}
@@ -298,8 +314,8 @@ Deno.serve(async (req) => {
 === VOICE ===
 Speak TO ${name} in second person ("you", "your"). Never use their name. Write like a sharp, funny friend who knows them well, NOT a consultant: casual, warm, a little cheeky, and playfully teasing when the data invites it (especially the over-the-top stuff). Land the joke, then land the truth. Smart, dry, observational humor with taste, the kind that makes them laugh AND nod. Never mean, never sarcastic at their expense, never punching down, never a roast. Kill all corporate-speak (no "leverage", "stakeholders", "areas of opportunity", "strengths and weaknesses", "it's important to note", "at the end of the day"). Use contractions, short punchy sentences, the odd well-placed aside. Still: grounded in the data, honest, and genuinely useful. The virtue ideal is the MIDDLE (5 on the 1-9 scale), not the maximum: too little AND too much are both weaknesses, and overshooting a virtue is fair game for a gentle ribbing.
 
-=== NO DASHES ===
-Never type "—" (U+2014) or "–" (U+2013) or " - " as a connector. Use commas, periods, colons, semicolons, parentheses. A single dash invalidates the response.
+=== NO DASHES (critical) ===
+NEVER use an em dash "—" (U+2014), an en dash "–" (U+2013), a double hyphen "--", or a spaced hyphen " - " as a connector or aside. They scream "written by AI" and are completely banned. Use commas, periods, colons, semicolons, or parentheses instead, or split into two sentences. A single dash of any kind invalidates the whole response, so reread and strip them before finishing.
 
 === BOLD ===
 In every blurb/interpretation/appreciation and advice bullet, wrap 2 to 3 key phrases in **double asterisks**. Never bold full sentences. The "headline" and advice "title" must NOT contain bold.
@@ -315,7 +331,8 @@ The growthEdges are ${name}'s BIGGEST VICES: the virtues furthest from the balan
   "topStrengths": [ ${topStrengthDims.map((d) => `{ "dimension": "${d}", "label": "<=4 words", "blurb": "2 sentences celebrating this strength specifically" }`).join(', ')} ],
   "growthEdges": [ ${growthDims.map((d) => `{ "dimension": "${d}", "title": "<=5 words imperative, no bold", "actions": ["concrete tip 1", "concrete tip 2"] }`).join(', ')} ],
   "appreciations": ["3 distinct themes synthesized from the appreciation free-text, each 1 sentence with **bold**", "...", "..."],
-  "closing": "2 warm sentences sending them off."
+  "closing": "2 warm sentences sending them off."${sessionResp.length ? `,
+  "responsibilities": { ${responsibilityStats.map((r) => `"${r.index}": "one sharp sentence on HOW the team reads you on this responsibility (where you exceed/delight or fall short), drawing on the colleague notes; synthesize, never quote anyone, **bold** 1 to 2 phrases"`).join(', ')} }` : ''}
 }
 Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} competency keys. Never reveal or quote any individual respondent verbatim; synthesize themes only (the team is small and quotes could identify people).`
 
@@ -376,7 +393,10 @@ Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} 
       appreciations: Array.isArray(prose.appreciations) ? prose.appreciations.slice(0, 3) : [],
       closing: prose.closing || '',
       energizers: energizerStats,
-      responsibilities: responsibilityStats,
+      responsibilities: responsibilityStats.map((r) => ({
+        ...r,
+        note: (prose.responsibilities && prose.responsibilities[String(r.index)]) || '',
+      })),
       hats: hatsStats,
       radicalCandor,
       sdt: sdtStats,

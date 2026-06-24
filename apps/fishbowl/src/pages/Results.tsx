@@ -22,7 +22,6 @@ import { getSelfReport, type SelfData } from '../lib/self'
 import { useAiInsights } from '../lib/aiInsights'
 import { topPercent } from '../lib/percentile'
 import Card from '../components/Card'
-import Button from '../components/Button'
 import VirtueGauge from '../components/VirtueGauge'
 import StatBar from '../components/StatBar'
 import OceanDials from '../components/OceanDials'
@@ -603,28 +602,25 @@ export default function Results() {
         </AnimatePresence>
       </div>
 
-      {/* nav */}
-      <div className="mt-5 flex items-center justify-between">
+      {/* edge nav — arrows on the screen edges, vertically centered (dots show progress) */}
+      {idx > 0 && (
         <button
           onClick={() => go(-1)}
-          disabled={idx === 0}
-          className="press cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-5 py-3 font-semibold shadow-chunky-sm disabled:opacity-40 disabled:pointer-events-none"
+          aria-label="Previous"
+          className="press fixed left-2 top-1/2 z-30 grid h-12 w-12 -translate-y-1/2 cursor-pointer place-items-center rounded-full border-[2.5px] border-ink bg-paper-hi text-2xl font-black text-ink shadow-chunky-sm sm:left-5"
         >
           ←
         </button>
-        <span className="kicker text-ink-soft">
-          {idx + 1} / {total}
-        </span>
-        {idx === total - 1 ? (
-          <span className="rounded-full border-[2.5px] border-ink bg-blue px-5 py-3 font-display font-black shadow-chunky-sm">
-            the end ✦
-          </span>
-        ) : (
-          <Button variant="pink" onClick={() => go(1)}>
-            Next →
-          </Button>
-        )}
-      </div>
+      )}
+      {idx < total - 1 && (
+        <button
+          onClick={() => go(1)}
+          aria-label="Next"
+          className="press fixed right-2 top-1/2 z-30 grid h-12 w-12 -translate-y-1/2 cursor-pointer place-items-center rounded-full border-[2.5px] border-ink bg-pink text-2xl font-black text-ink shadow-chunky-sm sc-pink sm:right-5"
+        >
+          →
+        </button>
+      )}
     </div>
   )
 }

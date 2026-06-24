@@ -90,7 +90,7 @@ export interface SelfAssessment {
 
 // answers is keyed by question id (number) for scalar answers, plus namespaced
 // string keys for structured activities (e.g. `energizers` → {activityId: -2..2}).
-export type AnswerValue = string | number | string[] | Record<string, number>
+export type AnswerValue = string | number | string[] | Record<string, number> | Record<string, string>
 
 export interface Response {
   id: string

@@ -1,16 +1,28 @@
 import { RESPONSIBILITY_TIERS, type ResponsibilityTiers } from '@fishbowl/feedback-core'
 import { playTick } from '../lib/sound'
 
-// Colleagues tier each of the subject's responsibilities. The "—" clears a row
+// The verbal prompt adapts to the tier the colleague picked.
+const NOTE_PROMPT: Record<number, string> = {
+  3: 'How do they exceed or delight here? (a few words)',
+  2: 'What would take this from good to great?',
+  1: 'Where do they fall short, specifically?',
+}
+
+// Colleagues tier each of the subject's responsibilities AND, in their own words,
+// say how they exceed/delight or where they fall short. The "—" clears the tier
 // (Haven't seen enough → excluded from the tally).
 export default function TierTagger({
   items,
   value,
+  notes,
   onChange,
+  onNotesChange,
 }: {
   items: string[]
   value: ResponsibilityTiers
+  notes: Record<number, string>
   onChange: (t: ResponsibilityTiers) => void
+  onNotesChange: (n: Record<number, string>) => void
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -49,6 +61,14 @@ export default function TierTagger({
               —
             </button>
           </div>
+          <textarea
+            value={notes[i] ?? ''}
+            onChange={(e) => onNotesChange({ ...notes, [i]: e.target.value })}
+            rows={2}
+            maxLength={280}
+            placeholder={NOTE_PROMPT[value[i]] ?? 'In what way? A few words (optional, stays anonymous).'}
+            className="mt-2 w-full resize-none rounded-xl border-2 border-ink bg-sand px-3 py-2 text-sm text-ink outline-none placeholder:text-ink-soft/60 focus:bg-paper-hi"
+          />
         </div>
       ))}
     </div>
