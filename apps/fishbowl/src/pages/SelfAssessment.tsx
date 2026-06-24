@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -20,7 +20,7 @@ import {
   type ResponsibilityTiers,
   type HatScores,
 } from '@fishbowl/feedback-core'
-import { requestMagicLink, saveSelf } from '../lib/self'
+import { requestMagicLink, saveSelf, getSelfReport } from '../lib/self'
 import { getSubjectAuth } from '../lib/subjectAuth'
 import { playTick } from '../lib/sound'
 import LikertScale from '../components/LikertScale'
@@ -36,11 +36,27 @@ import ChipPicker from '../components/ChipPicker'
 export default function SelfAssessment() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
-  const authed = Boolean(getSubjectAuth())
-
   const [phase, setPhase] = useState<
-    'email' | 'quiz' | 'reveal' | 'energizers' | 'responsibilities' | 'frameworks'
-  >(authed ? 'quiz' : 'email')
+    'checking' | 'email' | 'quiz' | 'reveal' | 'energizers' | 'responsibilities' | 'frameworks'
+  >('checking')
+
+  // Verify the bearer actually OWNS this slug before letting them self-assess. A
+  // bearer for a different session can't save here, so we'd otherwise let them
+  // fill the whole thing, fail the save, and bounce them to a self-less report.
+  useEffect(() => {
+    if (!slug) return
+    if (!getSubjectAuth()) {
+      setPhase('email')
+      return
+    }
+    let cancelled = false
+    getSelfReport(slug).then((r) => {
+      if (!cancelled) setPhase(r.authed ? 'quiz' : 'email')
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [slug])
   const [energizerTags, setEnergizerTags] = useState<EnergizerTags>({})
   const [responsibilities, setResponsibilities] = useState<string[]>([''])
   const [respTiers, setRespTiers] = useState<ResponsibilityTiers>({})
@@ -72,6 +88,7 @@ export default function SelfAssessment() {
   const [bigFive, setBigFive] = useState<BigFiveScores | null>(null)
   const [mbti, setMbti] = useState<MbtiType | null>(null)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(false)
 
   const q = BIG_FIVE_ITEMS[Math.min(i, BIG_FIVE_ITEMS.length - 1)]
   const pct = ((i + 1) / BIG_FIVE_ITEMS.length) * 100
@@ -96,8 +113,9 @@ export default function SelfAssessment() {
   const save = async () => {
     if (!slug || !bigFive || !mbti) return
     setSaving(true)
+    setSaveError(false)
     const resp = responsibilities.map((r) => r.trim()).filter(Boolean).slice(0, MAX_RESPONSIBILITIES)
-    await saveSelf(slug, {
+    const res = await saveSelf(slug, {
       ocean_answers: answers,
       big_five: bigFive,
       mbti,
@@ -112,10 +130,28 @@ export default function SelfAssessment() {
       },
       completed: true,
     })
+    // Only move on if it actually saved — otherwise the report would load with no
+    // self and re-nag them. On success, suppress the "take it first" modal for good.
+    if (!res.ok) {
+      setSaving(false)
+      setSaveError(true)
+      return
+    }
+    localStorage.setItem(`fishbowl_self_nudge_seen_${slug}`, '1')
     navigate(`/r/${slug}`)
   }
 
   // ── render ──
+  if (phase === 'checking') {
+    return (
+      <div className="grid min-h-dvh place-items-center px-5">
+        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.1 }} className="text-5xl">
+          🐟
+        </motion.div>
+      </div>
+    )
+  }
+
   if (phase === 'email') {
     return (
       <div className="grid min-h-dvh place-items-center px-5">
@@ -270,6 +306,11 @@ export default function SelfAssessment() {
             <Button variant="pink" onClick={save} disabled={saving} className="!text-xl">
               {saving ? 'Saving…' : 'Save & see my report →'}
             </Button>
+            {saveError && (
+              <p className="text-center text-sm font-semibold text-pink-deep">
+                Couldn't save your read. Your link may have expired, reopen it from your email and try again.
+              </p>
+            )}
             <button
               onClick={() => setPhase('frameworks')}
               className="cursor-pointer text-sm font-semibold text-blue-deep underline-offset-2 hover:underline"
@@ -336,6 +377,11 @@ export default function SelfAssessment() {
             <button onClick={save} disabled={saving} className="cursor-pointer text-sm font-semibold text-ink-soft hover:underline">
               Skip the rest, save now
             </button>
+            {saveError && (
+              <p className="text-center text-sm font-semibold text-pink-deep">
+                Couldn't save your read. Your link may have expired, reopen it from your email and try again.
+              </p>
+            )}
           </div>
         </motion.div>
       </div>
