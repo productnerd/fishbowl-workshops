@@ -17,23 +17,17 @@ const jit = (t, lo, hi, s = 1.2) => clamp(Math.round(t + (Math.random() * 2 - 1)
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 // ── REST helpers (same surface the app uses) ──
-async function identify(email, name) {
-  const r = await fetch(`${URL}/rest/v1/rpc/fishbowl_identify`, {
+// Ownership is derived server-side from the email (hardened); create via the RPC,
+// then read the id back by slug.
+async function createSession(name, context, email, slug) {
+  const r = await fetch(`${URL}/rest/v1/rpc/fishbowl_create_session`, {
     method: 'POST',
     headers: H,
-    body: JSON.stringify({ p_email: email, p_name: name }),
-  })
-  if (!r.ok) throw new Error(`identify ${email}: ${r.status} ${await r.text()}`)
-  return await r.json() // uuid (text)
-}
-async function createSession(name, context, personId, slug) {
-  const r = await fetch(`${URL}/rest/v1/fishbowl_sessions`, {
-    method: 'POST',
-    headers: { ...H, Prefer: 'return=representation' },
-    body: JSON.stringify({ creator_name: name, slug, response_count: 0, context, creator_person_id: personId }),
+    body: JSON.stringify({ p_name: name, p_slug: slug, p_context: context, p_email: email }),
   })
   if (!r.ok) throw new Error(`session ${name}: ${r.status} ${await r.text()}`)
-  return (await r.json())[0]
+  const g = await fetch(`${URL}/rest/v1/fishbowl_sessions?slug=eq.${slug}&select=id`, { headers: H })
+  return (await g.json())[0]
 }
 async function submit(sessionId, answers) {
   const r = await fetch(`${URL}/rest/v1/rpc/fishbowl_submit_response`, {
@@ -202,8 +196,7 @@ const personas = [
 async function main() {
   console.log('Seeding Northwind demo team…\n')
   for (const p of personas) {
-    const pid = await identify(p.email, p.name)
-    const sess = await createSession(p.name, p.context, pid, p.slug)
+    const sess = await createSession(p.name, p.context, p.email, p.slug)
     p._id = sess.id
     for (let i = 0; i < p.n; i++) await submit(sess.id, buildAnswers(p, i))
     console.log(`  ${p.name.padEnd(13)} <${p.email.padEnd(22)}>  /r/${p.slug}  (${p.n} responses${p.n < 5 ? ' — incomplete' : ''})`)

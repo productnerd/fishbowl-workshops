@@ -2,16 +2,16 @@ import { generateSlug, type Session } from '@fishbowl/feedback-core'
 import { supabase } from './supabase'
 
 // Fishbowl runs Supabase-only (the backend is live; no localStorage fallback).
+// Ownership is set server-side from the email inside this SECURITY DEFINER RPC —
+// the client never asserts creator_person_id (hardened; see fishbowl_session_ownership.sql).
 export async function createSession(name: string, context?: string, email?: string): Promise<string> {
   const slug = generateSlug()
-  let creator_person_id: string | null = null
-  if (email && email.trim()) {
-    const { data } = await supabase.rpc('fishbowl_identify', { p_email: email.trim(), p_name: name })
-    creator_person_id = (data as string) ?? null
-  }
-  const { error } = await supabase
-    .from('fishbowl_sessions')
-    .insert({ creator_name: name, slug, response_count: 0, context: context ?? null, creator_person_id })
+  const { error } = await supabase.rpc('fishbowl_create_session', {
+    p_name: name,
+    p_slug: slug,
+    p_context: context ?? null,
+    p_email: email?.trim() || null,
+  })
   if (error) throw error
   return slug
 }
