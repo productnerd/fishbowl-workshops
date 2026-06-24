@@ -5,10 +5,12 @@ import Questionnaire from './pages/Questionnaire'
 import Done from './pages/Done'
 import Results from './pages/Results'
 import ManagerReport from './pages/ManagerReport'
+import WaterBackground from './components/WaterBackground'
 
 export default function App() {
   return (
     <HashRouter>
+      <WaterBackground />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/create" element={<Create />} />
