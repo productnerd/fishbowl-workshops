@@ -44,7 +44,7 @@
    The interference of the two sliding layers reads as fluid, flowing water light
    — far smoother than animating turbulence (which boils on the CPU). The layers
    are inset well past the screen so the diagonal drift never bares an edge. */
-.fishbowl-water { opacity: 0.82; }
+.fishbowl-water { opacity: 0.82; background-color: rgba(255, 255, 255, 0.5); }
 .fishbowl-water-a,
 .fishbowl-water-b {
   position: absolute;
@@ -59,7 +59,7 @@
   animation: fishbowl-drift-a 40s linear infinite;
 }
 .fishbowl-water-b {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.01' numOctaves='2' seed='7' stitchTiles='stitch' result='t'/%3E%3CfeColorMatrix in='t' type='matrix' values='0 0 0 0 0.36 0 0 0 0 0.85 0 0 0 0 0.95 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='500' height='500' filter='url(%23w)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.01' numOctaves='2' seed='7' stitchTiles='stitch' result='t'/%3E%3CfeColorMatrix in='t' type='matrix' values='0 0 0 0 0.95 0 0 0 0 0.98 0 0 0 0 1 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='500' height='500' filter='url(%23w)'/%3E%3C/svg%3E");
   background-size: 500px 500px;
   mix-blend-mode: screen;
   animation: fishbowl-drift-b 61s linear infinite;
