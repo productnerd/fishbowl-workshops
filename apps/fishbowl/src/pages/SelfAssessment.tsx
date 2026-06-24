@@ -250,7 +250,7 @@ export default function SelfAssessment() {
   // quiz
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-5">
-      <div className="sticky top-0 z-10 -mx-5 bg-paper/85 px-5 pb-3 pt-5 backdrop-blur-sm">
+      <div className="sticky top-0 z-10 -mx-5 px-5 pb-3 pt-5">
         <div className="mb-2 flex items-center justify-between">
           <span className="kicker text-pink-deep">your self-read</span>
           <span className="kicker text-ink-soft">

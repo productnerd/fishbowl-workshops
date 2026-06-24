@@ -111,6 +111,12 @@ export default function Questionnaire() {
   const a = answers[q.id]
   const answered = q.type === 'energizer' || q.type === 'responsibilities' ? true : a !== undefined && a !== ''
   const isLast = i === questions.length - 1
+  const myMean = q.dimension ? myProfile?.[q.dimension] : undefined
+  const nudgeMsg = q.type === 'virtue' && myMean != null && typeof a === 'number' ? compareNudge(myMean, a) : null
+  // Discrete answers auto-advance, so they need no Next button; only free-text / the
+  // tag grids (or a virtue paused on a nudge) show one.
+  const autoAdvances = q.type === 'virtue' || q.type === 'likert' || q.type === 'scenario'
+  const showNext = !isLast && answered && (!autoAdvances || Boolean(nudgeMsg))
   const clearAdvance = () => {
     if (advanceTimer.current !== null) {
       window.clearTimeout(advanceTimer.current)
@@ -136,8 +142,6 @@ export default function Questionnaire() {
       go(1)
     }, 500)
   }
-  const prevSection = i > 0 ? questions[i - 1].section : null
-  const newSection = q.section !== prevSection
   const submit = async () => {
     setSubmitting(true)
     try {
@@ -157,7 +161,7 @@ export default function Questionnaire() {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-5">
       {/* progress */}
-      <div className="sticky top-0 z-10 -mx-5 bg-paper/85 px-5 pb-3 pt-5 backdrop-blur-sm">
+      <div className="sticky top-0 z-10 -mx-5 px-5 pb-3 pt-5">
         <div className="mb-2 flex items-center justify-between">
           <span className="kicker text-pink-deep">{q.section}</span>
           <span className="kicker text-ink-soft">
@@ -180,7 +184,6 @@ export default function Questionnaire() {
             exit={{ opacity: 0, x: dir > 0 ? -60 : 60 }}
             transition={{ duration: 0.28, ease: [0.2, 0.8, 0.2, 1] as const }}
           >
-            {newSection && <p className="serif mb-2 text-base text-ink-soft">{q.sectionDescription}</p>}
             <h2 className="display mb-8 text-[clamp(1.9rem,5vw,2.9rem)]">{q.text}</h2>
 
             {q.type === 'virtue' && q.virtue && (
@@ -196,20 +199,16 @@ export default function Questionnaire() {
                   virtueTraits={q.virtue.virtueTraits}
                   excessiveTraits={q.virtue.excessiveTraits}
                 />
-                {(() => {
-                  const mine = q.dimension ? myProfile?.[q.dimension] : undefined
-                  const msg = mine != null && typeof a === 'number' ? compareNudge(mine, a) : null
-                  return msg ? (
-                    <motion.p
-                      key={msg}
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mt-5 text-center text-sm font-semibold text-blue-deep"
-                    >
-                      ✦ {msg}
-                    </motion.p>
-                  ) : null
-                })()}
+                {nudgeMsg && (
+                  <motion.p
+                    key={nudgeMsg}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-5 text-center text-sm font-semibold text-blue-deep"
+                  >
+                    ✦ {nudgeMsg}
+                  </motion.p>
+                )}
               </>
             )}
             {q.type === 'likert' && (
@@ -242,8 +241,9 @@ export default function Questionnaire() {
         </div>
       )}
 
-      {/* nav */}
-      <div className="sticky bottom-0 -mx-5 flex items-center justify-between gap-3 bg-paper/85 px-5 pb-5 pt-3 backdrop-blur-sm">
+      {/* nav — floats over the background; discrete answers auto-advance so most
+          screens show only Back (Next appears only where there's no auto-advance) */}
+      <div className="sticky bottom-0 -mx-5 flex items-center justify-between gap-3 px-5 pb-5 pt-3">
         <button
           onClick={() => go(-1)}
           disabled={i === 0}
@@ -255,11 +255,11 @@ export default function Questionnaire() {
           <Button variant="blue" onClick={submit} disabled={!answered || submitting}>
             {submitting ? 'Sending…' : 'Submit ✓'}
           </Button>
-        ) : (
+        ) : showNext ? (
           <Button variant="pink" onClick={() => go(1)} disabled={!answered}>
             Next →
           </Button>
-        )}
+        ) : null}
       </div>
     </div>
   )

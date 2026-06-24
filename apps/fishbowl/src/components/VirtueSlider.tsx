@@ -74,7 +74,7 @@ export default function VirtueSlider({
             >
               <ul className="space-y-2">
                 {(col.traits ?? []).map((t, ti) => (
-                  <li key={ti} className="text-base font-medium leading-tight text-ink">
+                  <li key={ti} className="text-xs font-medium leading-tight text-ink-soft">
                     {t}
                   </li>
                 ))}
