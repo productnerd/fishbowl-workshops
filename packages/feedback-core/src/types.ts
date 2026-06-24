@@ -100,7 +100,7 @@ export interface Response {
 }
 
 export interface VirtueResult {
-  mu: number // mean placement (1-5), 3 = the virtuous mean
+  mu: number // mean placement (1-9), 5 = the virtuous mean
   sigma: number // spread — how differently people read this person
   tendency: Tendency
   balanceScore: number // 1 = perfectly balanced (mu=3), 0 = extreme pole

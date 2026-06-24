@@ -22,7 +22,3 @@ export function getSubjectAuth(): SubjectAuth | null {
 export function setSubjectAuth(a: SubjectAuth) {
   localStorage.setItem(KEY, JSON.stringify(a))
 }
-
-export function clearSubjectAuth() {
-  localStorage.removeItem(KEY)
-}

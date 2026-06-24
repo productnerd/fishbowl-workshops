@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
           from: FROM,
           to: [email],
           subject: 'Your Fishbowl link',
-          html: `<p>Here's your private Fishbowl link — it takes you to your self-assessment and your report.</p><p><a href="${claimUrl}">Open my Fishbowl →</a></p><p style="color:#5a4f45;font-size:13px">This link expires in ${TTL_MIN} minutes and works once.</p>`,
+          html: `<p>Here's your private Fishbowl link. It takes you to your self-assessment and your report.</p><p><a href="${claimUrl}">Open my Fishbowl →</a></p><p style="color:#5a4f45;font-size:13px">This link expires in ${TTL_MIN} minutes and works once.</p>`,
         }),
       }).catch(() => {})
       return ok({ ok: true })

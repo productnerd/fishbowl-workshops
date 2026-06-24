@@ -27,8 +27,8 @@ interface Q {
   optionTendencies?: Record<string, Tendency>
 }
 
-// PLACEHOLDER content — mirrors apps/fishbowl/src/data/questions.ts (to be authored).
-// 10 virtue sliders (1=deficiency vice, 3=virtue, 5=excess vice) + 6 competencies
+// Mirrors apps/fishbowl/src/data/questions.ts (ids must match).
+// 10 virtue sliders (1=deficiency vice, 5=the virtue, 9=excess vice) + 6 competencies
 // (1-5 agree, higher is better) + 3 scenarios + 3 free-text.
 const QUESTIONS: Q[] = [
   { id: 1, type: 'virtue', dimension: 'courage', text: 'Where does {name} sit on facing risk and hard calls?', virtue: { name: 'Courage', deficientPole: 'Avoids all risk', excessivePole: 'Recklessly bold' } },
@@ -290,7 +290,7 @@ Deno.serve(async (req) => {
       ...virtueStats.map((v) => `- ${v.dimension} (${v.name}): mean ${v.mu}/9 -> ${v.tendency} (${v.tendency === 'deficient' ? v.deficientPole : v.tendency === 'excessive' ? v.excessivePole : 'balanced'}), spread ${v.sigma}`),
       '',
       'COMPETENCIES (1-5 agree, higher is better):',
-      ...competencyStats.map((c) => `- ${c.dimension}: avg ${c.average}/5 — "${c.statement}"`),
+      ...competencyStats.map((c) => `- ${c.dimension}: avg ${c.average}/5, "${c.statement}"`),
       '',
       'SCENARIOS (most common choice):',
       ...scenarioStats.map((s) => `- ${s.dimension}: "${s.winner}" (deficient ${s.tally.deficient} / balanced ${s.tally.balanced} / excessive ${s.tally.excessive})`),

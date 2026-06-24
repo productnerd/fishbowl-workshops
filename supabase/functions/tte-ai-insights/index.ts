@@ -31,7 +31,7 @@ const QUESTIONS: Q[] = [
   { id: 7, type: 'rating', text: 'How well does {name} actually listen (vs. waiting for their turn to talk)?' },
   { id: 8, type: 'rating', text: 'How comfortable do you feel telling {name} something difficult or honest?' },
   { id: 9, type: 'mc', text: 'In a disagreement, {name} tends to…', options: ['Shut down and go quiet', 'Get defensive', 'Try to understand the other side', 'Argue to win', 'Over-explain their position', 'Avoid the disagreement entirely'] },
-  { id: 10, type: 'freetext', text: "What's one thing {name} does in conversation that either makes you feel really heard — or really unheard?" },
+  { id: 10, type: 'freetext', text: "What's one thing {name} does in conversation that either makes you feel really heard, or really unheard?" },
   { id: 11, type: 'mc', text: "When you're going through something hard, {name} is the kind of friend who…", options: ['Gives tough love', 'Listens without trying to fix', 'Sends memes to cheer you up', 'Checks in days later to follow up', "Doesn't really notice", 'Shows up physically'] },
   { id: 12, type: 'mc', text: 'The emotion {name} probably struggles to express the most is…', options: ['Anger', 'Sadness', 'Vulnerability', 'Joy/excitement', 'Gratitude', 'Fear'] },
   { id: 13, type: 'rating', text: 'How good is {name} at reading the room / picking up on how people feel?' },
@@ -156,7 +156,7 @@ Deno.serve(async (req) => {
       { key: 'what_they_love', label: 'What They Love About You', questions: '23, 24, 25' },
     ]
 
-    const areaBlock = AREAS.map((a) => `- ${a.key} ("${a.label}") — questions ${a.questions}`).join('\n')
+    const areaBlock = AREAS.map((a) => `- ${a.key} ("${a.label}"): questions ${a.questions}`).join('\n')
 
     const systemPrompt = `You are an insightful analyst for a feedback app called "Through Their Eyes". Anonymous friends have answered 25 questions about a person named ${name}. Your job is to synthesize the results into warm, specific, cross-referenced insights that ${name} will read about themselves.
 
@@ -243,7 +243,7 @@ Return ONLY valid JSON, no surrounding commentary, no code fences. String values
 
 "openingSummary.sections" MUST contain all 8 areas in the order above. "advice" MUST contain all 8 areas in the order above. Every "action" MUST be an array of exactly 2 bullet strings (not a single string). Each bullet MUST be under 14 words and MUST contain at least one **bold** segment. Only include "mc" entries for the question IDs listed as having Other answers. Include every freetext question in "freetext".`
 
-    const userPrompt = `# The 25 Questions\n\n${qBlock}\n\n# Anonymous Responses (n=${responses.length})\n\n${answerBlock}\n\n# Questions with "Other" free-text answers\n\nOnly include these IDs in the "mc" object: ${mcWithOther.length ? mcWithOther.join(', ') : '(none — return "mc": {})'}\n\nAll freetext question IDs to cover: 3, 5, 10, 18, 19, 23, 24, 25\n\nReturn the JSON now.`
+    const userPrompt = `# The 25 Questions\n\n${qBlock}\n\n# Anonymous Responses (n=${responses.length})\n\n${answerBlock}\n\n# Questions with "Other" free-text answers\n\nOnly include these IDs in the "mc" object: ${mcWithOther.length ? mcWithOther.join(', ') : '(none, return "mc": {})'}\n\nAll freetext question IDs to cover: 3, 5, 10, 18, 19, 23, 24, 25\n\nReturn the JSON now.`
 
     // 5. Call Claude
     const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')

@@ -1,22 +1,7 @@
 import { RESPONSIBILITY_TIERS, type ResponsibilityTiers } from '@fishbowl/feedback-core'
+import Rich from './Rich'
 
 type TeamResp = { index: number; label: string; teamTier: number; n: number; note?: string }
-
-function Rich({ text }: { text: string }) {
-  return (
-    <>
-      {text.split(/(\*\*[^*]+\*\*)/g).map((p, i) =>
-        p.startsWith('**') && p.endsWith('**') ? (
-          <strong key={i} className="font-bold">
-            {p.slice(2, -2)}
-          </strong>
-        ) : (
-          <span key={i}>{p}</span>
-        )
-      )}
-    </>
-  )
-}
 
 // Per responsibility, a 3-rung ladder (Exceeds at top). The team's modal tier is
 // highlighted; the subject's own tier is marked when present.

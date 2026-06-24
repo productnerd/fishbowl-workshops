@@ -40,6 +40,3 @@ export const CLUSTER_TONE: Record<string, string> = {
   Action: 'pink',
   People: 'sand-deep',
 }
-
-// roleKey -> chips
-export type BelbinAllocation = Record<string, number>

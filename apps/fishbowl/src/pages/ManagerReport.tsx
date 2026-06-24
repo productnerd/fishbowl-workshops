@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import Card from '../components/Card'
 import Button from '../components/Button'
+import Rich from '../components/Rich'
 
 const TEAM_KEY = 'fishbowl_manager_team'
 
@@ -14,22 +15,6 @@ type Team = {
   complementarity: string[]
   advice: string[]
   closing: string
-}
-
-function Rich({ text }: { text: string }) {
-  return (
-    <>
-      {text.split(/(\*\*[^*]+\*\*)/g).map((p, i) =>
-        p.startsWith('**') && p.endsWith('**') ? (
-          <strong key={i} className="font-bold">
-            {p.slice(2, -2)}
-          </strong>
-        ) : (
-          <span key={i}>{p}</span>
-        )
-      )}
-    </>
-  )
 }
 
 export default function ManagerReport() {

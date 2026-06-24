@@ -171,11 +171,6 @@ const withName = (q: Question, name: string): Question => ({
   sectionDescription: q.sectionDescription.replace(/\{name\}/g, name),
 })
 
-// The full set (used by the self track / back-compat).
-export function getQuestionsForName(name: string): Question[] {
-  return questions.map((q) => withName(q, name))
-}
-
 // Per-respondent colleague survey: every colleague answers CORE (no `pool`);
 // POOLED_PER_VISIT pooled modules are sampled by a fresh seed so the survey stays
 // ~18–22 items while full coverage accrues across responses. The aggregation

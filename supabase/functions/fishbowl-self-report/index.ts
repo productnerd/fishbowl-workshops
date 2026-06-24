@@ -30,7 +30,7 @@ async function verifyOwner(sb: any, bearer: string, slug: string) {
   await sb.from('fishbowl_subject_sessions').update({ last_seen_at: new Date().toISOString() }).eq('id', sess.id)
   const { data: session } = await sb
     .from('fishbowl_sessions')
-    .select('id, slug, response_count, creator_person_id')
+    .select('id, response_count, creator_person_id')
     .eq('slug', slug)
     .maybeSingle()
   if (!session) return { error: 'not found', status: 404 as const }

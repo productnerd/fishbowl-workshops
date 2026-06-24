@@ -1,4 +1,4 @@
-import { aggregateResponses as coreAggregate, topMcAnswers, mcPercentage } from '@fishbowl/feedback-core'
+import { aggregateResponses as coreAggregate, topMcAnswers } from '@fishbowl/feedback-core'
 import { questions } from '../data/questions'
 
 // App-local binding: bind the generic aggregator to THIS app's question set,
@@ -10,4 +10,4 @@ export function aggregateResponses(
   return coreAggregate(responses, questions, creatorName)
 }
 
-export { topMcAnswers, mcPercentage }
+export { topMcAnswers }

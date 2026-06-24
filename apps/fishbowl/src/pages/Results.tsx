@@ -37,22 +37,7 @@ import BelbinReport from '../components/BelbinReport'
 import ViaDeck from '../components/ViaDeck'
 import JohariWindow from '../components/JohariWindow'
 import InfoTip from '../components/InfoTip'
-
-function Rich({ text }: { text: string }) {
-  return (
-    <>
-      {text.split(/(\*\*[^*]+\*\*)/g).map((p, i) =>
-        p.startsWith('**') && p.endsWith('**') ? (
-          <strong key={i} className="font-bold">
-            {p.slice(2, -2)}
-          </strong>
-        ) : (
-          <span key={i}>{p}</span>
-        )
-      )}
-    </>
-  )
-}
+import Rich from '../components/Rich'
 
 function Screen({ children }: { children: ReactNode }) {
   return <div className="mx-auto grid min-h-dvh max-w-lg place-items-center px-5 text-center">{children}</div>
