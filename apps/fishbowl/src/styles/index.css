@@ -44,7 +44,7 @@
    The interference of the two sliding layers reads as fluid, flowing water light
    — far smoother than animating turbulence (which boils on the CPU). The layers
    are inset well past the screen so the diagonal drift never bares an edge. */
-.fishbowl-water { opacity: 0.62; }
+.fishbowl-water { opacity: 0.82; }
 .fishbowl-water-a,
 .fishbowl-water-b {
   position: absolute;
