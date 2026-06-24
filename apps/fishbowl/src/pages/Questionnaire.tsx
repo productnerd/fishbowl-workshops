@@ -171,6 +171,14 @@ export default function Questionnaire() {
         <div className="h-3 overflow-hidden rounded-full border-2 border-ink bg-paper-hi">
           <motion.div className="h-full bg-blue" animate={{ width: `${pct}%` }} transition={{ ease: 'easeOut' }} />
         </div>
+        {i > 0 && (
+          <button
+            onClick={() => go(-1)}
+            className="press mt-3 cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-4 py-1.5 text-sm font-semibold text-ink shadow-chunky-sm"
+          >
+            ← Back
+          </button>
+        )}
       </div>
 
       {/* question */}
@@ -241,26 +249,21 @@ export default function Questionnaire() {
         </div>
       )}
 
-      {/* nav — floats over the background; discrete answers auto-advance so most
-          screens show only Back (Next appears only where there's no auto-advance) */}
-      <div className="sticky bottom-0 -mx-5 flex items-center justify-between gap-3 px-5 pb-5 pt-3">
-        <button
-          onClick={() => go(-1)}
-          disabled={i === 0}
-          className="press cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-5 py-3 font-semibold text-ink shadow-chunky-sm disabled:opacity-40 disabled:pointer-events-none"
-        >
-          ← Back
-        </button>
-        {isLast ? (
-          <Button variant="blue" onClick={submit} disabled={!answered || submitting}>
-            {submitting ? 'Sending…' : 'Submit ✓'}
-          </Button>
-        ) : showNext ? (
-          <Button variant="pink" onClick={() => go(1)} disabled={!answered}>
-            Next →
-          </Button>
-        ) : null}
-      </div>
+      {/* nav — Back lives up in the header; here we only float the forward action
+          (most discrete screens auto-advance and show nothing here) */}
+      {(isLast || showNext) && (
+        <div className="sticky bottom-0 -mx-5 flex justify-end px-5 pb-5 pt-3">
+          {isLast ? (
+            <Button variant="blue" onClick={submit} disabled={!answered || submitting}>
+              {submitting ? 'Sending…' : 'Submit ✓'}
+            </Button>
+          ) : (
+            <Button variant="pink" onClick={() => go(1)} disabled={!answered}>
+              Next →
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

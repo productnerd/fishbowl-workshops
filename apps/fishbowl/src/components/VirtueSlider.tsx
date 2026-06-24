@@ -72,7 +72,7 @@ export default function VirtueSlider({
               key={ci}
               className={`${col.align} ${col.center ? 'rounded-2xl border-2 border-blue/35 bg-blue/10 px-3 py-3' : 'py-3'}`}
             >
-              <ul className="space-y-2">
+              <ul className="space-y-0.5">
                 {(col.traits ?? []).map((t, ti) => (
                   <li key={ti} className="text-xs font-medium leading-tight text-ink-soft">
                     {t}
