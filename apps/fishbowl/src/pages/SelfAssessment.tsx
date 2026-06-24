@@ -368,7 +368,7 @@ export default function SelfAssessment() {
           >
             <p className="serif mb-2 text-base text-ink-soft">How true is this of you?</p>
             <h2 className="display mb-8 text-[clamp(1.8rem,5vw,2.7rem)]">{q.text}</h2>
-            <LikertScale value={answers[q.id] ?? null} onChange={pick} lowLabel="Not me" highLabel="So me" />
+            <LikertScale value={answers[q.id] ?? null} onChange={pick} lowLabel="Not me" highLabel="So me" bipolar />
           </motion.div>
         </AnimatePresence>
       </div>
