@@ -322,7 +322,7 @@ export default function SelfAssessment() {
         {/* start — pinned at the bottom; nudge space reserved so the button never jumps */}
         <div className="flex shrink-0 flex-col items-center gap-2">
           <Button variant="pink" onClick={start} className="!text-xl">
-            Start the {cur.name.toLowerCase()} read →
+            Start →
           </Button>
           <p className="min-h-[1.25rem] text-center text-xs text-ink-soft">
             {cur.id !== 'extended' ? 'Most people learn more from the extended read.' : ''}
