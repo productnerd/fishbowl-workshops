@@ -47,9 +47,9 @@ type SelfDepth = {
 }
 const ALL_FRAMEWORKS = ['sixhats', 'belbin', 'via', 'johari']
 const DEPTHS: SelfDepth[] = [
-  { id: 'quick', name: 'Quick', perTrait: 4, time: 'about 4 min', accuracy: 3, energizers: false, frameworks: [], blurb: 'The essentials. A solid first read of who you are.' },
-  { id: 'standard', name: 'Standard', perTrait: 6, time: 'about 7 min', accuracy: 4, energizers: true, frameworks: ['sixhats', 'via'], blurb: 'More questions, a sharper picture. The sweet spot most people pick.' },
-  { id: 'extended', name: 'Extended', perTrait: 8, time: 'about 10 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read of you.' },
+  { id: 'quick', name: 'Quick', perTrait: 4, time: 'about 4 min', accuracy: 3, energizers: false, frameworks: [], blurb: 'The essentials. A solid first read.' },
+  { id: 'standard', name: 'Standard', perTrait: 6, time: 'about 7 min', accuracy: 4, energizers: true, frameworks: ['sixhats', 'via'], blurb: 'More questions, a sharper read. The sweet spot.' },
+  { id: 'extended', name: 'Extended', perTrait: 8, time: 'about 10 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
 ]
 
 export default function SelfAssessment() {
@@ -237,20 +237,28 @@ export default function SelfAssessment() {
       setPhase('quiz')
     }
     return (
-      <div className="mx-auto grid min-h-dvh w-full max-w-lg place-items-center px-5 py-10">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mx-auto flex min-h-dvh w-full max-w-lg flex-col px-5 py-8"
+      >
+        {/* header — pinned at the top, never moves */}
+        <div className="shrink-0">
           <p className="kicker text-pink-deep">before we start</p>
           <h1 className="display mt-2 text-4xl">How deep do you want to go?</h1>
           <p className="mt-3 text-ink-soft">
             The longer read asks more, so it sees you more clearly. You can stop early at any point.
           </p>
+        </div>
 
-          <Card tone="paper" className="mt-6 p-6">
+        {/* card — centered in the middle; its inner heights are reserved so sliding never resizes it */}
+        <div className="flex flex-1 items-center py-6">
+          <Card tone="paper" className="w-full p-6">
             <div className="flex items-baseline justify-between">
               <span className="display text-3xl">{cur.name}</span>
               <span className="kicker text-ink-soft">{cur.time}</span>
             </div>
-            <p className="mt-1 text-sm text-ink-soft">{cur.blurb}</p>
+            <p className="mt-1 min-h-[2.75rem] text-sm text-ink-soft">{cur.blurb}</p>
 
             {/* slider */}
             <input
@@ -264,7 +272,7 @@ export default function SelfAssessment() {
                 setDepthIdx(Number(e.target.value))
               }}
               aria-label="How deep to go"
-              className="mt-5 w-full cursor-pointer accent-pink"
+              className="mt-4 w-full cursor-pointer accent-pink"
             />
             <div className="mt-1 flex justify-between text-xs font-bold">
               {DEPTHS.map((d, k) => (
@@ -299,8 +307,8 @@ export default function SelfAssessment() {
               </div>
             </div>
 
-            {/* what's included */}
-            <ul className="mt-5 flex flex-col gap-1.5">
+            {/* what's included — fixed height for up to 4 rows so the card never grows */}
+            <ul className="mt-5 flex min-h-[7rem] flex-col gap-1.5">
               {included.map((x) => (
                 <li key={x} className="flex items-center gap-2 text-sm text-ink">
                   <span className="text-blue-deep">✓</span>
@@ -309,17 +317,18 @@ export default function SelfAssessment() {
               ))}
             </ul>
           </Card>
+        </div>
 
-          <div className="mt-7 flex flex-col items-center gap-2">
-            <Button variant="pink" onClick={start} className="!text-xl">
-              Start the {cur.name.toLowerCase()} read →
-            </Button>
-            {cur.id !== 'extended' && (
-              <p className="text-center text-xs text-ink-soft">Most people learn more from the extended read.</p>
-            )}
-          </div>
-        </motion.div>
-      </div>
+        {/* start — pinned at the bottom; nudge space reserved so the button never jumps */}
+        <div className="flex shrink-0 flex-col items-center gap-2">
+          <Button variant="pink" onClick={start} className="!text-xl">
+            Start the {cur.name.toLowerCase()} read →
+          </Button>
+          <p className="min-h-[1.25rem] text-center text-xs text-ink-soft">
+            {cur.id !== 'extended' ? 'Most people learn more from the extended read.' : ''}
+          </p>
+        </div>
+      </motion.div>
     )
   }
 
