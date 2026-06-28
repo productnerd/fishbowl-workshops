@@ -251,11 +251,11 @@ export default function SelfAssessment() {
         {/* card — centered in the middle; its inner heights are reserved so sliding never resizes it */}
         <div className="flex flex-1 items-center py-6">
           <Card tone="paper" className="w-full p-6">
-            <div className="flex items-baseline justify-between">
+            {/* current selection — the slider's label, centered right above it */}
+            <div className="text-center">
               <span className="display text-3xl">{cur.name}</span>
-              <span className="kicker text-ink-soft">{cur.time}</span>
+              <p className="kicker mt-1 text-ink-soft">{cur.time}</p>
             </div>
-            <p className="mt-1 min-h-[2.75rem] text-sm text-ink-soft">{cur.blurb}</p>
 
             {/* slider */}
             <input
@@ -316,7 +316,7 @@ export default function SelfAssessment() {
         </div>
 
         {/* start — pinned at the bottom; nudge space reserved so the button never jumps */}
-        <div className="flex shrink-0 flex-col items-center gap-2">
+        <div className="flex shrink-0 flex-col items-center gap-5">
           <Button variant="pink" onClick={start} className="!text-xl">
             Start →
           </Button>
