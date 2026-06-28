@@ -140,9 +140,9 @@ export function SideCharacter({ type, name }: { type: string; name: string }) {
       aria-hidden
       className="pointer-events-none fixed bottom-0 z-20 hidden h-[92vh] w-auto object-contain object-bottom xl:block"
       style={{
-        // The container is max-w-xl (36rem) centred, so its right edge is at 50% + 18rem.
-        left: 'calc(50% + 18rem)',
-        maxWidth: 'calc(50vw - 18rem)',
+        // The container is max-w-2xl (42rem) centred, so its right edge is at 50% + 21rem.
+        left: 'calc(50% + 21rem)',
+        maxWidth: 'calc(50vw - 21rem)',
         filter: 'drop-shadow(0 16px 26px rgba(20,20,20,0.45))',
       }}
     />

@@ -560,7 +560,11 @@ export default function Results() {
     })
   }
 
-  const selfVia = hasSelf ? ((sp.via as string[]) ?? null) : null
+  // Treat an empty array as "not done" (a depth that skipped this framework saves []),
+  // so the card shows the graceful team-only view instead of an empty self overlay.
+  const selfArr = (v: unknown): string[] | null =>
+    hasSelf && Array.isArray(v) && v.length > 0 ? (v as string[]) : null
+  const selfVia = selfArr(sp.via)
   if (insights.via?.length || (selfVia && selfVia.length > 0)) {
     const team = (insights.via ?? []).map((v) => {
       const s = VIA_STRENGTHS.find((x) => x.id === v.id)
@@ -581,7 +585,7 @@ export default function Results() {
     })
   }
 
-  const selfJohari = hasSelf ? ((sp.johari as string[]) ?? null) : null
+  const selfJohari = selfArr(sp.johari)
   if ((insights.johari && insights.johari.counts.length) || (selfJohari && selfJohari.length > 0)) {
     fwCards.push({
       tone: 'paper',
@@ -601,7 +605,7 @@ export default function Results() {
   // Watch-outs (the mirror of strengths). Kindness guard: a word only surfaces in
   // the team views when at least two colleagues named it, so one off-day or one
   // harsh read doesn't define anyone.
-  const selfNohari = hasSelf ? ((sp.nohari as string[]) ?? null) : null
+  const selfNohari = selfArr(sp.nohari)
   const teamNohari = (insights.nohari?.counts ?? []).filter((c) => c.count >= 2)
   const hasNohari = teamNohari.length > 0 || (selfNohari !== null && selfNohari.length > 0)
   if (hasNohari) {
@@ -818,7 +822,7 @@ export default function Results() {
   const go = (d: number) => setIdx((i) => Math.min(Math.max(i + d, 0), total - 1))
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-5 py-6">
+    <div className="mx-auto flex min-h-dvh max-w-2xl flex-col px-5 py-6">
       {showEntryModal && <EntryModal onTakeNow={goSelf} onLater={dismissModal} />}
       {/* dots */}
       <div className="mb-4 flex gap-1.5">
@@ -841,7 +845,7 @@ export default function Results() {
             transition={{ duration: 0.32, ease: [0.2, 0.8, 0.2, 1] as const }}
             className="w-full"
           >
-            <Card tone={cards[idx].tone} className="max-h-[78vh] overflow-y-auto p-7 sm:p-9">
+            <Card tone={cards[idx].tone} className="max-h-[88vh] overflow-y-auto p-7 sm:p-9">
               {cards[idx].node}
             </Card>
           </motion.div>

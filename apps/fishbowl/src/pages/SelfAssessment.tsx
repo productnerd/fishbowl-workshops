@@ -54,7 +54,7 @@ type SelfDepth = {
 const ALL_FRAMEWORKS = ['sixhats', 'belbin', 'via', 'johari', 'nohari']
 const DEPTHS: SelfDepth[] = [
   { id: 'quick', name: 'Quick', perTrait: 4, time: '~4 min', accuracy: 3, energizers: false, frameworks: [], blurb: 'The essentials. A solid first read.' },
-  { id: 'standard', name: 'Standard', perTrait: 6, time: '~7 min', accuracy: 4, energizers: true, frameworks: ['sixhats', 'via'], blurb: 'More questions, a sharper read. The sweet spot.' },
+  { id: 'standard', name: 'Standard', perTrait: 6, time: '~8 min', accuracy: 4, energizers: true, frameworks: ['sixhats', 'via', 'johari', 'nohari'], blurb: 'More questions, a sharper read. The sweet spot.' },
   { id: 'extended', name: 'Extended', perTrait: 8, time: '~10 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
 ]
 
