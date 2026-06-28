@@ -414,7 +414,7 @@ export default function Results() {
   const fwCards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode }[] = []
 
   if (insights.hats?.some((h) => h.n > 0)) {
-    const team = insights.hats.map((h) => ({ key: h.key, label: HATS.find((x) => x.key === h.key)?.name ?? h.key, mu: h.mu, n: h.n }))
+    const team = insights.hats.map((h) => ({ key: h.key, label: HATS.find((x) => x.key === h.key)?.mode ?? h.key, mu: h.mu, n: h.n }))
     fwCards.push({
       tone: 'paper',
       node: (
