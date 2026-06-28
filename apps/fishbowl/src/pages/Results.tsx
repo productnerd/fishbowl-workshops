@@ -11,6 +11,7 @@ import {
   BELBIN_ROLES,
   VIA_STRENGTHS,
   CANDOR_ITEMS,
+  ENERGIZER_ACTIVITIES,
   type Session,
   type BigFiveScores,
   type EnergizerTags,
@@ -19,7 +20,7 @@ import {
   type VirtueScores,
 } from '@fishbowl/feedback-core'
 import { getSession } from '../lib/data'
-import { getSelfReport, type SelfData } from '../lib/self'
+import { getSelfReport, getSelfInsight, type SelfData, type SelfInsight } from '../lib/self'
 import { useAiInsights } from '../lib/aiInsights'
 import { topPercent } from '../lib/percentile'
 import Card from '../components/Card'
@@ -54,6 +55,8 @@ export default function Results() {
   const [hasSelf, setHasSelf] = useState(false)
   const [selfLoaded, setSelfLoaded] = useState(false)
   const [modalDismissed, setModalDismissed] = useState(false)
+  const [selfInsight, setSelfInsight] = useState<SelfInsight | null>(null)
+  const [selfInsightLoading, setSelfInsightLoading] = useState(false)
 
   useEffect(() => {
     if (!slug) return
@@ -90,6 +93,22 @@ export default function Results() {
       cancelled = true
     }
   }, [insights])
+
+  // The private self-vs-team narrative: only once the subject has self-assessed AND a
+  // team report exists. Bearer-gated; generated/cached server-side.
+  useEffect(() => {
+    if (!slug || !hasSelf || !insights) return
+    let cancelled = false
+    setSelfInsightLoading(true)
+    getSelfInsight(slug).then((r) => {
+      if (cancelled) return
+      setSelfInsight(r)
+      setSelfInsightLoading(false)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [slug, hasSelf, insights])
 
   if (loading) {
     return (
@@ -359,8 +378,13 @@ export default function Results() {
 
   // Energizers overlay: team layer shows at >=5; the subject's own markers overlay
   // once they've self-assessed (else a nudge to add their read).
-  if (insights.energizers && insights.energizers.some((e) => e.n > 0)) {
-    const selfEnergizers = (self?.self_payload?.energizers as EnergizerTags | undefined) ?? null
+  const selfEnergizers = hasSelf ? ((self?.self_payload?.energizers as EnergizerTags | undefined) ?? null) : null
+  const teamEnerg = insights.energizers ?? []
+  const teamEnergHasData = teamEnerg.some((e) => e.n > 0)
+  if (teamEnergHasData || (selfEnergizers && Object.keys(selfEnergizers).length > 0)) {
+    const energyTeam = teamEnergHasData
+      ? teamEnerg
+      : ENERGIZER_ACTIVITIES.filter((a) => selfEnergizers && typeof selfEnergizers[a.id] === 'number').map((a) => ({ id: a.id, label: a.label, teamMean: 0, n: 0 }))
     const energyCard = {
       tone: 'paper' as const,
       node: (
@@ -371,10 +395,11 @@ export default function Results() {
           </p>
           <h2 className="display mb-1 text-3xl">What lifts you, what drains you</h2>
           <p className="mb-5 text-sm text-ink-soft">
-            How your {session.response_count} colleagues read your energy
-            {hasSelf ? ', next to your own read' : ''}.
+            {teamEnergHasData
+              ? `How your ${session.response_count} colleagues read your energy${hasSelf ? ', next to your own read' : ''}.`
+              : 'Your own read on what lifts and drains you.'}
           </p>
-          <EnergyOverlay team={insights.energizers} self={hasSelf ? selfEnergizers : null} />
+          <EnergyOverlay team={energyTeam} self={selfEnergizers} />
           {!hasSelf && (
             <button
               onClick={goSelf}
@@ -390,8 +415,13 @@ export default function Results() {
   }
 
   // Responsibilities ladder: team tiers always (>=5); self tiers overlay once self-assessed.
-  if (insights.responsibilities && insights.responsibilities.some((r) => r.n > 0)) {
-    const selfTiers = (self?.self_payload?.responsibility_tiers as ResponsibilityTiers | undefined) ?? null
+  const selfTiers = hasSelf ? ((self?.self_payload?.responsibility_tiers as ResponsibilityTiers | undefined) ?? null) : null
+  const teamResp = insights.responsibilities ?? []
+  const teamRespHasData = teamResp.some((r) => r.n > 0)
+  const respRows = teamRespHasData
+    ? teamResp
+    : (self?.responsibilities ?? []).map((label, index) => ({ index, label, teamTier: 2, n: 0 }))
+  if (teamRespHasData || (selfTiers && Object.keys(selfTiers).length > 0 && respRows.length > 0)) {
     const respCard = {
       tone: 'paper' as const,
       node: (
@@ -402,9 +432,11 @@ export default function Results() {
           </p>
           <h2 className="display mb-1 text-3xl">How you deliver</h2>
           <p className="mb-5 text-sm text-ink-soft">
-            Where your team puts you on what you own{hasSelf ? ', next to your own read' : ''}.
+            {teamRespHasData
+              ? `Where your team puts you on what you own${hasSelf ? ', next to your own read' : ''}.`
+              : 'Your own read on what you own.'}
           </p>
-          <ResponsibilitiesLadder team={insights.responsibilities} self={hasSelf ? selfTiers : null} />
+          <ResponsibilitiesLadder team={respRows} self={selfTiers} />
           {!hasSelf && (
             <button
               onClick={goSelf}
@@ -543,6 +575,39 @@ export default function Results() {
   }
 
   for (const c of fwCards) cards.splice(cards.length - 1, 0, c)
+
+  // Private "you vs them" narrative (bearer-gated). Only when self-assessed.
+  if (hasSelf && (selfInsight || selfInsightLoading)) {
+    cards.splice(cards.length - 1, 0, {
+      tone: 'sand',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">
+            you vs them
+            <InfoTip text="A private read, just for you, comparing your self-assessment against how your team sees you. Only you can see this." />
+          </p>
+          <h2 className="display mb-4 text-3xl">Your read, meet theirs</h2>
+          {selfInsight ? (
+            <>
+              <p className="serif mb-4 text-xl leading-snug text-ink">{selfInsight.headline}</p>
+              <ul className="flex flex-col gap-3">
+                {selfInsight.insights.map((t, i) => (
+                  <li key={i} className="flex gap-2 leading-relaxed text-ink">
+                    <span className="text-pink-deep">•</span>
+                    <span>
+                      <Rich text={t} />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p className="text-ink-soft">Reading the gaps between how you see yourself and how your team does…</p>
+          )}
+        </div>
+      ),
+    })
+  }
 
   const seenNudge = Boolean(slug && localStorage.getItem(`fishbowl_self_nudge_seen_${slug}`))
   const showEntryModal = selfLoaded && !hasSelf && !modalDismissed && !seenNudge

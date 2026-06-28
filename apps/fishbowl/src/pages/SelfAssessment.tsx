@@ -54,12 +54,12 @@ const DEPTHS: SelfDepth[] = [
   { id: 'extended', name: 'Extended', perTrait: 8, time: '~10 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
 ]
 
+type Phase = 'checking' | 'email' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks'
+
 export default function SelfAssessment() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
-  const [phase, setPhase] = useState<
-    'checking' | 'email' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks'
-  >('checking')
+  const [phase, setPhase] = useState<Phase>('checking')
 
   // Verify the bearer actually OWNS this slug before letting them self-assess. A
   // bearer for a different session can't save here, so we'd otherwise let them
@@ -72,7 +72,31 @@ export default function SelfAssessment() {
     }
     let cancelled = false
     getSelfReport(slug).then((r) => {
-      if (!cancelled) setPhase(r.authed ? 'depth' : 'email')
+      if (cancelled) return
+      if (!r.authed) {
+        setPhase('email')
+        return
+      }
+      const s = r.self
+      const sp = (s?.self_payload ?? {}) as Record<string, any>
+      // Resume an in-progress (not yet completed) self-assessment where they left off.
+      if (s && s.big_five && s.mbti && !s.completed && typeof sp.progress === 'string') {
+        setAnswers(s.ocean_answers ?? {})
+        setBigFive(s.big_five)
+        setMbti(s.mbti)
+        setDepth((sp.depthConfig as SelfDepth) ?? DEPTHS[1])
+        setSelfVirtues((sp.virtues as VirtueScores) ?? {})
+        setEnergizerTags((sp.energizers as EnergizerTags) ?? {})
+        setRespTiers((sp.responsibility_tiers as ResponsibilityTiers) ?? {})
+        setResponsibilities(s.responsibilities?.length ? s.responsibilities : [''])
+        setSelfHats((sp.hats as HatScores) ?? {})
+        setSelfBelbin((sp.belbin as Record<string, number>) ?? {})
+        setSelfVia((sp.via as string[]) ?? [])
+        setSelfJohari((sp.johari as string[]) ?? [])
+        setPhase(sp.progress as Phase)
+      } else {
+        setPhase('depth')
+      }
     })
     return () => {
       cancelled = true
@@ -137,29 +161,45 @@ export default function SelfAssessment() {
     }, 320)
   }
 
+  const buildPayload = (completed: boolean, progress: string, d: SelfDepth = depth) => ({
+    ocean_answers: answers,
+    big_five: bigFive!,
+    mbti: mbti!,
+    responsibilities: responsibilities.map((r) => r.trim()).filter(Boolean).slice(0, MAX_RESPONSIBILITIES),
+    self_payload: {
+      virtues: selfVirtues,
+      energizers: energizerTags,
+      responsibility_tiers: respTiers,
+      hats: selfHats,
+      belbin: selfBelbin,
+      via: selfVia,
+      johari: selfJohari,
+      depthConfig: d,
+      progress,
+    },
+    completed,
+  })
+
+  // Progressive save: persist partial progress (completed=false) at each step so a
+  // dropped session resumes where it left off. Fire-and-forget; never blocks the UI.
+  const persist = (progress: string, d: SelfDepth = depth) => {
+    if (!slug || !bigFive || !mbti) return
+    void saveSelf(slug, buildPayload(false, progress, d))
+  }
+
+  // Save the personality the moment it's revealed, so even an early drop-off keeps it.
+  useEffect(() => {
+    if (phase === 'reveal' && bigFive && mbti) persist('reveal')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase])
+
   const save = async () => {
     if (!slug || !bigFive || !mbti) return
     setSaving(true)
     setSaveError(false)
-    const resp = responsibilities.map((r) => r.trim()).filter(Boolean).slice(0, MAX_RESPONSIBILITIES)
-    const res = await saveSelf(slug, {
-      ocean_answers: answers,
-      big_five: bigFive,
-      mbti,
-      responsibilities: resp,
-      self_payload: {
-        virtues: selfVirtues,
-        energizers: energizerTags,
-        responsibility_tiers: respTiers,
-        hats: selfHats,
-        belbin: selfBelbin,
-        via: selfVia,
-        johari: selfJohari,
-      },
-      completed: true,
-    })
-    // Only move on if it actually saved — otherwise the report would load with no
-    // self and re-nag them. On success, suppress the "take it first" modal for good.
+    const res = await saveSelf(slug, buildPayload(true, 'done'))
+    // Only move on if it actually saved, else the report would load with no self and
+    // re-nag them. On success, suppress the "take it first" modal for good.
     if (!res.ok) {
       setSaving(false)
       setSaveError(true)
@@ -342,7 +382,14 @@ export default function SelfAssessment() {
             <PersonalityCard mbti={mbti} scores={bigFive} />
           </Card>
           <div className="mt-7 flex justify-center">
-            <Button variant="pink" onClick={() => setPhase('virtues')} className="!text-xl">
+            <Button
+              variant="pink"
+              onClick={() => {
+                persist('virtues')
+                setPhase('virtues')
+              }}
+              className="!text-xl"
+            >
               Next: the ten virtues →
             </Button>
           </div>
@@ -366,7 +413,14 @@ export default function SelfAssessment() {
             <VirtueTagger value={selfVirtues} onChange={setSelfVirtues} />
           </div>
           <div className="mt-7 flex justify-center">
-            <Button variant="pink" onClick={() => setPhase(next)} className="!text-xl">
+            <Button
+              variant="pink"
+              onClick={() => {
+                persist(next)
+                setPhase(next)
+              }}
+              className="!text-xl"
+            >
               {nextLabel}
             </Button>
           </div>
@@ -388,7 +442,14 @@ export default function SelfAssessment() {
             <EnergizerTagger value={energizerTags} onChange={setEnergizerTags} />
           </div>
           <div className="mt-7 flex justify-center">
-            <Button variant="pink" onClick={() => setPhase('responsibilities')} className="!text-xl">
+            <Button
+              variant="pink"
+              onClick={() => {
+                persist('responsibilities')
+                setPhase('responsibilities')
+              }}
+              className="!text-xl"
+            >
               Next: your responsibilities →
             </Button>
           </div>
@@ -455,7 +516,15 @@ export default function SelfAssessment() {
           <div className="mt-7 flex flex-col items-center gap-3">
             {depth.frameworks.length > 0 ? (
               <>
-                <Button variant="pink" onClick={() => setPhase('frameworks')} disabled={saving} className="!text-xl">
+                <Button
+                  variant="pink"
+                  onClick={() => {
+                    persist('frameworks')
+                    setPhase('frameworks')
+                  }}
+                  disabled={saving}
+                  className="!text-xl"
+                >
                   Next: a deeper read →
                 </Button>
                 <button onClick={save} disabled={saving} className="cursor-pointer text-sm font-semibold text-ink-soft hover:underline">
@@ -469,7 +538,9 @@ export default function SelfAssessment() {
                 </Button>
                 <button
                   onClick={() => {
-                    setDepth({ ...depth, frameworks: ALL_FRAMEWORKS })
+                    const d = { ...depth, frameworks: ALL_FRAMEWORKS }
+                    setDepth(d)
+                    persist('frameworks', d)
                     setPhase('frameworks')
                   }}
                   className="cursor-pointer text-sm font-semibold text-blue-deep underline-offset-2 hover:underline"
@@ -499,7 +570,14 @@ export default function SelfAssessment() {
     }
     const fw = steps[Math.min(fwIdx, steps.length - 1)]
     const last = fwIdx === steps.length - 1
-    const next = () => (last ? save() : setFwIdx((i) => i + 1))
+    const next = () => {
+      if (last) {
+        save()
+        return
+      }
+      persist('frameworks')
+      setFwIdx((i) => i + 1)
+    }
     return (
       <div className="mx-auto min-h-dvh w-full max-w-lg px-5 py-10">
         <motion.div key={fw} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>

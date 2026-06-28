@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
 
     const { data: self } = await sb
       .from('fishbowl_self_assessments')
-      .select('big_five, mbti, completed, responsibilities, self_payload')
+      .select('ocean_answers, big_five, mbti, completed, responsibilities, self_payload')
       .eq('session_id', session.id)
       .maybeSingle()
 

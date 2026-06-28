@@ -3,6 +3,7 @@ import { supabase } from './supabase'
 import { getSubjectAuth } from './subjectAuth'
 
 export interface SelfData {
+  ocean_answers: Record<string, number>
   big_five: BigFiveScores | null
   mbti: MbtiType | null
   completed: boolean
@@ -36,6 +37,25 @@ export async function getSelfReport(
   const { data, error } = await supabase.functions.invoke('fishbowl-self-report', { body: { bearer: auth.bearer, slug } })
   if (error || !data || data.error) return { authed: false, hasSelf: false, self: null }
   return { authed: true, hasSelf: Boolean(data.hasSelf), self: (data.self as SelfData) ?? null }
+}
+
+export interface SelfInsight {
+  headline: string
+  insights: string[]
+  n: number
+}
+
+// The private "you vs your team" narrative. Bearer-gated and generated server-side;
+// returns null until a team report exists. Cached on the self row, regenerated when
+// the team report grows (or force=true).
+export async function getSelfInsight(slug: string, force = false): Promise<SelfInsight | null> {
+  const auth = getSubjectAuth()
+  if (!auth) return null
+  const { data, error } = await supabase.functions.invoke('fishbowl-self-insight', {
+    body: { bearer: auth.bearer, slug, force },
+  })
+  if (error || !data || data.error) return null
+  return (data.insight as SelfInsight) ?? null
 }
 
 export async function saveSelf(

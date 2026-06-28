@@ -1,5 +1,5 @@
-import { useState } from 'react'
 import { PERSONALITY_AXES, type BigFiveScores, type MbtiType } from '@fishbowl/feedback-core'
+import InfoDot from './InfoDot'
 
 const ALIGN: Record<string, string> = {
   hero: 'hero energy',
@@ -22,30 +22,15 @@ function Badge({ n, dom }: { n: number; dom: boolean }) {
 
 // A small ⓘ that explains what each of the two poles means. Hover (desktop) or tap.
 function PoleInfo({ left, leftInfo, right, rightInfo }: { left: string; leftInfo: string; right: string; rightInfo: string }) {
-  const [open, setOpen] = useState(false)
   return (
-    <span className="relative inline-block align-middle">
-      <button
-        type="button"
-        aria-label={`What ${left} and ${right} mean`}
-        onClick={() => setOpen((o) => !o)}
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
-        className="ml-1.5 inline-grid h-4 w-4 cursor-help place-items-center rounded-full border border-current align-middle text-[10px] font-bold leading-none text-ink-soft opacity-70 hover:opacity-100"
-      >
-        i
-      </button>
-      {open && (
-        <span className="absolute bottom-full left-1/2 z-30 mb-2 w-64 -translate-x-1/2 rounded-xl border-2 border-ink bg-paper-hi px-3 py-2.5 text-left text-xs font-medium normal-case leading-snug tracking-normal text-ink shadow-chunky-sm">
-          <span className="block">
-            <strong className="font-bold">{left}:</strong> {leftInfo}
-          </span>
-          <span className="mt-1.5 block">
-            <strong className="font-bold">{right}:</strong> {rightInfo}
-          </span>
-        </span>
-      )}
-    </span>
+    <InfoDot label={`What ${left} and ${right} mean`}>
+      <span className="block">
+        <strong className="font-bold">{left}:</strong> {leftInfo}
+      </span>
+      <span className="mt-1.5 block">
+        <strong className="font-bold">{right}:</strong> {rightInfo}
+      </span>
+    </InfoDot>
   )
 }
 

@@ -17,7 +17,6 @@ export const JOHARI_ADJECTIVES: string[] = [
   'confident',
   'dependable',
   'dignified',
-  'empathetic',
   'energetic',
   'extroverted',
   'friendly',
