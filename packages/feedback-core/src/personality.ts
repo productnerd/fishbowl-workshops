@@ -207,13 +207,60 @@ export interface PersonalityAxis {
   description: string
   left: string
   right: string
+  leftInfo: string // what the left pole means
+  rightInfo: string // what the right pole means
   leftPct: (s: BigFiveScores) => number
 }
 
 export const PERSONALITY_AXES: PersonalityAxis[] = [
-  { key: 'mind', title: 'Mind', description: 'How you engage with the world around you.', left: 'Extraverted', right: 'Introverted', leftPct: (s) => s.extraversion },
-  { key: 'energy', title: 'Energy', description: 'Where you point your attention and mental energy.', left: 'Intuitive', right: 'Observant', leftPct: (s) => s.openness },
-  { key: 'nature', title: 'Nature', description: 'How you weigh decisions and handle feelings.', left: 'Thinking', right: 'Feeling', leftPct: (s) => 100 - s.agreeableness },
-  { key: 'tactics', title: 'Tactics', description: 'How you approach work, planning and structure.', left: 'Judging', right: 'Prospecting', leftPct: (s) => s.conscientiousness },
-  { key: 'identity', title: 'Identity', description: 'How sure you feel about yourself and your choices.', left: 'Assertive', right: 'Turbulent', leftPct: (s) => s.emotionalStability },
+  {
+    key: 'mind',
+    title: 'Mind',
+    description: 'How you engage with the world around you.',
+    left: 'Extraverted',
+    right: 'Introverted',
+    leftInfo: 'Energized by people and the buzz of the outside world. You think out loud and recharge in company.',
+    rightInfo: 'Recharged by quiet, solo time. You go deep over wide and tend to think before you speak.',
+    leftPct: (s) => s.extraversion,
+  },
+  {
+    key: 'energy',
+    title: 'Energy',
+    description: 'Where you point your attention and mental energy.',
+    left: 'Intuitive',
+    right: 'Observant',
+    leftInfo: 'Tuned to ideas, patterns and what could be. You read between the lines and chase possibilities.',
+    rightInfo: 'Grounded in what is real and concrete. You trust facts, experience and what works right now.',
+    leftPct: (s) => s.openness,
+  },
+  {
+    key: 'nature',
+    title: 'Nature',
+    description: 'How you weigh decisions and handle feelings.',
+    left: 'Thinking',
+    right: 'Feeling',
+    leftInfo: 'You lead with logic and fairness, keeping decisions consistent even when it stings.',
+    rightInfo: 'You lead with empathy and values, weighing how a choice lands on the people involved.',
+    leftPct: (s) => 100 - s.agreeableness,
+  },
+  {
+    key: 'tactics',
+    title: 'Tactics',
+    description: 'How you approach work, planning and structure.',
+    left: 'Judging',
+    right: 'Prospecting',
+    leftInfo: 'You like plans, structure and closure. You decide early and stick to the schedule.',
+    rightInfo: 'You stay flexible and spontaneous, keeping options open and improvising as you go.',
+    leftPct: (s) => s.conscientiousness,
+  },
+  {
+    key: 'identity',
+    title: 'Identity',
+    description: 'How sure you feel about yourself and your choices.',
+    left: 'Assertive',
+    right: 'Turbulent',
+    leftInfo: 'Calm, steady and self-assured. You shrug off stress and rarely sweat the small stuff.',
+    rightInfo: 'Sensitive and self-aware, always pushing to improve. You feel stress more and care how things go.',
+    leftPct: (s) => s.emotionalStability,
+  },
 ]

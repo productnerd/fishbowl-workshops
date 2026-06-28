@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { PERSONALITY_AXES, type BigFiveScores, type MbtiType } from '@fishbowl/feedback-core'
 
 const ALIGN: Record<string, string> = {
@@ -19,16 +20,48 @@ function Badge({ n, dom }: { n: number; dom: boolean }) {
   )
 }
 
+// A small ⓘ that explains what each of the two poles means. Hover (desktop) or tap.
+function PoleInfo({ left, leftInfo, right, rightInfo }: { left: string; leftInfo: string; right: string; rightInfo: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <span className="relative inline-block align-middle">
+      <button
+        type="button"
+        aria-label={`What ${left} and ${right} mean`}
+        onClick={() => setOpen((o) => !o)}
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        className="ml-1.5 inline-grid h-4 w-4 cursor-help place-items-center rounded-full border border-current align-middle text-[10px] font-bold leading-none text-ink-soft opacity-70 hover:opacity-100"
+      >
+        i
+      </button>
+      {open && (
+        <span className="absolute bottom-full left-1/2 z-30 mb-2 w-64 -translate-x-1/2 rounded-xl border-2 border-ink bg-paper-hi px-3 py-2.5 text-left text-xs font-medium normal-case leading-snug tracking-normal text-ink shadow-chunky-sm">
+          <span className="block">
+            <strong className="font-bold">{left}:</strong> {leftInfo}
+          </span>
+          <span className="mt-1.5 block">
+            <strong className="font-bold">{right}:</strong> {rightInfo}
+          </span>
+        </span>
+      )}
+    </span>
+  )
+}
+
 // One bipolar dimension bar (16Personalities-style). Fills from the dominant pole,
 // whose name sits on the filled side; both pole names appear above, with a marker
-// on the side you lean to.
-function AxisRow({ title, description, left, right, leftPct }: { title: string; description: string; left: string; right: string; leftPct: number }) {
+// on the side you lean to. The ⓘ explains both poles on hover/tap.
+function AxisRow({ title, description, left, right, leftInfo, rightInfo, leftPct }: { title: string; description: string; left: string; right: string; leftInfo: string; rightInfo: string; leftPct: number }) {
   const lp = Math.round(leftPct)
   const rp = 100 - lp
   const leftDom = lp >= rp
   return (
     <div>
-      <p className="kicker text-center text-ink">{title}</p>
+      <p className="kicker flex items-center justify-center text-ink">
+        {title}
+        <PoleInfo left={left} leftInfo={leftInfo} right={right} rightInfo={rightInfo} />
+      </p>
       <p className="mx-auto mb-2 max-w-xs text-center text-xs leading-snug text-ink-soft">{description}</p>
       <div className="mb-1 flex items-end justify-between text-[12px] font-bold">
         <span className={leftDom ? 'text-pink-deep' : 'text-ink-soft'}>
@@ -75,7 +108,16 @@ export default function PersonalityCard({ mbti, scores }: { mbti: MbtiType; scor
       </div>
       <div className="mt-7 flex flex-col gap-6">
         {PERSONALITY_AXES.map((ax) => (
-          <AxisRow key={ax.key} title={ax.title} description={ax.description} left={ax.left} right={ax.right} leftPct={ax.leftPct(scores)} />
+          <AxisRow
+            key={ax.key}
+            title={ax.title}
+            description={ax.description}
+            left={ax.left}
+            right={ax.right}
+            leftInfo={ax.leftInfo}
+            rightInfo={ax.rightInfo}
+            leftPct={ax.leftPct(scores)}
+          />
         ))}
       </div>
     </div>
