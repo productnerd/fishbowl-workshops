@@ -23,7 +23,7 @@ import {
 } from '@fishbowl/feedback-core'
 import { requestMagicLink, saveSelf, getSelfReport } from '../lib/self'
 import { getSubjectAuth } from '../lib/subjectAuth'
-import { playTick } from '../lib/sound'
+import { playTick, playQuizTick } from '../lib/sound'
 import LikertScale from '../components/LikertScale'
 import Button from '../components/Button'
 import Card from '../components/Card'
@@ -145,7 +145,7 @@ export default function SelfAssessment() {
   const pct = ((i + 1) / items.length) * 100
 
   const pick = (v: number) => {
-    playTick()
+    playQuizTick()
     const isLast = i === items.length - 1
     const next = { ...answers, [q.id]: v }
     setAnswers(next)

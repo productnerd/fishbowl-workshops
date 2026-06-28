@@ -14,7 +14,7 @@ import {
   JOHARI_MAX,
 } from '@fishbowl/feedback-core'
 import { getSession, submitResponse } from '../lib/data'
-import { playTick } from '../lib/sound'
+import { playQuizTick } from '../lib/sound'
 import { getColleagueSurvey } from '../data/questions'
 import VirtueSlider from '../components/VirtueSlider'
 import LikertScale from '../components/LikertScale'
@@ -155,7 +155,7 @@ export default function Questionnaire() {
   const set = (v: string | number) => setAnswers((prev) => ({ ...prev, [q.id]: v }))
   // Picking a discrete option auto-advances after a beat; free-text uses Next.
   const handleSelect = (v: string | number) => {
-    playTick()
+    playQuizTick()
     set(v)
     if (q.type === 'freetext' || isLast) return
     // If a live nudge will show, don't auto-advance — let them read it, then tap Next.
