@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { PERSONALITY_AXES, type BigFiveScores, type MbtiType } from '@fishbowl/feedback-core'
 import InfoDot from './InfoDot'
 
@@ -73,12 +74,53 @@ function AxisRow({ title, description, left, right, leftInfo, rightInfo, leftPct
   )
 }
 
-// The full self-read card: archetype header + the five dimension bars. `scores`
-// drives the bars; `mbti` provides the archetype. No avatar image by design.
+// Hero banner: the movie background art with the Disney character cut-out standing in
+// front (game character-select look). Only shows once the art files exist; the probe
+// keeps the card fully text-only until then. Drop art in:
+//   public/backgrounds/<TYPE>.jpg   (the movie scene)
+//   public/characters/<TYPE>.png    (transparent character cut-out)
+// where <TYPE> is the 4-letter code (INFJ, ENTP, ...).
+function CharacterHero({ type, character }: { type: string; character: string }) {
+  const base = import.meta.env.BASE_URL
+  const bgSrc = `${base}backgrounds/${type}.jpg`
+  const charSrc = `${base}characters/${type}.png`
+  const [bgOk, setBgOk] = useState(false)
+  const [charOk, setCharOk] = useState(false)
+  useEffect(() => {
+    setBgOk(false)
+    setCharOk(false)
+    const b = new Image()
+    b.onload = () => setBgOk(true)
+    b.src = bgSrc
+    const c = new Image()
+    c.onload = () => setCharOk(true)
+    c.src = charSrc
+  }, [bgSrc, charSrc])
+
+  if (!bgOk && !charOk) return null
+  return (
+    <div className="relative mb-5 h-56 overflow-hidden rounded-2xl border-[2.5px] border-ink bg-sand shadow-chunky-sm">
+      {bgOk && <img src={bgSrc} alt="" className="absolute inset-0 h-full w-full object-cover" />}
+      {/* fade the bottom into the card so the figure emerges from the scene */}
+      <div className="absolute inset-0 bg-gradient-to-t from-paper-hi/80 via-transparent to-transparent" />
+      {charOk && (
+        <img
+          src={charSrc}
+          alt={character}
+          className="absolute bottom-0 left-1/2 h-[120%] max-w-none -translate-x-1/2 object-contain"
+          style={{ filter: 'drop-shadow(0 8px 12px rgba(20,20,20,0.4))' }}
+        />
+      )}
+    </div>
+  )
+}
+
+// The full self-read card: optional character hero, archetype header, five dimension bars.
 export default function PersonalityCard({ mbti, scores }: { mbti: MbtiType; scores: BigFiveScores }) {
   const code = mbti.fullCode ?? mbti.type
   return (
     <div>
+      <CharacterHero type={mbti.type} character={mbti.character || ''} />
       <div className="text-center">
         <p className="kicker text-pink-deep">your type is</p>
         <h2 className="display mt-1 text-[clamp(1.7rem,6vw,2.6rem)] leading-[1.05]">{mbti.nickname}</h2>
