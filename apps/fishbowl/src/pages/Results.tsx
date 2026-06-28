@@ -413,8 +413,9 @@ export default function Results() {
   const sp = (self?.self_payload ?? {}) as Record<string, unknown>
   const fwCards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode }[] = []
 
-  if (insights.hats?.some((h) => h.n > 0)) {
-    const team = insights.hats.map((h) => ({ key: h.key, label: HATS.find((x) => x.key === h.key)?.mode ?? h.key, mu: h.mu, n: h.n }))
+  const selfHats = hasSelf ? ((sp.hats as HatScores) ?? null) : null
+  if (insights.hats?.some((h) => h.n > 0) || (selfHats && Object.keys(selfHats).length > 0)) {
+    const team = (insights.hats ?? []).map((h) => ({ key: h.key, label: HATS.find((x) => x.key === h.key)?.mode ?? h.key, mu: h.mu, n: h.n }))
     fwCards.push({
       tone: 'paper',
       node: (
@@ -424,7 +425,7 @@ export default function Results() {
             <InfoTip text="Edward de Bono's Six Thinking Hats — six modes of thought (facts, feelings, optimism, caution, creativity, process). We adapt them as a balance: too little / just right / too much." />
           </p>
           <h2 className="display mb-5 text-3xl">Six thinking hats</h2>
-          <HatsProfile team={team} self={hasSelf ? ((sp.hats as HatScores) ?? null) : null} />
+          <HatsProfile team={team} self={selfHats} />
         </div>
       ),
     })
@@ -472,8 +473,9 @@ export default function Results() {
     })
   }
 
-  if (insights.belbin?.some((b) => b.n > 0)) {
-    const team = insights.belbin.map((b) => {
+  const selfBelbin = hasSelf ? ((sp.belbin as Record<string, number>) ?? null) : null
+  if (insights.belbin?.some((b) => b.n > 0) || (selfBelbin && Object.keys(selfBelbin).length > 0)) {
+    const team = (insights.belbin ?? []).map((b) => {
       const r = BELBIN_ROLES.find((x) => x.key === b.key)
       return { key: b.key, name: r?.name ?? b.key, cluster: r?.cluster ?? 'Thinking', teamShare: b.teamShare, n: b.n }
     })
@@ -486,14 +488,15 @@ export default function Results() {
             <InfoTip text="Belbin's nine team roles — the distinct ways people contribute, grouped Thinking / Action / People. A lens for team composition, not a clinical test." />
           </p>
           <h2 className="display mb-5 text-3xl">The roles you play</h2>
-          <BelbinReport team={team} self={hasSelf ? ((sp.belbin as Record<string, number>) ?? null) : null} />
+          <BelbinReport team={team} self={selfBelbin} />
         </div>
       ),
     })
   }
 
-  if (insights.via?.length) {
-    const team = insights.via.map((v) => {
+  const selfVia = hasSelf ? ((sp.via as string[]) ?? null) : null
+  if (insights.via?.length || (selfVia && selfVia.length > 0)) {
+    const team = (insights.via ?? []).map((v) => {
       const s = VIA_STRENGTHS.find((x) => x.id === v.id)
       return { id: v.id, name: s?.name ?? v.id, virtue: s?.virtue ?? '', count: v.count }
     })
@@ -506,13 +509,14 @@ export default function Results() {
             <InfoTip text="The VIA Classification (Peterson & Seligman) — 24 character strengths under 6 virtues. Your signature strengths (the top few) feel the most energizing and authentic." />
           </p>
           <h2 className="display mb-5 text-3xl">Your top strengths</h2>
-          <ViaDeck team={team} self={hasSelf ? ((sp.via as string[]) ?? null) : null} total={insights.via[0]?.n ?? 0} />
+          <ViaDeck team={team} self={selfVia} total={insights.via?.[0]?.n ?? 0} />
         </div>
       ),
     })
   }
 
-  if (insights.johari && insights.johari.counts.length) {
+  const selfJohari = hasSelf ? ((sp.johari as string[]) ?? null) : null
+  if ((insights.johari && insights.johari.counts.length) || (selfJohari && selfJohari.length > 0)) {
     fwCards.push({
       tone: 'paper',
       node: (
@@ -522,7 +526,7 @@ export default function Results() {
             <InfoTip text="The Johari Window (Luft & Ingham): comparing the words you pick for yourself with the words your team picks reveals your Open self, your Blind Spots, and what's Hidden. A reflective lens." />
           </p>
           <h2 className="display mb-5 text-3xl">Johari window</h2>
-          <JohariWindow teamCounts={insights.johari.counts} self={hasSelf ? ((sp.johari as string[]) ?? null) : null} n={insights.johari.n} />
+          <JohariWindow teamCounts={insights.johari?.counts ?? []} self={selfJohari} n={insights.johari?.n ?? 0} />
         </div>
       ),
     })

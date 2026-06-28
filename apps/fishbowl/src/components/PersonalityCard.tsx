@@ -100,10 +100,13 @@ export default function PersonalityCard({ mbti, scores }: { mbti: MbtiType; scor
         <p className="serif mt-1 text-2xl tracking-wide text-ink-soft">{code}</p>
         <p className="mx-auto mt-3 max-w-md leading-relaxed text-ink-soft">{mbti.flavour}</p>
         {mbti.character && (
-          <p className="mt-3 text-xs font-semibold text-ink-soft/75">
-            in the spirit of {mbti.character}
-            {mbti.alignment ? ` · ${ALIGN[mbti.alignment] ?? ''}` : ''}
-          </p>
+          <div className="mt-4 flex justify-center">
+            <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-sand px-3.5 py-1.5 text-sm font-bold text-ink shadow-chunky-sm">
+              <span aria-hidden>🎬</span>
+              Your Disney match: {mbti.character}
+              {mbti.alignment ? <span className="font-semibold text-ink-soft">· {ALIGN[mbti.alignment] ?? ''}</span> : null}
+            </span>
+          </div>
         )}
       </div>
       <div className="mt-7 flex flex-col gap-6">

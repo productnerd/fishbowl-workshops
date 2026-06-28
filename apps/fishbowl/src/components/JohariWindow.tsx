@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { johariQuadrants } from '@fishbowl/feedback-core'
+import { johariQuadrants, JOHARI_ADJECTIVES } from '@fishbowl/feedback-core'
 
 type TeamCount = { word: string; count: number }
 
@@ -124,7 +124,7 @@ export default function JohariWindow({
         </Pane>
         <Pane kicker="Unknown" caption="Neither of you picked it">
           <span className="font-display text-3xl font-black text-ink-soft tabular-nums">
-            {56 - new Set([...self, ...teamPicked.map((t) => t.word)]).size}
+            {JOHARI_ADJECTIVES.length - new Set([...self, ...teamPicked.map((t) => t.word)]).size}
           </span>
           <span className="self-center text-xs text-ink-soft">adjectives left unclaimed</span>
         </Pane>

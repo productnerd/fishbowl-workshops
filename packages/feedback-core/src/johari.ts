@@ -53,7 +53,6 @@ export const JOHARI_ADJECTIVES: string[] = [
   'sentimental',
   'shy',
   'silly',
-  'smart',
   'spontaneous',
   'sympathetic',
   'tense',

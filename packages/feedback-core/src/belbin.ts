@@ -1,6 +1,6 @@
 // Belbin Team Roles. The nine ways people contribute in a team, grouped into
 // three clusters (Thinking / Action / People). The subject and colleagues each
-// spend a 20-chip budget across the nine roles; the report ranks roles by the
+// spend a 30-chip budget across the nine roles; the report ranks roles by the
 // team's chip share and overlays the subject's own allocation.
 
 export interface BelbinRole {
@@ -28,7 +28,7 @@ export const BELBIN_ROLES: BelbinRole[] = [
 ]
 
 // Total chips each respondent allocates across the nine roles.
-export const BELBIN_TOTAL = 20
+export const BELBIN_TOTAL = 30
 
 // Cluster → riso ink. Thinking=blue and Action=pink are the brand pair; People
 // needs a third ink. The theme has no warm-yellow/ochre token, so the warmest

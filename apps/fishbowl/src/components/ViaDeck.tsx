@@ -24,6 +24,7 @@ export default function ViaDeck({
   self: string[] | null
   total: number
 }) {
+  const teamHasData = team.length > 0
   const top = [...team].sort((a, b) => b.count - a.count).slice(0, 5)
   const pct = (c: number) => (total > 0 ? Math.round((c / total) * 100) : 0)
   const nameOf = (id: string) => VIA_STRENGTHS.find((s) => s.id === id)?.name ?? id
@@ -46,7 +47,8 @@ export default function ViaDeck({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Fanned top-5 deck */}
+      {/* Fanned top-5 deck — only when the team has weighed in */}
+      {teamHasData && (
       <div>
         <p className="kicker mb-3 text-ink-soft">How your team reads you</p>
         <div className="flex flex-col gap-3">
@@ -75,8 +77,9 @@ export default function ViaDeck({
           ))}
         </div>
       </div>
+      )}
 
-      {selfSet && (
+      {selfSet && teamHasData && (
         <>
           {/* Self vs team mini-sections */}
           <div className="grid gap-3">
@@ -121,6 +124,16 @@ export default function ViaDeck({
             </div>
           </div>
         </>
+      )}
+
+      {selfSet && !teamHasData && (
+        <Section
+          tone="blue"
+          title="Your signature strengths"
+          blurb="The strengths you claimed"
+          items={[...selfSet].map(nameOf)}
+          empty="You didn't pick any."
+        />
       )}
     </div>
   )
