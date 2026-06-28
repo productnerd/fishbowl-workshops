@@ -32,7 +32,8 @@ import EnergizerTagger from '../components/EnergizerTagger'
 import HatsTagger from '../components/HatsTagger'
 import AllocationTagger from '../components/AllocationTagger'
 import ChipPicker from '../components/ChipPicker'
-import VirtueTagger from '../components/VirtueTagger'
+import VirtueSlider from '../components/VirtueSlider'
+import { questions } from '../data/questions'
 
 // The depth slider: how much time the subject wants to spend, which scales the
 // number of personality questions (per dimension) and which extra activities are
@@ -55,6 +56,10 @@ const DEPTHS: SelfDepth[] = [
 ]
 
 type Phase = 'checking' | 'email' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks'
+
+// The 10 virtue scales, reused from the colleague survey so the vice/virtue behaviours
+// (deficientTraits / virtueTraits / excessiveTraits) are a single source of truth.
+const VIRTUE_QS = questions.filter((q) => q.type === 'virtue')
 
 export default function SelfAssessment() {
   const { slug } = useParams<{ slug: string }>()
@@ -104,6 +109,7 @@ export default function SelfAssessment() {
   }, [slug])
   const [energizerTags, setEnergizerTags] = useState<EnergizerTags>({})
   const [selfVirtues, setSelfVirtues] = useState<VirtueScores>({})
+  const [vIdx, setVIdx] = useState(0)
   const [responsibilities, setResponsibilities] = useState<string[]>([''])
   const [respTiers, setRespTiers] = useState<ResponsibilityTiers>({})
   // Optional "deeper read" self inputs (name-neutral frameworks).
@@ -399,32 +405,77 @@ export default function SelfAssessment() {
   }
 
   if (phase === 'virtues') {
+    const vq = VIRTUE_QS[Math.min(vIdx, VIRTUE_QS.length - 1)]
+    const vv = vq.virtue!
+    const last = vIdx === VIRTUE_QS.length - 1
     const next = depth.energizers ? 'energizers' : 'responsibilities'
-    const nextLabel = depth.energizers ? 'Next: your energy map →' : 'Next: your responsibilities →'
+    const onPick = (val: number) => {
+      playQuizTick()
+      const dim = vq.dimension!
+      setSelfVirtues((p) => ({ ...p, [dim]: val }))
+      setTimeout(() => {
+        if (last) {
+          persist(next)
+          setPhase(next)
+        } else {
+          setVIdx((i) => Math.min(i + 1, VIRTUE_QS.length - 1))
+        }
+      }, 320)
+    }
     return (
-      <div className="mx-auto min-h-dvh w-full max-w-lg px-5 py-10">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-          <p className="kicker text-pink-deep">your character, by you</p>
-          <h1 className="display mt-2 text-4xl">The ten virtues</h1>
-          <p className="mt-3 text-ink-soft">
-            Place yourself on each. We'll line this up against how your team reads you.
-          </p>
-          <div className="mt-6">
-            <VirtueTagger value={selfVirtues} onChange={setSelfVirtues} />
+      <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-5">
+        <div className="sticky top-0 z-10 -mx-5 px-5 pb-3 pt-5">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="kicker text-pink-deep">your character, by you</span>
+            <span className="kicker text-ink-soft">
+              {vIdx + 1} / {VIRTUE_QS.length}
+            </span>
           </div>
-          <div className="mt-7 flex justify-center">
-            <Button
-              variant="pink"
-              onClick={() => {
-                persist(next)
-                setPhase(next)
-              }}
-              className="!text-xl"
+          <div className="h-3 overflow-hidden rounded-full border-2 border-ink bg-paper-hi">
+            <motion.div
+              className="h-full bg-blue"
+              animate={{ width: `${((vIdx + 1) / VIRTUE_QS.length) * 100}%` }}
+              transition={{ ease: 'easeOut' }}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-1 flex-col justify-center py-8">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={vq.dimension}
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -40 }}
+              transition={{ duration: 0.26, ease: [0.2, 0.8, 0.2, 1] as const }}
             >
-              {nextLabel}
-            </Button>
-          </div>
-        </motion.div>
+              <p className="kicker mb-1 text-center text-pink-deep">where do you land?</p>
+              <p className="serif mb-6 text-center text-ink-soft">
+                The middle is the virtue; each end is a way to overdo or underdo it.
+              </p>
+              <VirtueSlider
+                value={selfVirtues[vq.dimension!] ?? null}
+                onChange={onPick}
+                virtueLabel={vv.name}
+                deficientLabel={vv.deficientPole}
+                excessiveLabel={vv.excessivePole}
+                deficientTraits={vv.deficientTraits}
+                virtueTraits={vv.virtueTraits}
+                excessiveTraits={vv.excessiveTraits}
+                id={vq.dimension}
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        <div className="pb-6">
+          <button
+            onClick={() => (vIdx > 0 ? setVIdx((i) => i - 1) : setPhase('reveal'))}
+            className="press cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-5 py-3 font-semibold text-ink shadow-chunky-sm"
+          >
+            ← Back
+          </button>
+        </div>
       </div>
     )
   }
