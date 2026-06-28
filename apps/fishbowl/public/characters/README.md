@@ -1,15 +1,19 @@
 # Personality card art
 
-The personality result card shows an optional "character select" hero: a movie
-background with the Disney character cut-out standing in front. It only appears
-once the art files exist, otherwise the card stays text-only.
+The personality result shows an optional "character select" look:
+- the **movie scene** becomes the full-page background (behind the cards, replacing the water on this view), and
+- the **character cut-out** stands at the top of the card, above the type name.
+
+Each is optional and independent, and only appears once its file exists (otherwise
+the card stays text-only on the normal water background).
 
 Drop files here, named by the **4-letter type code**:
 
-- `public/characters/<TYPE>.png` — the character, **transparent background** (PNG with alpha). Stands in the foreground; it's bottom-anchored and slightly overflows, so leave a little headroom and let the feet sit at the bottom edge.
-- `public/backgrounds/<TYPE>.jpg` — the movie scene behind the character (landscape, roughly 4:3 or 16:9; it's cropped to fill).
+- `public/characters/<TYPE>.png` — the character, **transparent background** (PNG with alpha). Shown ~176px tall, centered above the type name.
+- `public/backgrounds/<TYPE>.jpg` — the movie scene, used as the full-page background (cropped to fill the viewport; any landscape size works).
 
-Both are optional and independent. You can ship just backgrounds, just characters, or both.
+NOTE: the files currently in these folders are throwaway colored placeholders so
+the wiring is visible. Replace them with the real art using the same file names.
 
 ## Type → Disney character
 

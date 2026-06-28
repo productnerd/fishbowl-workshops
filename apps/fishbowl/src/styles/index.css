@@ -54,23 +54,23 @@
   backface-visibility: hidden;
 }
 .fishbowl-water-a {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.01' numOctaves='2' seed='4' stitchTiles='stitch' result='t'/%3E%3CfeColorMatrix in='t' type='matrix' values='0 0 0 0 0.094 0 0 0 0 0.706 0 0 0 0 0.878 0 0 0 0.95 0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23w)'/%3E%3C/svg%3E");
-  background-size: 400px 400px;
-  animation: fishbowl-drift-a 40s linear infinite;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='w' filterUnits='userSpaceOnUse' x='0' y='0' width='600' height='600'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.01' numOctaves='3' seed='4' stitchTiles='stitch' result='t'/%3E%3CfeGaussianBlur in='t' stdDeviation='1.1' result='b'/%3E%3CfeColorMatrix in='b' type='matrix' values='0 0 0 0 0.094 0 0 0 0 0.706 0 0 0 0 0.878 0 0 0 0.95 0'/%3E%3C/filter%3E%3Crect width='600' height='600' filter='url(%23w)'/%3E%3C/svg%3E");
+  background-size: 600px 600px;
+  animation: fishbowl-drift-a 48s linear infinite;
 }
 .fishbowl-water-b {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.01' numOctaves='2' seed='7' stitchTiles='stitch' result='t'/%3E%3CfeColorMatrix in='t' type='matrix' values='0 0 0 0 0.95 0 0 0 0 0.98 0 0 0 0 1 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='500' height='500' filter='url(%23w)'/%3E%3C/svg%3E");
-  background-size: 500px 500px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='800'%3E%3Cfilter id='w' filterUnits='userSpaceOnUse' x='0' y='0' width='800' height='800'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.01' numOctaves='3' seed='7' stitchTiles='stitch' result='t'/%3E%3CfeGaussianBlur in='t' stdDeviation='1.4' result='b'/%3E%3CfeColorMatrix in='b' type='matrix' values='0 0 0 0 0.95 0 0 0 0 0.98 0 0 0 0 1 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='800' height='800' filter='url(%23w)'/%3E%3C/svg%3E");
+  background-size: 800px 800px;
   mix-blend-mode: screen;
-  animation: fishbowl-drift-b 61s linear infinite;
+  animation: fishbowl-drift-b 67s linear infinite;
 }
 @keyframes fishbowl-drift-a {
   from { transform: translate3d(0, 0, 0); }
-  to   { transform: translate3d(400px, 400px, 0); }
+  to   { transform: translate3d(600px, 600px, 0); }
 }
 @keyframes fishbowl-drift-b {
   from { transform: translate3d(0, 0, 0); }
-  to   { transform: translate3d(-500px, 500px, 0); }
+  to   { transform: translate3d(-800px, 800px, 0); }
 }
 @media (prefers-reduced-motion: reduce) {
   .fishbowl-water-a,

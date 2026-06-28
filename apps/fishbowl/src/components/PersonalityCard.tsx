@@ -74,43 +74,50 @@ function AxisRow({ title, description, left, right, leftInfo, rightInfo, leftPct
   )
 }
 
-// Hero banner: the movie background art with the Disney character cut-out standing in
-// front (game character-select look). Only shows once the art files exist; the probe
-// keeps the card fully text-only until then. Drop art in:
-//   public/backgrounds/<TYPE>.jpg   (the movie scene)
-//   public/characters/<TYPE>.png    (transparent character cut-out)
-// where <TYPE> is the 4-letter code (INFJ, ENTP, ...).
-function CharacterHero({ type, character }: { type: string; character: string }) {
+// The movie scene as a full-PAGE backdrop (behind all content, above the water layer),
+// so the personality view looks like a game screen. Only shows once the art exists.
+//   public/backgrounds/<TYPE>.jpg
+function PageBackdrop({ type }: { type: string }) {
   const base = import.meta.env.BASE_URL
   const bgSrc = `${base}backgrounds/${type}.jpg`
-  const charSrc = `${base}characters/${type}.png`
-  const [bgOk, setBgOk] = useState(false)
-  const [charOk, setCharOk] = useState(false)
+  const [ok, setOk] = useState(false)
   useEffect(() => {
-    setBgOk(false)
-    setCharOk(false)
+    setOk(false)
     const b = new Image()
-    b.onload = () => setBgOk(true)
+    b.onload = () => setOk(true)
     b.src = bgSrc
-    const c = new Image()
-    c.onload = () => setCharOk(true)
-    c.src = charSrc
-  }, [bgSrc, charSrc])
-
-  if (!bgOk && !charOk) return null
+  }, [bgSrc])
+  if (!ok) return null
   return (
-    <div className="relative mb-5 h-56 overflow-hidden rounded-2xl border-[2.5px] border-ink bg-sand shadow-chunky-sm">
-      {bgOk && <img src={bgSrc} alt="" className="absolute inset-0 h-full w-full object-cover" />}
-      {/* fade the bottom into the card so the figure emerges from the scene */}
-      <div className="absolute inset-0 bg-gradient-to-t from-paper-hi/80 via-transparent to-transparent" />
-      {charOk && (
-        <img
-          src={charSrc}
-          alt={character}
-          className="absolute bottom-0 left-1/2 h-[120%] max-w-none -translate-x-1/2 object-contain"
-          style={{ filter: 'drop-shadow(0 8px 12px rgba(20,20,20,0.4))' }}
-        />
-      )}
+    <div aria-hidden className="pointer-events-none fixed inset-0 -z-[5]">
+      <img src={bgSrc} alt="" className="h-full w-full object-cover" />
+      {/* soft wash so the floating cards and nav stay legible over the scene */}
+      <div className="absolute inset-0 bg-paper/35" />
+    </div>
+  )
+}
+
+// The character cut-out (transparent), standing above the type name in the card.
+//   public/characters/<TYPE>.png
+function CharacterCutout({ type, character }: { type: string; character: string }) {
+  const base = import.meta.env.BASE_URL
+  const charSrc = `${base}characters/${type}.png`
+  const [ok, setOk] = useState(false)
+  useEffect(() => {
+    setOk(false)
+    const c = new Image()
+    c.onload = () => setOk(true)
+    c.src = charSrc
+  }, [charSrc])
+  if (!ok) return null
+  return (
+    <div className="mb-2 flex justify-center">
+      <img
+        src={charSrc}
+        alt={character}
+        className="h-44 w-auto object-contain"
+        style={{ filter: 'drop-shadow(0 8px 14px rgba(20,20,20,0.35))' }}
+      />
     </div>
   )
 }
@@ -120,7 +127,8 @@ export default function PersonalityCard({ mbti, scores }: { mbti: MbtiType; scor
   const code = mbti.fullCode ?? mbti.type
   return (
     <div>
-      <CharacterHero type={mbti.type} character={mbti.character || ''} />
+      <PageBackdrop type={mbti.type} />
+      <CharacterCutout type={mbti.type} character={mbti.character || ''} />
       <div className="text-center">
         <p className="kicker text-pink-deep">your type is</p>
         <h2 className="display mt-1 text-[clamp(1.7rem,6vw,2.6rem)] leading-[1.05]">{mbti.nickname}</h2>
