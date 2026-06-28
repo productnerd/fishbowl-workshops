@@ -4,8 +4,10 @@ import { johariQuadrants, JOHARI_ADJECTIVES } from '@fishbowl/feedback-core'
 type TeamCount = { word: string; count: number }
 
 // A chip with an optional count badge (team picks carry a tally).
-function Chip({ word, count, tone }: { word: string; count?: number; tone: 'blue' | 'pink' | 'striped' | 'ghost' }) {
-  const base = 'inline-flex items-center gap-1.5 rounded-full border-2 border-ink px-3 py-1 text-sm font-semibold'
+function Chip({ word, count, tone, dense }: { word: string; count?: number; tone: 'blue' | 'pink' | 'striped' | 'ghost'; dense?: boolean }) {
+  const base = `inline-flex max-w-full items-center gap-1.5 rounded-full border-2 border-ink font-semibold ${
+    dense ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-sm'
+  }`
   const tones: Record<typeof tone, string> = {
     striped: 'bg-sand text-ink',
     pink: 'bg-pink text-ink',
@@ -14,9 +16,9 @@ function Chip({ word, count, tone }: { word: string; count?: number; tone: 'blue
   }
   return (
     <span className={`${base} ${tones[tone]}`}>
-      {word}
+      <span className="min-w-0 break-words">{word}</span>
       {typeof count === 'number' && (
-        <span className="rounded-full bg-ink/15 px-1.5 text-xs tabular-nums">{count}</span>
+        <span className="shrink-0 rounded-full bg-ink/15 px-1.5 text-[0.65rem] tabular-nums">{count}</span>
       )}
     </span>
   )
@@ -67,11 +69,16 @@ export default function JohariWindow({
   teamCounts,
   self,
   n,
+  total,
+  dense,
 }: {
   teamCounts: TeamCount[]
   self: string[] | null
   n: number
+  total?: number
+  dense?: boolean
 }) {
+  const poolSize = total ?? JOHARI_ADJECTIVES.length
   const teamPicked = teamCounts.filter((t) => t.count > 0)
   const countOf = (word: string) => teamPicked.find((t) => t.word === word)?.count
 
@@ -86,7 +93,7 @@ export default function JohariWindow({
         </p>
         <div className="mt-3 flex flex-wrap gap-1.5">
           {sorted.map((t) => (
-            <Chip key={t.word} word={t.word} count={t.count} tone="pink" />
+            <Chip key={t.word} word={t.word} count={t.count} tone="pink" dense={dense} />
           ))}
         </div>
         <p className="mt-3 text-xs text-ink-soft">{n} colleagues weighed in.</p>
@@ -101,14 +108,14 @@ export default function JohariWindow({
       <div className="grid grid-cols-2 divide-x-[3px] divide-ink border-b-[3px] border-ink [&>*]:min-h-[8.5rem]">
         <Pane kicker="Open" caption="You both see it">
           {open.length ? (
-            open.map((w) => <Chip key={w} word={w} count={countOf(w)} tone="striped" />)
+            open.map((w) => <Chip key={w} word={w} count={countOf(w)} tone="striped" dense={dense} />)
           ) : (
             <span className="text-xs text-ink-soft">No overlap yet.</span>
           )}
         </Pane>
         <Pane kicker="Blind Spot" caption="Your team sees it, you didn't" reveal>
           {blind.length ? (
-            blind.map((w) => <Chip key={w} word={w} count={countOf(w)} tone="pink" />)
+            blind.map((w) => <Chip key={w} word={w} count={countOf(w)} tone="pink" dense={dense} />)
           ) : (
             <span className="text-xs text-ink-soft">Nothing here — your read matched theirs.</span>
           )}
@@ -117,16 +124,16 @@ export default function JohariWindow({
       <div className="grid grid-cols-2 divide-x-[3px] divide-ink [&>*]:min-h-[8.5rem]">
         <Pane kicker="Hidden" caption="You see it, they didn't">
           {hidden.length ? (
-            hidden.map((w) => <Chip key={w} word={w} tone="blue" />)
+            hidden.map((w) => <Chip key={w} word={w} tone="blue" dense={dense} />)
           ) : (
             <span className="text-xs text-ink-soft">Nothing held back.</span>
           )}
         </Pane>
         <Pane kicker="Unknown" caption="Neither of you picked it">
           <span className="font-display text-3xl font-black text-ink-soft tabular-nums">
-            {JOHARI_ADJECTIVES.length - new Set([...self, ...teamPicked.map((t) => t.word)]).size}
+            {Math.max(0, poolSize - new Set([...self, ...teamPicked.map((t) => t.word)]).size)}
           </span>
-          <span className="self-center text-xs text-ink-soft">adjectives left unclaimed</span>
+          <span className="self-center text-xs text-ink-soft">words left unclaimed</span>
         </Pane>
       </div>
     </div>

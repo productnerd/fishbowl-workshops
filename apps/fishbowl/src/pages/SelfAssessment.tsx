@@ -14,6 +14,9 @@ import {
   JOHARI_ADJECTIVES,
   JOHARI_MIN,
   JOHARI_MAX,
+  WEAKNESSES,
+  NOHARI_MIN,
+  NOHARI_MAX,
   type BigFiveScores,
   type MbtiType,
   type EnergizerTags,
@@ -48,7 +51,7 @@ type SelfDepth = {
   frameworks: string[]
   blurb: string
 }
-const ALL_FRAMEWORKS = ['sixhats', 'belbin', 'via', 'johari']
+const ALL_FRAMEWORKS = ['sixhats', 'belbin', 'via', 'johari', 'nohari']
 const DEPTHS: SelfDepth[] = [
   { id: 'quick', name: 'Quick', perTrait: 4, time: '~4 min', accuracy: 3, energizers: false, frameworks: [], blurb: 'The essentials. A solid first read.' },
   { id: 'standard', name: 'Standard', perTrait: 6, time: '~7 min', accuracy: 4, energizers: true, frameworks: ['sixhats', 'via'], blurb: 'More questions, a sharper read. The sweet spot.' },
@@ -98,6 +101,7 @@ export default function SelfAssessment() {
         setSelfBelbin((sp.belbin as Record<string, number>) ?? {})
         setSelfVia((sp.via as string[]) ?? [])
         setSelfJohari((sp.johari as string[]) ?? [])
+        setSelfNohari((sp.nohari as string[]) ?? [])
         setPhase(sp.progress as Phase)
       } else {
         setPhase('depth')
@@ -118,6 +122,7 @@ export default function SelfAssessment() {
   const [selfBelbin, setSelfBelbin] = useState<Record<string, number>>({})
   const [selfVia, setSelfVia] = useState<string[]>([])
   const [selfJohari, setSelfJohari] = useState<string[]>([])
+  const [selfNohari, setSelfNohari] = useState<string[]>([])
 
   // ── email gate ──
   const [email, setEmail] = useState('')
@@ -181,6 +186,7 @@ export default function SelfAssessment() {
       belbin: selfBelbin,
       via: selfVia,
       johari: selfJohari,
+      nohari: selfNohari,
       depthConfig: d,
       progress,
     },
@@ -653,6 +659,7 @@ export default function SelfAssessment() {
       belbin: 'Your team role',
       via: 'Your signature strengths',
       johari: 'Words for yourself',
+      nohari: 'Your watch-outs',
     }
     const fw = steps[Math.min(fwIdx, steps.length - 1)]
     const last = fwIdx === steps.length - 1
@@ -698,6 +705,15 @@ export default function SelfAssessment() {
                 max={JOHARI_MAX}
                 value={selfJohari}
                 onChange={setSelfJohari}
+              />
+            )}
+            {fw === 'nohari' && (
+              <ChipPicker
+                options={WEAKNESSES.map((w) => ({ id: w, label: w }))}
+                min={NOHARI_MIN}
+                max={NOHARI_MAX}
+                value={selfNohari}
+                onChange={setSelfNohari}
               />
             )}
           </div>

@@ -158,6 +158,7 @@ export const questions: Question[] = [
   { id: 28, type: 'belbin', dimension: 'belbin', pool: 'belbin', section: 'Team Role', sectionDescription: 'Spend 20 chips on the roles they play.', text: 'What role does {name} play on the team?' },
   { id: 29, type: 'via', dimension: 'via', pool: 'via', section: 'Signature Strengths', sectionDescription: 'Pick the 5 that fit best.', text: "{name}'s top character strengths" },
   { id: 30, type: 'johari', dimension: 'johari', pool: 'johari', section: 'In a Word', sectionDescription: 'Pick 5 to 10 that fit.', text: 'Which words describe {name}?' },
+  { id: 31, type: 'nohari', dimension: 'nohari', pool: 'nohari', section: 'Watch-outs', sectionDescription: 'Pick a few that fit. Anonymous, and meant kindly.', text: 'Which of these are watch-outs for {name}?' },
 
   // ── In Their Words: 3 free-text (synthesized, never shown verbatim) ──
   { id: 20, type: 'freetext', dimension: 'appreciation', section: 'In Their Words', sectionDescription: 'A few honest words. Stays anonymous.', text: 'What do you most appreciate about working with {name}?' },

@@ -38,4 +38,5 @@ export interface FishbowlReport {
   belbin?: { key: string; teamShare: number; n: number }[]
   via?: { id: string; count: number; n: number }[]
   johari?: { counts: { word: string; count: number }[]; n: number }
+  nohari?: { counts: { word: string; count: number }[]; n: number }
 }

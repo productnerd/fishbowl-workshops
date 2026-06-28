@@ -13,6 +13,7 @@ export type QuestionType =
   | 'belbin'
   | 'via'
   | 'johari'
+  | 'nohari'
 
 // Where a person sits relative to the Aristotelian mean on a virtue dimension.
 export type Tendency = 'deficient' | 'balanced' | 'excessive'

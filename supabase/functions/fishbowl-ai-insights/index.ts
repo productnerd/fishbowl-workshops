@@ -270,6 +270,16 @@ Deno.serve(async (req) => {
       for (const w of arr) if (typeof w === 'string') johariCounts[w] = (johariCounts[w] || 0) + 1
     }
     const johariStats = { counts: Object.entries(johariCounts).map(([word, count]) => ({ word, count })).sort((a, b) => b.count - a.count), n: johariN }
+    // Nohari: weakness/watch-out tally (same shape as Johari).
+    const nohariCounts: Record<string, number> = {}
+    let nohariN = 0
+    for (const r of R) {
+      const arr = r.answers?.nohari
+      if (!Array.isArray(arr)) continue
+      nohariN++
+      for (const w of arr) if (typeof w === 'string') nohariCounts[w] = (nohariCounts[w] || 0) + 1
+    }
+    const nohariStats = { counts: Object.entries(nohariCounts).map(([word, count]) => ({ word, count })).sort((a, b) => b.count - a.count), n: nohariN }
 
     // Goodness per dimension to pick strengths/growth deterministically.
     const goodness = [
@@ -421,6 +431,7 @@ Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} 
       belbin: belbinStats,
       via: viaStats,
       johari: johariStats,
+      nohari: nohariStats,
     }
 
     // Stamp per-dimension means for the live percentile layer.

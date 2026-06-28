@@ -37,6 +37,8 @@ import SdtProfile from '../components/SdtProfile'
 import BelbinReport from '../components/BelbinReport'
 import ViaDeck from '../components/ViaDeck'
 import JohariWindow from '../components/JohariWindow'
+import WatchoutsDeck from '../components/WatchoutsDeck'
+import { WEAKNESSES } from '@fishbowl/feedback-core'
 import InfoTip from '../components/InfoTip'
 import Rich from '../components/Rich'
 
@@ -593,6 +595,41 @@ export default function Results() {
     })
   }
 
+  // Watch-outs (the mirror of strengths). Kindness guard: a word only surfaces in
+  // the team views when at least two colleagues named it, so one off-day or one
+  // harsh read doesn't define anyone.
+  const selfNohari = hasSelf ? ((sp.nohari as string[]) ?? null) : null
+  const teamNohari = (insights.nohari?.counts ?? []).filter((c) => c.count >= 2)
+  const hasNohari = teamNohari.length > 0 || (selfNohari !== null && selfNohari.length > 0)
+  if (hasNohari) {
+    fwCards.push({
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">
+            watch-outs
+            <InfoTip text="The flip side of your strengths — the behaviours colleagues flagged as things to watch. A word only shows here when at least two people named it, so a single off-day or one harsh read doesn't define you. Meant kindly: these are edges to soften, not verdicts." />
+          </p>
+          <h2 className="display mb-5 text-3xl">Your top watch-outs</h2>
+          <WatchoutsDeck team={teamNohari} self={selfNohari} total={insights.nohari?.n ?? 0} />
+        </div>
+      ),
+    })
+    fwCards.push({
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">
+            the other window
+            <InfoTip text="The Nohari Window — the shadow side of Johari. The same four-pane idea applied to growth areas: comparing the watch-outs you own against the ones your team names reveals your Open edges, your Blind Spots, and what's still Hidden." />
+          </p>
+          <h2 className="display mb-5 text-3xl">Nohari window</h2>
+          <JohariWindow teamCounts={teamNohari} self={selfNohari} n={insights.nohari?.n ?? 0} total={WEAKNESSES.length} dense />
+        </div>
+      ),
+    })
+  }
+
   for (const c of fwCards) cards.splice(cards.length - 1, 0, c)
 
   // The Jungian archetype sits late, just before the closing.
@@ -715,6 +752,11 @@ export default function Results() {
     })
     L.push('\nWHAT THEY APPRECIATE')
     insights.appreciations.forEach((a) => L.push(`- ${plain(a)}`))
+    if (teamNohari.length || (selfNohari && selfNohari.length)) {
+      L.push('\nWATCH-OUTS (named by 2+ colleagues)')
+      teamNohari.forEach((c) => L.push(`- ${c.word} (${c.count} of ${insights.nohari?.n ?? 0})`))
+      if (selfNohari && selfNohari.length) L.push(`You own: ${selfNohari.join(', ')}`)
+    }
     if (insights.actionPlan) {
       const ap = insights.actionPlan
       L.push('\nACTION PLAN')

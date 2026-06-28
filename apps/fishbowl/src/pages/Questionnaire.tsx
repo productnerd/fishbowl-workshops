@@ -12,6 +12,9 @@ import {
   JOHARI_ADJECTIVES,
   JOHARI_MIN,
   JOHARI_MAX,
+  WEAKNESSES,
+  NOHARI_MIN,
+  NOHARI_MAX,
 } from '@fishbowl/feedback-core'
 import { getSession, submitResponse } from '../lib/data'
 import { playQuizTick } from '../lib/sound'
@@ -74,6 +77,7 @@ export default function Questionnaire() {
   const [belbin, setBelbin] = useState<Record<string, number>>({})
   const [via, setVia] = useState<string[]>([])
   const [johari, setJohari] = useState<string[]>([])
+  const [nohari, setNohari] = useState<string[]>([])
   const advanceTimer = useRef<number | null>(null)
   // Fresh per-load seed → this respondent gets a sampled subset of pooled modules.
   const seedRef = useRef(Math.floor(Math.random() * 1e9))
@@ -132,7 +136,7 @@ export default function Questionnaire() {
 
   const q = questions[i]
   const a = answers[q.id]
-  const structuredTypes = ['energizer', 'responsibilities', 'sixhats', 'radical_candor', 'sdt', 'belbin', 'via', 'johari']
+  const structuredTypes = ['energizer', 'responsibilities', 'sixhats', 'radical_candor', 'sdt', 'belbin', 'via', 'johari', 'nohari']
   const answered = structuredTypes.includes(q.type) ? true : a !== undefined && a !== ''
   const isLast = i === questions.length - 1
   const myMean = q.dimension ? myProfile?.[q.dimension] : undefined
@@ -183,6 +187,7 @@ export default function Questionnaire() {
           belbin,
           via,
           johari,
+          nohari,
         },
         email.trim() || undefined
       )
@@ -307,6 +312,15 @@ export default function Questionnaire() {
                 max={JOHARI_MAX}
                 value={johari}
                 onChange={setJohari}
+              />
+            )}
+            {q.type === 'nohari' && (
+              <ChipPicker
+                options={WEAKNESSES.map((w) => ({ id: w, label: w }))}
+                min={NOHARI_MIN}
+                max={NOHARI_MAX}
+                value={nohari}
+                onChange={setNohari}
               />
             )}
           </motion.div>
