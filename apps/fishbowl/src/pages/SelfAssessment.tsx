@@ -47,9 +47,9 @@ type SelfDepth = {
 }
 const ALL_FRAMEWORKS = ['sixhats', 'belbin', 'via', 'johari']
 const DEPTHS: SelfDepth[] = [
-  { id: 'quick', name: 'Quick', perTrait: 4, time: 'about 4 min', accuracy: 3, energizers: false, frameworks: [], blurb: 'The essentials. A solid first read.' },
-  { id: 'standard', name: 'Standard', perTrait: 6, time: 'about 7 min', accuracy: 4, energizers: true, frameworks: ['sixhats', 'via'], blurb: 'More questions, a sharper read. The sweet spot.' },
-  { id: 'extended', name: 'Extended', perTrait: 8, time: 'about 10 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
+  { id: 'quick', name: 'Quick', perTrait: 4, time: '~4 min', accuracy: 3, energizers: false, frameworks: [], blurb: 'The essentials. A solid first read.' },
+  { id: 'standard', name: 'Standard', perTrait: 6, time: '~7 min', accuracy: 4, energizers: true, frameworks: ['sixhats', 'via'], blurb: 'More questions, a sharper read. The sweet spot.' },
+  { id: 'extended', name: 'Extended', perTrait: 8, time: '~10 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
 ]
 
 export default function SelfAssessment() {
@@ -246,9 +246,6 @@ export default function SelfAssessment() {
         <div className="shrink-0">
           <p className="kicker text-pink-deep">before we start</p>
           <h1 className="display mt-2 text-4xl">How deep do you want to go?</h1>
-          <p className="mt-3 text-ink-soft">
-            The longer read asks more, so it sees you more clearly. You can stop early at any point.
-          </p>
         </div>
 
         {/* card — centered in the middle; its inner heights are reserved so sliding never resizes it */}
@@ -283,10 +280,9 @@ export default function SelfAssessment() {
                     playTick()
                     setDepthIdx(k)
                   }}
-                  className={`cursor-pointer ${k === depthIdx ? 'text-pink-deep' : 'text-ink-soft/70'}`}
+                  className={`cursor-pointer uppercase tracking-wide ${k === depthIdx ? 'text-pink-deep' : 'text-ink-soft/70'}`}
                 >
                   {d.name}
-                  {d.id === 'extended' ? ' ✨' : ''}
                 </button>
               ))}
             </div>
