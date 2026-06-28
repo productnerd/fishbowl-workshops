@@ -57,6 +57,7 @@ export default function Results() {
   const [modalDismissed, setModalDismissed] = useState(false)
   const [selfInsight, setSelfInsight] = useState<SelfInsight | null>(null)
   const [selfInsightLoading, setSelfInsightLoading] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (!slug) return
@@ -629,6 +630,64 @@ export default function Results() {
       ),
     })
   }
+
+  // Final "take it with you" card: the whole report compiled as copy-able text to
+  // paste into a personal AI assistant as context.
+  const buildSummary = () => {
+    const plain = (s: string) => (s || '').replace(/\*\*/g, '')
+    const L: string[] = []
+    L.push(`FISHBOWL REPORT — ${session.creator_name}`)
+    L.push(plain(insights.headline))
+    if (hasSelf && self?.mbti) L.push(`\nPersonality type: ${self.mbti.nickname} (${self.mbti.fullCode ?? self.mbti.type})`)
+    L.push('\nWHERE YOU SHINE')
+    insights.topStrengths.forEach((s) => L.push(`- ${s.label}: ${plain(s.blurb)}`))
+    L.push('\nTHE TEN VIRTUES (1-9, 5 = the balanced virtue)')
+    insights.virtues.forEach((v) => {
+      const sv = selfVirtues?.[v.dimension]
+      L.push(`- ${v.name}: team ${Math.round(v.mu)}${typeof sv === 'number' ? `, you ${sv}` : ''} (${v.deficientPole} to ${v.excessivePole})`)
+    })
+    L.push('\nHOW THEY RATE YOU (1-5)')
+    insights.competencies.forEach((c) => L.push(`- ${plain(c.statement)}: ${c.average}/5`))
+    L.push('\nGROW HERE')
+    insights.growthEdges.forEach((g) => {
+      L.push(`- ${g.title}`)
+      g.actions.filter(Boolean).forEach((a) => L.push(`  • ${plain(a)}`))
+    })
+    L.push('\nWHAT THEY APPRECIATE')
+    insights.appreciations.forEach((a) => L.push(`- ${plain(a)}`))
+    L.push(`\n${plain(insights.closing)}`)
+    return L.join('\n')
+  }
+  const copySummary = async () => {
+    try {
+      await navigator.clipboard.writeText(buildSummary())
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2200)
+    } catch {
+      /* clipboard unavailable */
+    }
+  }
+  cards.push({
+    tone: 'paper',
+    node: (
+      <div>
+        <p className="kicker mb-1 text-blue-deep">take it with you</p>
+        <h2 className="display mb-3 text-3xl">Your report, to go</h2>
+        <p className="mb-4 text-sm text-ink-soft">
+          Copy the whole report and paste it into your AI assistant as context, so it actually knows how you work.
+        </p>
+        <div className="max-h-[34vh] overflow-y-auto whitespace-pre-wrap rounded-2xl border-2 border-ink bg-sand p-3 font-mono text-xs leading-relaxed text-ink-soft">
+          {buildSummary()}
+        </div>
+        <button
+          onClick={copySummary}
+          className="press mt-4 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-blue px-5 py-3 font-display font-black text-paper-hi shadow-chunky-sm sc-navy"
+        >
+          {copied ? 'Copied ✓' : 'Copy for your AI agent'}
+        </button>
+      </div>
+    ),
+  })
 
   const seenNudge = Boolean(slug && localStorage.getItem(`fishbowl_self_nudge_seen_${slug}`))
   const showEntryModal = selfLoaded && !hasSelf && !modalDismissed && !seenNudge
