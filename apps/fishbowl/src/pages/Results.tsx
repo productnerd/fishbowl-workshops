@@ -26,7 +26,7 @@ import { topPercent } from '../lib/percentile'
 import Card from '../components/Card'
 import VirtueGauge from '../components/VirtueGauge'
 import StatBar from '../components/StatBar'
-import PersonalityCard from '../components/PersonalityCard'
+import PersonalityCard, { SideCharacter } from '../components/PersonalityCard'
 import LockedCard from '../components/LockedCard'
 import EntryModal from '../components/EntryModal'
 import EnergyOverlay from '../components/EnergyOverlay'
@@ -163,7 +163,7 @@ export default function Results() {
     ? ((self?.self_payload as Record<string, unknown> | undefined)?.virtues as VirtueScores | undefined)
     : undefined
 
-  const cards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode }[] = [
+  const cards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode; character?: { type: string; name: string } }[] = [
     {
       tone: 'pink',
       node: (
@@ -337,9 +337,12 @@ export default function Results() {
     emotionalStability: 66,
   }
   const teaserType = deriveType(teaserBig)
-  const selfCards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode }[] = [
+  const selfCards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode; character?: { type: string; name: string } }[] = [
     {
       tone: 'paper',
+      // On wide screens the Disney character stands in the margin to the right of this
+      // card (only once the subject has self-assessed, never for the locked teaser).
+      ...(hasSelf && self?.mbti?.character ? { character: { type: self.mbti.type, name: self.mbti.character } } : {}),
       node: (
         <div>
           <p className="kicker mb-4 text-pink-deep">
@@ -836,11 +839,14 @@ export default function Results() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -24 }}
             transition={{ duration: 0.32, ease: [0.2, 0.8, 0.2, 1] as const }}
-            className="w-full"
+            className="relative w-full"
           >
             <Card tone={cards[idx].tone} className="max-h-[78vh] overflow-y-auto p-7 sm:p-9">
               {cards[idx].node}
             </Card>
+            {cards[idx].character && (
+              <SideCharacter type={cards[idx].character!.type} name={cards[idx].character!.name} />
+            )}
           </motion.div>
         </AnimatePresence>
       </div>

@@ -74,19 +74,25 @@ function AxisRow({ title, description, left, right, leftInfo, rightInfo, leftPct
   )
 }
 
+// Probe-load an image; returns true only once it has actually loaded, so we never
+// flash a broken-image icon before the art exists.
+function useImageReady(src: string) {
+  const [ok, setOk] = useState(false)
+  useEffect(() => {
+    setOk(false)
+    const img = new Image()
+    img.onload = () => setOk(true)
+    img.src = src
+  }, [src])
+  return ok
+}
+
 // The movie scene as a full-PAGE backdrop (behind all content, above the water layer),
 // so the personality view looks like a game screen. Only shows once the art exists.
 //   public/backgrounds/<TYPE>.jpg
 function PageBackdrop({ type }: { type: string }) {
-  const base = import.meta.env.BASE_URL
-  const bgSrc = `${base}backgrounds/${type}.jpg`
-  const [ok, setOk] = useState(false)
-  useEffect(() => {
-    setOk(false)
-    const b = new Image()
-    b.onload = () => setOk(true)
-    b.src = bgSrc
-  }, [bgSrc])
+  const bgSrc = `${import.meta.env.BASE_URL}backgrounds/${type}.jpg`
+  const ok = useImageReady(bgSrc)
   if (!ok) return null
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-[5]">
@@ -97,21 +103,16 @@ function PageBackdrop({ type }: { type: string }) {
   )
 }
 
-// The character cut-out (transparent), standing above the type name in the card.
+// The character cut-out (transparent). On wide screens the character moves OUTSIDE the
+// card to the right (see SideCharacter); this is the in-card fallback for narrower
+// screens where there's no room in the margin.
 //   public/characters/<TYPE>.png
 function CharacterCutout({ type, character }: { type: string; character: string }) {
-  const base = import.meta.env.BASE_URL
-  const charSrc = `${base}characters/${type}.png`
-  const [ok, setOk] = useState(false)
-  useEffect(() => {
-    setOk(false)
-    const c = new Image()
-    c.onload = () => setOk(true)
-    c.src = charSrc
-  }, [charSrc])
+  const charSrc = `${import.meta.env.BASE_URL}characters/${type}.png`
+  const ok = useImageReady(charSrc)
   if (!ok) return null
   return (
-    <div className="mb-2 flex justify-center">
+    <div className="mb-2 flex justify-center xl:hidden">
       <img
         src={charSrc}
         alt={character}
@@ -119,6 +120,25 @@ function CharacterCutout({ type, character }: { type: string; character: string 
         style={{ filter: 'drop-shadow(0 8px 14px rgba(20,20,20,0.35))' }}
       />
     </div>
+  )
+}
+
+// The same character, standing in the margin to the RIGHT of the card. Shown only on
+// wide screens (xl+) where there's room outside the container, clear of the nav arrow.
+// Absolutely positioned against the card wrapper so it sits outside the card without
+// being clipped by the card's scroll area.
+export function SideCharacter({ type, name }: { type: string; name: string }) {
+  const charSrc = `${import.meta.env.BASE_URL}characters/${type}.png`
+  const ok = useImageReady(charSrc)
+  if (!ok) return null
+  return (
+    <img
+      src={charSrc}
+      alt={name}
+      aria-hidden
+      className="pointer-events-none absolute left-full top-1/2 ml-6 hidden h-[70vh] max-h-[600px] w-auto max-w-[15rem] -translate-y-1/2 object-contain xl:block"
+      style={{ filter: 'drop-shadow(0 14px 24px rgba(20,20,20,0.42))' }}
+    />
   )
 }
 
