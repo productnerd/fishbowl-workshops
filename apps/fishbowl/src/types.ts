@@ -20,6 +20,13 @@ export interface FishbowlReport {
   growthEdges: { dimension: string; title: string; actions: string[] }[]
   appreciations: string[]
   closing: string
+  // A practical action plan: 2 each to stop/start now, then 2 each to add later.
+  actionPlan?: {
+    stopNow: string[]
+    startNow: string[]
+    stopNext: string[]
+    startNext: string[]
+  } | null
   // Phase 2 — team energizers/drains aggregate (−2..2 mean per activity).
   energizers?: { id: string; label: string; teamMean: number; n: number }[]
   // Phase 2 — per-responsibility team tier (1=under, 2=meets, 3=exceeds) + spread.

@@ -631,6 +631,66 @@ export default function Results() {
     })
   }
 
+  // Action plan: the practical payoff. 2 to stop / 2 to start now, then 2 more each
+  // once those are habit, plus an email-to-self.
+  if (insights.actionPlan) {
+    const ap = insights.actionPlan
+    const bullets = (items: string[]) => (
+      <ul className="mt-1 flex flex-col gap-1.5">
+        {items.filter(Boolean).map((t, i) => (
+          <li key={i} className="flex gap-2 leading-snug text-ink">
+            <span className="text-ink/50">•</span>
+            <span>
+              <Rich text={t} />
+            </span>
+          </li>
+        ))}
+      </ul>
+    )
+    const planText = () => {
+      const p = (s: string) => s.replace(/\*\*/g, '')
+      const lines = ['My Fishbowl action plan', '', 'STOP NOW']
+      ap.stopNow.filter(Boolean).forEach((x) => lines.push(`- ${p(x)}`))
+      lines.push('', 'START NOW')
+      ap.startNow.filter(Boolean).forEach((x) => lines.push(`- ${p(x)}`))
+      lines.push('', 'LATER, once those are habit')
+      ap.stopNext.filter(Boolean).forEach((x) => lines.push(`- stop: ${p(x)}`))
+      ap.startNext.filter(Boolean).forEach((x) => lines.push(`- start: ${p(x)}`))
+      return lines.join('\n')
+    }
+    const hasNext = ap.stopNext.some(Boolean) || ap.startNext.some(Boolean)
+    cards.push({
+      tone: 'pink',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-ink/70">your move</p>
+          <h2 className="display mb-4 text-3xl text-ink">Start here</h2>
+          <div className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-4 shadow-chunky-sm">
+            <p className="kicker text-pink-deep">stop doing now</p>
+            {bullets(ap.stopNow)}
+            <p className="kicker mt-4 text-blue-deep">start doing now</p>
+            {bullets(ap.startNow)}
+          </div>
+          {hasNext && (
+            <div className="mt-3 rounded-2xl border-2 border-ink/40 bg-paper-hi/60 p-4">
+              <p className="kicker text-ink-soft">then, once those stick</p>
+              <p className="kicker mt-1.5 text-pink-deep/80">also stop</p>
+              {bullets(ap.stopNext)}
+              <p className="kicker mt-3 text-blue-deep/80">also start</p>
+              {bullets(ap.startNext)}
+            </div>
+          )}
+          <a
+            href={`mailto:?subject=${encodeURIComponent('My Fishbowl action plan')}&body=${encodeURIComponent(planText())}`}
+            className="press mt-4 block cursor-pointer rounded-2xl border-[2.5px] border-ink bg-blue px-5 py-3 text-center font-display font-black text-paper-hi shadow-chunky-sm sc-navy"
+          >
+            Email this plan to me
+          </a>
+        </div>
+      ),
+    })
+  }
+
   // Final "take it with you" card: the whole report compiled as copy-able text to
   // paste into a personal AI assistant as context.
   const buildSummary = () => {
@@ -655,6 +715,19 @@ export default function Results() {
     })
     L.push('\nWHAT THEY APPRECIATE')
     insights.appreciations.forEach((a) => L.push(`- ${plain(a)}`))
+    if (insights.actionPlan) {
+      const ap = insights.actionPlan
+      L.push('\nACTION PLAN')
+      L.push('Stop now:')
+      ap.stopNow.filter(Boolean).forEach((x) => L.push(`- ${plain(x)}`))
+      L.push('Start now:')
+      ap.startNow.filter(Boolean).forEach((x) => L.push(`- ${plain(x)}`))
+      if (ap.stopNext.some(Boolean) || ap.startNext.some(Boolean)) {
+        L.push('Later, once those are habit:')
+        ap.stopNext.filter(Boolean).forEach((x) => L.push(`- stop: ${plain(x)}`))
+        ap.startNext.filter(Boolean).forEach((x) => L.push(`- start: ${plain(x)}`))
+      }
+    }
     L.push(`\n${plain(insights.closing)}`)
     return L.join('\n')
   }
