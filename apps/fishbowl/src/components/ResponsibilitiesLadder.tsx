@@ -22,28 +22,39 @@ export default function ResponsibilitiesLadder({ team, self }: { team: TeamResp[
           <div key={r.index} className="rounded-2xl border-[2.5px] border-ink bg-sand p-4 shadow-chunky-sm">
             <p className="serif text-lg font-semibold text-ink">{r.label}</p>
             <div className="mt-3 flex flex-col gap-1.5">
-              {[...RESPONSIBILITY_TIERS].reverse().map((t) => {
-                const teamHere = teamShown && r.teamTier === t.v
-                const selfHere = s === t.v
-                return (
-                  <div
-                    key={t.v}
-                    className={`flex items-center justify-between rounded-xl border-2 border-ink px-3 py-2 ${
-                      teamHere ? 'bg-blue text-paper-hi' : 'bg-paper-hi text-ink'
-                    }`}
-                  >
-                    <span className="text-sm font-bold">
-                      {t.emoji} {t.label}
-                    </span>
-                    <span className="flex gap-1.5">
-                      {teamHere && (
-                        <span className="rounded-full bg-paper-hi px-2 py-0.5 text-xs font-bold text-blue-deep">team</span>
-                      )}
-                      {selfHere && <span className="rounded-full bg-pink px-2 py-0.5 text-xs font-bold text-ink">you</span>}
-                    </span>
-                  </div>
-                )
-              })}
+              {[...RESPONSIBILITY_TIERS]
+                .reverse()
+                .filter((t) => (teamShown && r.teamTier === t.v) || s === t.v)
+                .map((t) => {
+                  const teamHere = teamShown && r.teamTier === t.v
+                  const selfHere = s === t.v
+                  return (
+                    <div
+                      key={t.v}
+                      className={`flex items-center justify-between rounded-xl border-2 border-ink px-3 py-2 ${
+                        teamHere ? 'bg-blue text-paper-hi' : selfHere ? 'bg-pink text-ink' : 'bg-paper-hi text-ink'
+                      }`}
+                    >
+                      <span className="text-sm font-bold">
+                        {t.emoji} {t.label}
+                      </span>
+                      <span className="flex gap-1.5">
+                        {teamHere && (
+                          <span className="rounded-full bg-paper-hi px-2 py-0.5 text-xs font-bold text-blue-deep">team</span>
+                        )}
+                        {selfHere && (
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                              teamHere ? 'bg-pink text-ink' : 'bg-paper-hi text-pink-deep'
+                            }`}
+                          >
+                            you
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  )
+                })}
             </div>
             {teamShown && r.note && (
               <p className="mt-3 text-sm leading-relaxed text-ink">

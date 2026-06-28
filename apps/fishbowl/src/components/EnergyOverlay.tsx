@@ -23,6 +23,12 @@ export default function EnergyOverlay({ team, self }: { team: TeamEnergizer[]; s
             <p className="text-sm font-semibold text-ink">{r.label}</p>
             <div className="relative mt-1.5 h-3 rounded-full border-2 border-ink bg-paper-hi">
               <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-ink/20" />
+              {r.n > 0 && typeof s === 'number' && Math.abs(pos(r.teamMean) - pos(s)) > 4 && (
+                <div
+                  className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full"
+                  style={{ left: `${Math.min(pos(r.teamMean), pos(s))}%`, width: `${Math.abs(pos(r.teamMean) - pos(s))}%`, backgroundColor: '#5e2746' }}
+                />
+              )}
               {r.n > 0 && (
                 <div
                   className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-blue"

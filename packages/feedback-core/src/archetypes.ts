@@ -8,21 +8,23 @@ export interface Archetype {
   name: string
   essence: string
   cardTemplate: string // {name} interpolated at render
+  light: string // the archetype at its best
+  shadow: string // the same energy when it tips too far
 }
 
 export const ARCHETYPES: Record<string, Archetype> = {
-  sage: { key: 'sage', name: 'The Sage', essence: 'Seeks the truth before the verdict.', cardTemplate: '{name} wants the truth before the verdict — reads the docs, asks the sharp question, and is usually right.' },
-  creator: { key: 'creator', name: 'The Creator', essence: 'Builds and invents what did not exist.', cardTemplate: "{name} can't help but build — the originator of the idea, happiest making something new and real." },
-  explorer: { key: 'explorer', name: 'The Explorer', essence: 'Finds the new path.', cardTemplate: '{name} is happiest scouting the new path — curious, independent, always a step ahead of the map.' },
-  magician: { key: 'magician', name: 'The Magician', essence: 'Turns the vague into the real.', cardTemplate: '{name} turns the vague into the real — makes things happen that others had quietly written off.' },
-  hero: { key: 'hero', name: 'The Hero', essence: 'Runs at the hard problem.', cardTemplate: '{name} runs at the hard problem and drags the win back — courage you can count on under pressure.' },
-  outlaw: { key: 'outlaw', name: 'The Outlaw', essence: 'Questions the rules everyone accepts.', cardTemplate: '{name} questions the rules everyone else accepts — disruptive, and sometimes exactly what was needed.' },
-  ruler: { key: 'ruler', name: 'The Ruler', essence: 'Brings order and direction.', cardTemplate: '{name} brings order and direction — takes the wheel, sets the plan, and steadies the ship.' },
-  caregiver: { key: 'caregiver', name: 'The Caregiver', essence: 'Looks out for the team.', cardTemplate: '{name} looks out for the team — quick to help, quicker to notice who needs it.' },
-  lover: { key: 'lover', name: 'The Lover', essence: 'Builds real connection.', cardTemplate: '{name} builds real bonds — work feels warmer and more human with them in the room.' },
-  everyman: { key: 'everyman', name: 'The Everyman', essence: 'The steady, no-airs presence.', cardTemplate: '{name} is the steady, no-airs presence who makes everyone feel they belong.' },
-  jester: { key: 'jester', name: 'The Jester', essence: 'Keeps it light when it counts.', cardTemplate: '{name} keeps it light when it counts — the levity that makes the hard stretches bearable.' },
-  innocent: { key: 'innocent', name: 'The Innocent', essence: 'Keeps it simple and hopeful.', cardTemplate: '{name} keeps it simple and hopeful — believes it can work, and makes you believe it too.' },
+  sage: { key: 'sage', name: 'The Sage', essence: 'Seeks the truth before the verdict.', cardTemplate: '{name} wants the truth before the verdict — reads the docs, asks the sharp question, and is usually right.', light: 'Clear-eyed wisdom that cuts to what is true.', shadow: 'Aloof and over-critical, stuck in analysis.' },
+  creator: { key: 'creator', name: 'The Creator', essence: 'Builds and invents what did not exist.', cardTemplate: "{name} can't help but build — the originator of the idea, happiest making something new and real.", light: 'Originality that makes new things real.', shadow: 'Perfectionism that never ships, precious about ideas.' },
+  explorer: { key: 'explorer', name: 'The Explorer', essence: 'Finds the new path.', cardTemplate: '{name} is happiest scouting the new path — curious, independent, always a step ahead of the map.', light: 'Curiosity and nerve that find the new path.', shadow: 'Restless and rootless, never quite commits.' },
+  magician: { key: 'magician', name: 'The Magician', essence: 'Turns the vague into the real.', cardTemplate: '{name} turns the vague into the real — makes things happen that others had quietly written off.', light: 'Turns vision into reality and makes change happen.', shadow: 'Control and spin, overpromises and manipulates.' },
+  hero: { key: 'hero', name: 'The Hero', essence: 'Runs at the hard problem.', cardTemplate: '{name} runs at the hard problem and drags the win back — courage you can count on under pressure.', light: 'Courage and resolve when it counts.', shadow: 'Arrogance and bulldozing, always needs a battle.' },
+  outlaw: { key: 'outlaw', name: 'The Outlaw', essence: 'Questions the rules everyone accepts.', cardTemplate: '{name} questions the rules everyone else accepts — disruptive, and sometimes exactly what was needed.', light: 'Honest disruption of what is broken.', shadow: 'Rebellion for its own sake, burns it all down.' },
+  ruler: { key: 'ruler', name: 'The Ruler', essence: 'Brings order and direction.', cardTemplate: '{name} brings order and direction — takes the wheel, sets the plan, and steadies the ship.', light: 'Order, responsibility, steady direction.', shadow: 'Control and rigidity, micromanages the room.' },
+  caregiver: { key: 'caregiver', name: 'The Caregiver', essence: 'Looks out for the team.', cardTemplate: '{name} looks out for the team — quick to help, quicker to notice who needs it.', light: 'Generous care that lifts the whole team.', shadow: 'Martyrdom and smothering, neglects themselves.' },
+  lover: { key: 'lover', name: 'The Lover', essence: 'Builds real connection.', cardTemplate: '{name} builds real bonds — work feels warmer and more human with them in the room.', light: 'Warmth and real connection.', shadow: 'People-pleasing that loses the self.' },
+  everyman: { key: 'everyman', name: 'The Everyman', essence: 'The steady, no-airs presence.', cardTemplate: '{name} is the steady, no-airs presence who makes everyone feel they belong.', light: 'Down-to-earth realness and belonging.', shadow: 'Plays small and fades in, fears standing out.' },
+  jester: { key: 'jester', name: 'The Jester', essence: 'Keeps it light when it counts.', cardTemplate: '{name} keeps it light when it counts — the levity that makes the hard stretches bearable.', light: 'Levity and perspective that lighten the load.', shadow: 'Deflects with jokes, dodges the hard stuff.' },
+  innocent: { key: 'innocent', name: 'The Innocent', essence: 'Keeps it simple and hopeful.', cardTemplate: '{name} keeps it simple and hopeful — believes it can work, and makes you believe it too.', light: 'Optimism and trust that pull people forward.', shadow: 'Naivety and denial, avoids hard truths.' },
 }
 
 // Transparent weight map: archetype -> { signal: weight }. Signals are normalized

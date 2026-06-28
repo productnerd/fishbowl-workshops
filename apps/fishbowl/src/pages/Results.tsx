@@ -213,9 +213,17 @@ export default function Results() {
             ))}
           </div>
           {selfVirtues && Object.keys(selfVirtues).length > 0 && (
-            <p className="mt-4 text-xs font-semibold text-ink-soft">
-              <span className="text-pink-deep">▲</span> your own read · the boxes are how your team reads you
-            </p>
+            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-ink-soft">
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-3 w-3 rounded-full border-2 border-ink bg-blue" /> your team
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-3 w-3 rounded-full border-2 border-ink bg-pink" /> you
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2 w-4 rounded-full" style={{ backgroundColor: '#5e2746' }} /> a notable gap
+              </span>
+            </div>
           )}
         </div>
       ),
@@ -348,33 +356,43 @@ export default function Results() {
   ]
   cards.splice(1, 0, ...selfCards)
 
-  // Archetype: derived from the team virtue means (always) blended with the
-  // subject's Big Five when they've self-assessed. Renders from team alone.
+  // Archetype: derived from the team virtue means (always), blended with the subject's
+  // Big Five when they've self-assessed. Placed late in the deck (a closing lens), well
+  // after the personality card.
   const virtueMeans = Object.fromEntries(insights.virtues.map((v) => [v.dimension, v.mu]))
   const archetype = deriveArchetype(hasSelf ? (self?.big_five ?? null) : null, virtueMeans)
-  if (archetype) {
-    const archCard = {
-      tone: 'ink' as const,
-      node: (
-        <div className="flex min-h-[55vh] flex-col justify-center text-center">
-          <p className="kicker text-blue">
-            your archetype
-            <InfoTip text="The 12 archetypes Mark & Pearson distilled from Jung. We read it from how you and your team already answered — earned, not self-claimed. A fun lens, not a test." />
-          </p>
-          <p className="display mt-3 text-[clamp(2.6rem,8vw,4rem)] text-paper-hi">{archetype.name}</p>
-          <p className="serif mt-2 text-lg text-paper-hi/80">{archetype.essence}</p>
-          <p className="mt-5 text-lg leading-relaxed text-paper-hi/90">
-            {archetype.cardTemplate.replace('{name}', session.creator_name)}
-          </p>
-          <p className="mt-5 text-sm text-paper-hi/60">
-            with a touch of {archetype.runnerUp}
-            {archetype.fromSelf ? '' : ' · take your self-read to sharpen this'}
-          </p>
-        </div>
-      ),
-    }
-    cards.splice(1, 0, archCard)
-  }
+  const archCard: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode } | null = archetype
+    ? {
+        tone: 'ink',
+        node: (
+          <div className="flex min-h-[55vh] flex-col justify-center text-center">
+            <p className="kicker text-blue">
+              your Jungian archetype
+              <InfoTip text="The 12 archetypes Mark & Pearson distilled from Jung. We read it from how you and your team already answered, earned, not self-claimed. Every archetype has a bright side and a shadow. A fun lens, not a test." />
+            </p>
+            <p className="display mt-3 text-[clamp(2.6rem,8vw,4rem)] text-paper-hi">{archetype.name}</p>
+            <p className="serif mt-2 text-lg text-paper-hi/80">{archetype.essence}</p>
+            <p className="mt-5 text-lg leading-relaxed text-paper-hi/90">
+              {archetype.cardTemplate.replace('{name}', session.creator_name)}
+            </p>
+            <div className="mt-6 grid grid-cols-2 gap-3 text-left">
+              <div className="rounded-2xl border-2 border-blue/40 bg-blue/15 p-3">
+                <p className="kicker text-blue">☀ Light</p>
+                <p className="mt-1 text-sm leading-snug text-paper-hi/90">{archetype.light}</p>
+              </div>
+              <div className="rounded-2xl border-2 border-pink/40 bg-pink/10 p-3">
+                <p className="kicker text-pink">☾ Shadow</p>
+                <p className="mt-1 text-sm leading-snug text-paper-hi/90">{archetype.shadow}</p>
+              </div>
+            </div>
+            <p className="mt-5 text-sm text-paper-hi/60">
+              with a touch of {archetype.runnerUp}
+              {archetype.fromSelf ? '' : ' · take your self-read to sharpen this'}
+            </p>
+          </div>
+        ),
+      }
+    : null
 
   // Energizers overlay: team layer shows at >=5; the subject's own markers overlay
   // once they've self-assessed (else a nudge to add their read).
@@ -575,6 +593,9 @@ export default function Results() {
   }
 
   for (const c of fwCards) cards.splice(cards.length - 1, 0, c)
+
+  // The Jungian archetype sits late, just before the closing.
+  if (archCard) cards.splice(cards.length - 1, 0, archCard)
 
   // Private "you vs them" narrative (bearer-gated). Only when self-assessed.
   if (hasSelf && (selfInsight || selfInsightLoading)) {

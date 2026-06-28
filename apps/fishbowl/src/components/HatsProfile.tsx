@@ -35,6 +35,12 @@ export default function HatsProfile({ team, self }: { team: TeamHat[]; self: Hat
             <div className="relative h-3 rounded-full border-2 border-ink bg-paper-hi">
               {/* center mark = ideal */}
               <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-ink/25" />
+              {teamShown && typeof s === 'number' && Math.abs(pos(r.mu) - pos(s)) > 4 && (
+                <div
+                  className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full"
+                  style={{ left: `${Math.min(pos(r.mu), pos(s))}%`, width: `${Math.abs(pos(r.mu) - pos(s))}%`, backgroundColor: '#5e2746' }}
+                />
+              )}
               {teamShown && (
                 <div
                   className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-blue"

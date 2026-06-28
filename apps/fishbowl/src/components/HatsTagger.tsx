@@ -37,12 +37,7 @@ export default function HatsTagger({
                 <strong className="font-bold">Too little</strong> ({h.tooLittle}): {h.tooLittleInfo}
               </InfoDot>
             </span>
-            <span className="kicker whitespace-nowrap text-center text-ink">
-              {h.mode}
-              <InfoDot label={`What balanced ${h.mode} looks like`}>
-                <strong className="font-bold">Just right</strong> ({h.ideal}): {h.idealInfo}
-              </InfoDot>
-            </span>
+            <span className="kicker whitespace-nowrap text-center font-bold text-ink">{h.mode}</span>
             <span className="kicker text-right text-ink-soft">
               {h.tooMuch}
               <InfoDot label={`More on too much ${h.mode}`}>

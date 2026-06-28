@@ -61,14 +61,16 @@ export default function TierTagger({
               —
             </button>
           </div>
-          <textarea
-            value={notes[i] ?? ''}
-            onChange={(e) => onNotesChange({ ...notes, [i]: e.target.value })}
-            rows={2}
-            maxLength={280}
-            placeholder={NOTE_PROMPT[value[i]] ?? 'In what way? A few words (optional, stays anonymous).'}
-            className="mt-2 w-full resize-none rounded-xl border-2 border-ink bg-sand px-3 py-2 text-sm text-ink outline-none placeholder:text-ink-soft/60 focus:bg-paper-hi"
-          />
+          {(value[i] === 3 || value[i] === 1) && (
+            <textarea
+              value={notes[i] ?? ''}
+              onChange={(e) => onNotesChange({ ...notes, [i]: e.target.value })}
+              rows={2}
+              maxLength={280}
+              placeholder={NOTE_PROMPT[value[i]]}
+              className="mt-2 w-full resize-none rounded-xl border-2 border-ink bg-sand px-3 py-2 text-sm text-ink outline-none placeholder:text-ink-soft/60 focus:bg-paper-hi"
+            />
+          )}
         </div>
       ))}
     </div>
