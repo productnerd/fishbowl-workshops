@@ -16,6 +16,7 @@ import {
   type EnergizerTags,
   type ResponsibilityTiers,
   type HatScores,
+  type VirtueScores,
 } from '@fishbowl/feedback-core'
 import { getSession } from '../lib/data'
 import { getSelfReport, type SelfData } from '../lib/self'
@@ -136,6 +137,9 @@ export default function Results() {
 
   // ── Build the deck ──
   const mostBalanced = [...insights.virtues].sort((a, b) => b.balanceScore - a.balanceScore)[0]
+  const selfVirtues = hasSelf
+    ? ((self?.self_payload as Record<string, unknown> | undefined)?.virtues as VirtueScores | undefined)
+    : undefined
 
   const cards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode }[] = [
     {
@@ -185,9 +189,15 @@ export default function Results() {
                 mu={v.mu}
                 deficientPole={v.deficientPole}
                 excessivePole={v.excessivePole}
+                self={selfVirtues?.[v.dimension]}
               />
             ))}
           </div>
+          {selfVirtues && Object.keys(selfVirtues).length > 0 && (
+            <p className="mt-4 text-xs font-semibold text-ink-soft">
+              <span className="text-pink-deep">▲</span> your own read · the boxes are how your team reads you
+            </p>
+          )}
         </div>
       ),
     },

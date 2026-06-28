@@ -9,15 +9,18 @@ export default function VirtueGauge({
   mu,
   deficientPole,
   excessivePole,
+  self,
   big = false,
 }: {
   name: string
   mu: number
   deficientPole: string
   excessivePole: string
+  self?: number
   big?: boolean
 }) {
   const pos = Math.min(9, Math.max(1, Math.round(mu)))
+  const selfPos = typeof self === 'number' ? Math.min(9, Math.max(1, Math.round(self))) : null
   return (
     <div>
       <div className="mb-1.5">
@@ -40,6 +43,17 @@ export default function VirtueGauge({
           )
         })}
       </div>
+      {selfPos !== null && (
+        <div className="relative mt-0.5 h-3">
+          <span
+            className="absolute -translate-x-1/2 text-[11px] leading-none text-pink-deep"
+            style={{ left: `${((selfPos - 0.5) / 9) * 100}%` }}
+            title={`you ${selfPos}`}
+          >
+            ▲
+          </span>
+        </div>
+      )}
       <div className="mt-1 flex justify-between text-[10px] font-bold uppercase tracking-wide text-ink-soft">
         <span>{deficientPole}</span>
         <span>{excessivePole}</span>

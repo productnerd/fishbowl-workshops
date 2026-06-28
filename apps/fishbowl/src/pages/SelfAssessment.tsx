@@ -19,6 +19,7 @@ import {
   type EnergizerTags,
   type ResponsibilityTiers,
   type HatScores,
+  type VirtueScores,
 } from '@fishbowl/feedback-core'
 import { requestMagicLink, saveSelf, getSelfReport } from '../lib/self'
 import { getSubjectAuth } from '../lib/subjectAuth'
@@ -31,6 +32,7 @@ import EnergizerTagger from '../components/EnergizerTagger'
 import HatsTagger from '../components/HatsTagger'
 import AllocationTagger from '../components/AllocationTagger'
 import ChipPicker from '../components/ChipPicker'
+import VirtueTagger from '../components/VirtueTagger'
 
 // The depth slider: how much time the subject wants to spend, which scales the
 // number of personality questions (per dimension) and which extra activities are
@@ -56,7 +58,7 @@ export default function SelfAssessment() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const [phase, setPhase] = useState<
-    'checking' | 'email' | 'depth' | 'quiz' | 'reveal' | 'energizers' | 'responsibilities' | 'frameworks'
+    'checking' | 'email' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks'
   >('checking')
 
   // Verify the bearer actually OWNS this slug before letting them self-assess. A
@@ -77,6 +79,7 @@ export default function SelfAssessment() {
     }
   }, [slug])
   const [energizerTags, setEnergizerTags] = useState<EnergizerTags>({})
+  const [selfVirtues, setSelfVirtues] = useState<VirtueScores>({})
   const [responsibilities, setResponsibilities] = useState<string[]>([''])
   const [respTiers, setRespTiers] = useState<ResponsibilityTiers>({})
   // Optional "deeper read" self inputs (name-neutral frameworks).
@@ -145,6 +148,7 @@ export default function SelfAssessment() {
       mbti,
       responsibilities: resp,
       self_payload: {
+        virtues: selfVirtues,
         energizers: energizerTags,
         responsibility_tiers: respTiers,
         hats: selfHats,
@@ -329,8 +333,6 @@ export default function SelfAssessment() {
   }
 
   if (phase === 'reveal' && bigFive && mbti) {
-    const next = depth.energizers ? 'energizers' : 'responsibilities'
-    const nextLabel = depth.energizers ? 'Next: your energy map →' : 'Next: your responsibilities →'
     return (
       <div className="mx-auto min-h-dvh w-full max-w-lg px-5 py-10">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
@@ -339,6 +341,30 @@ export default function SelfAssessment() {
           <Card tone="paper" className="p-6 sm:p-7">
             <PersonalityCard mbti={mbti} scores={bigFive} />
           </Card>
+          <div className="mt-7 flex justify-center">
+            <Button variant="pink" onClick={() => setPhase('virtues')} className="!text-xl">
+              Next: the ten virtues →
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
+
+  if (phase === 'virtues') {
+    const next = depth.energizers ? 'energizers' : 'responsibilities'
+    const nextLabel = depth.energizers ? 'Next: your energy map →' : 'Next: your responsibilities →'
+    return (
+      <div className="mx-auto min-h-dvh w-full max-w-lg px-5 py-10">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+          <p className="kicker text-pink-deep">your character, by you</p>
+          <h1 className="display mt-2 text-4xl">The ten virtues</h1>
+          <p className="mt-3 text-ink-soft">
+            Place yourself on each. We'll line this up against how your team reads you.
+          </p>
+          <div className="mt-6">
+            <VirtueTagger value={selfVirtues} onChange={setSelfVirtues} />
+          </div>
           <div className="mt-7 flex justify-center">
             <Button variant="pink" onClick={() => setPhase(next)} className="!text-xl">
               {nextLabel}
