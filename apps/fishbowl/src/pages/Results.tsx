@@ -839,17 +839,20 @@ export default function Results() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -24 }}
             transition={{ duration: 0.32, ease: [0.2, 0.8, 0.2, 1] as const }}
-            className="relative w-full"
+            className="w-full"
           >
             <Card tone={cards[idx].tone} className="max-h-[78vh] overflow-y-auto p-7 sm:p-9">
               {cards[idx].node}
             </Card>
-            {cards[idx].character && (
-              <SideCharacter type={cards[idx].character!.type} name={cards[idx].character!.name} />
-            )}
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Disney character standing on the bottom-right of the screen (wide screens only).
+          Rendered here, outside the animating card wrapper, so `position: fixed` holds. */}
+      {cards[idx].character && (
+        <SideCharacter type={cards[idx].character.type} name={cards[idx].character.name} />
+      )}
 
       {/* edge nav — arrows on the screen edges, vertically centered (dots show progress) */}
       {idx > 0 && (

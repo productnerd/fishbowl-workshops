@@ -123,10 +123,12 @@ function CharacterCutout({ type, character }: { type: string; character: string 
   )
 }
 
-// The same character, standing in the margin to the RIGHT of the card. Shown only on
-// wide screens (xl+) where there's room outside the container, clear of the nav arrow.
-// Absolutely positioned against the card wrapper so it sits outside the card without
-// being clipped by the card's scroll area.
+// The same character, standing on the BOTTOM of the screen in the margin to the right
+// of the card. Shown only on wide screens (xl+) where there's room outside the
+// container. Fixed to the viewport (so it sits on the screen bottom regardless of card
+// height) and sized off the available right margin so it grows on wider screens without
+// overflowing. Must be rendered OUTSIDE the framer card wrapper — an animating ancestor
+// transform would otherwise break `position: fixed`.
 export function SideCharacter({ type, name }: { type: string; name: string }) {
   const charSrc = `${import.meta.env.BASE_URL}characters/${type}.png`
   const ok = useImageReady(charSrc)
@@ -136,8 +138,13 @@ export function SideCharacter({ type, name }: { type: string; name: string }) {
       src={charSrc}
       alt={name}
       aria-hidden
-      className="pointer-events-none absolute left-full top-1/2 ml-6 hidden h-[70vh] max-h-[600px] w-auto max-w-[15rem] -translate-y-1/2 object-contain xl:block"
-      style={{ filter: 'drop-shadow(0 14px 24px rgba(20,20,20,0.42))' }}
+      className="pointer-events-none fixed bottom-0 z-20 hidden h-[92vh] w-auto object-contain object-bottom xl:block"
+      style={{
+        // The container is max-w-xl (36rem) centred, so its right edge is at 50% + 18rem.
+        left: 'calc(50% + 18rem)',
+        maxWidth: 'calc(50vw - 18rem)',
+        filter: 'drop-shadow(0 16px 26px rgba(20,20,20,0.45))',
+      }}
     />
   )
 }
