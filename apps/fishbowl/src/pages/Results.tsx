@@ -24,8 +24,7 @@ import { topPercent } from '../lib/percentile'
 import Card from '../components/Card'
 import VirtueGauge from '../components/VirtueGauge'
 import StatBar from '../components/StatBar'
-import OceanDials from '../components/OceanDials'
-import TypeCard from '../components/TypeCard'
+import PersonalityCard from '../components/PersonalityCard'
 import LockedCard from '../components/LockedCard'
 import EntryModal from '../components/EntryModal'
 import EnergyOverlay from '../components/EnergyOverlay'
@@ -300,33 +299,18 @@ export default function Results() {
   const teaserType = deriveType(teaserBig)
   const selfCards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode }[] = [
     {
-      tone: 'blue',
-      node:
-        hasSelf && self?.mbti ? (
-          <div>
-            <p className="kicker mb-3 text-paper-hi/70">this is you, by you</p>
-            <TypeCard mbti={self.mbti} bare />
-          </div>
-        ) : (
-          <LockedCard caption="Take the 2-min self-read to reveal your type." onUnlock={goSelf}>
-            <TypeCard mbti={teaserType} bare />
-          </LockedCard>
-        ),
-    },
-    {
       tone: 'paper',
       node: (
         <div>
-          <p className="kicker mb-1 text-blue-deep">
+          <p className="kicker mb-4 text-pink-deep">
             this is you, by you
-            <InfoTip text="The Big Five (OCEAN) is the most empirically validated model in personality science — five stable, cross-cultural traits." />
+            <InfoTip text="A playful Big-Five-to-16-personalities approximation, with a Disney archetype to match. Fun, not a clinical test." />
           </p>
-          <h2 className="display mb-5 text-3xl">Your five traits</h2>
-          {hasSelf && self?.big_five ? (
-            <OceanDials scores={self.big_five} />
+          {hasSelf && self?.mbti && self?.big_five ? (
+            <PersonalityCard mbti={self.mbti} scores={self.big_five} />
           ) : (
-            <LockedCard caption="Take the 2-min self-read to reveal your traits." onUnlock={goSelf}>
-              <OceanDials scores={teaserBig} />
+            <LockedCard caption="Take the self-read to reveal your type and five traits." onUnlock={goSelf}>
+              <PersonalityCard mbti={teaserType} scores={teaserBig} />
             </LockedCard>
           )}
         </div>

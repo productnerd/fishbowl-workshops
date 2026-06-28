@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  BIG_FIVE_ITEMS,
+  selectBigFiveItems,
   scoreBigFive,
   deriveType,
   RESPONSIBILITY_TIERS,
@@ -26,18 +26,37 @@ import { playTick } from '../lib/sound'
 import LikertScale from '../components/LikertScale'
 import Button from '../components/Button'
 import Card from '../components/Card'
-import OceanDials from '../components/OceanDials'
-import TypeCard from '../components/TypeCard'
+import PersonalityCard from '../components/PersonalityCard'
 import EnergizerTagger from '../components/EnergizerTagger'
 import HatsTagger from '../components/HatsTagger'
 import AllocationTagger from '../components/AllocationTagger'
 import ChipPicker from '../components/ChipPicker'
 
+// The depth slider: how much time the subject wants to spend, which scales the
+// number of personality questions (per dimension) and which extra activities are
+// auto-included. Default is the middle (Standard); Extended is encouraged.
+type SelfDepth = {
+  id: string
+  name: string
+  perTrait: number
+  time: string
+  accuracy: number // 1-5, drives the meter
+  energizers: boolean
+  frameworks: string[]
+  blurb: string
+}
+const ALL_FRAMEWORKS = ['sixhats', 'belbin', 'via', 'johari']
+const DEPTHS: SelfDepth[] = [
+  { id: 'quick', name: 'Quick', perTrait: 4, time: 'about 4 min', accuracy: 3, energizers: false, frameworks: [], blurb: 'The essentials. A solid first read of who you are.' },
+  { id: 'standard', name: 'Standard', perTrait: 6, time: 'about 7 min', accuracy: 4, energizers: true, frameworks: ['sixhats', 'via'], blurb: 'More questions, a sharper picture. The sweet spot most people pick.' },
+  { id: 'extended', name: 'Extended', perTrait: 8, time: 'about 10 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read of you.' },
+]
+
 export default function SelfAssessment() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const [phase, setPhase] = useState<
-    'checking' | 'email' | 'quiz' | 'reveal' | 'energizers' | 'responsibilities' | 'frameworks'
+    'checking' | 'email' | 'depth' | 'quiz' | 'reveal' | 'energizers' | 'responsibilities' | 'frameworks'
   >('checking')
 
   // Verify the bearer actually OWNS this slug before letting them self-assess. A
@@ -51,7 +70,7 @@ export default function SelfAssessment() {
     }
     let cancelled = false
     getSelfReport(slug).then((r) => {
-      if (!cancelled) setPhase(r.authed ? 'quiz' : 'email')
+      if (!cancelled) setPhase(r.authed ? 'depth' : 'email')
     })
     return () => {
       cancelled = true
@@ -82,6 +101,11 @@ export default function SelfAssessment() {
     if (r.devClaimUrl) setDevUrl(r.devClaimUrl)
   }
 
+  // ── depth ──
+  const [depthIdx, setDepthIdx] = useState(1) // default middle (Standard)
+  const [depth, setDepth] = useState<SelfDepth>(DEPTHS[1])
+  const items = useMemo(() => selectBigFiveItems(depth.perTrait), [depth])
+
   // ── quiz ──
   const [i, setI] = useState(0)
   const [answers, setAnswers] = useState<Record<string, number>>({})
@@ -90,12 +114,12 @@ export default function SelfAssessment() {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(false)
 
-  const q = BIG_FIVE_ITEMS[Math.min(i, BIG_FIVE_ITEMS.length - 1)]
-  const pct = ((i + 1) / BIG_FIVE_ITEMS.length) * 100
+  const q = items[Math.min(i, items.length - 1)]
+  const pct = ((i + 1) / items.length) * 100
 
   const pick = (v: number) => {
     playTick()
-    const isLast = i === BIG_FIVE_ITEMS.length - 1
+    const isLast = i === items.length - 1
     const next = { ...answers, [q.id]: v }
     setAnswers(next)
     setTimeout(() => {
@@ -105,7 +129,7 @@ export default function SelfAssessment() {
         setMbti(deriveType(bf))
         setPhase('reveal')
       } else {
-        setI((c) => Math.min(c + 1, BIG_FIVE_ITEMS.length - 1))
+        setI((c) => Math.min(c + 1, items.length - 1))
       }
     }, 320)
   }
@@ -200,24 +224,119 @@ export default function SelfAssessment() {
     )
   }
 
+  if (phase === 'depth') {
+    const cur = DEPTHS[depthIdx]
+    const included = [
+      `Personality, ${cur.perTrait} questions per trait`,
+      'Your responsibilities',
+      ...(cur.energizers ? ['Your energy map'] : []),
+      ...(cur.frameworks.length ? [`${cur.frameworks.length} deeper activit${cur.frameworks.length === 1 ? 'y' : 'ies'}`] : []),
+    ]
+    const start = () => {
+      setDepth(cur)
+      setPhase('quiz')
+    }
+    return (
+      <div className="mx-auto grid min-h-dvh w-full max-w-lg place-items-center px-5 py-10">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full">
+          <p className="kicker text-pink-deep">before we start</p>
+          <h1 className="display mt-2 text-4xl">How deep do you want to go?</h1>
+          <p className="mt-3 text-ink-soft">
+            The longer read asks more, so it sees you more clearly. You can stop early at any point.
+          </p>
+
+          <Card tone="paper" className="mt-6 p-6">
+            <div className="flex items-baseline justify-between">
+              <span className="display text-3xl">{cur.name}</span>
+              <span className="kicker text-ink-soft">{cur.time}</span>
+            </div>
+            <p className="mt-1 text-sm text-ink-soft">{cur.blurb}</p>
+
+            {/* slider */}
+            <input
+              type="range"
+              min={0}
+              max={2}
+              step={1}
+              value={depthIdx}
+              onChange={(e) => {
+                playTick()
+                setDepthIdx(Number(e.target.value))
+              }}
+              aria-label="How deep to go"
+              className="mt-5 w-full cursor-pointer accent-pink"
+            />
+            <div className="mt-1 flex justify-between text-xs font-bold">
+              {DEPTHS.map((d, k) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  onClick={() => {
+                    playTick()
+                    setDepthIdx(k)
+                  }}
+                  className={`cursor-pointer ${k === depthIdx ? 'text-pink-deep' : 'text-ink-soft/70'}`}
+                >
+                  {d.name}
+                  {d.id === 'extended' ? ' ✨' : ''}
+                </button>
+              ))}
+            </div>
+
+            {/* accuracy + detail meter */}
+            <div className="mt-6">
+              <div className="flex items-center justify-between">
+                <span className="kicker text-blue-deep">accuracy & detail</span>
+                <span className="text-xs font-bold text-ink-soft">{cur.accuracy} / 5</span>
+              </div>
+              <div className="mt-1.5 flex gap-1.5">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <div
+                    key={n}
+                    className={`h-2.5 flex-1 rounded-full border-2 border-ink ${n <= cur.accuracy ? 'bg-blue' : 'bg-paper-hi'}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* what's included */}
+            <ul className="mt-5 flex flex-col gap-1.5">
+              {included.map((x) => (
+                <li key={x} className="flex items-center gap-2 text-sm text-ink">
+                  <span className="text-blue-deep">✓</span>
+                  {x}
+                </li>
+              ))}
+            </ul>
+          </Card>
+
+          <div className="mt-7 flex flex-col items-center gap-2">
+            <Button variant="pink" onClick={start} className="!text-xl">
+              Start the {cur.name.toLowerCase()} read →
+            </Button>
+            {cur.id !== 'extended' && (
+              <p className="text-center text-xs text-ink-soft">Most people learn more from the extended read.</p>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
+
   if (phase === 'reveal' && bigFive && mbti) {
+    const next = depth.energizers ? 'energizers' : 'responsibilities'
+    const nextLabel = depth.energizers ? 'Next: your energy map →' : 'Next: your responsibilities →'
     return (
       <div className="mx-auto min-h-dvh w-full max-w-lg px-5 py-10">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
           <p className="kicker text-pink-deep">this is you, by you</p>
-          <h1 className="display mt-2 text-4xl">Your self-read</h1>
-          <div className="mt-6">
-            <TypeCard mbti={mbti} />
-          </div>
-          <div className="mt-6">
-            <Card tone="paper" className="p-6">
-              <p className="kicker mb-4 text-blue-deep">your five traits</p>
-              <OceanDials scores={bigFive} />
-            </Card>
-          </div>
+          <h1 className="display mt-2 mb-6 text-4xl">Your self-read</h1>
+          <Card tone="paper" className="p-6 sm:p-7">
+            <PersonalityCard mbti={mbti} scores={bigFive} />
+          </Card>
           <div className="mt-7 flex justify-center">
-            <Button variant="pink" onClick={() => setPhase('energizers')} className="!text-xl">
-              Next: your energy map →
+            <Button variant="pink" onClick={() => setPhase(next)} className="!text-xl">
+              {nextLabel}
             </Button>
           </div>
         </motion.div>
@@ -303,20 +422,36 @@ export default function SelfAssessment() {
             </button>
           )}
           <div className="mt-7 flex flex-col items-center gap-3">
-            <Button variant="pink" onClick={save} disabled={saving} className="!text-xl">
-              {saving ? 'Saving…' : 'Save & see my report →'}
-            </Button>
+            {depth.frameworks.length > 0 ? (
+              <>
+                <Button variant="pink" onClick={() => setPhase('frameworks')} disabled={saving} className="!text-xl">
+                  Next: a deeper read →
+                </Button>
+                <button onClick={save} disabled={saving} className="cursor-pointer text-sm font-semibold text-ink-soft hover:underline">
+                  {saving ? 'Saving…' : 'Skip the rest, save now'}
+                </button>
+              </>
+            ) : (
+              <>
+                <Button variant="pink" onClick={save} disabled={saving} className="!text-xl">
+                  {saving ? 'Saving…' : 'Save & see my report →'}
+                </Button>
+                <button
+                  onClick={() => {
+                    setDepth({ ...depth, frameworks: ALL_FRAMEWORKS })
+                    setPhase('frameworks')
+                  }}
+                  className="cursor-pointer text-sm font-semibold text-blue-deep underline-offset-2 hover:underline"
+                >
+                  Or add a deeper read (4 quick activities) →
+                </button>
+              </>
+            )}
             {saveError && (
               <p className="text-center text-sm font-semibold text-pink-deep">
                 Couldn't save your read. Your link may have expired, reopen it from your email and try again.
               </p>
             )}
-            <button
-              onClick={() => setPhase('frameworks')}
-              className="cursor-pointer text-sm font-semibold text-blue-deep underline-offset-2 hover:underline"
-            >
-              Or add a deeper read (4 quick activities) →
-            </button>
           </div>
         </motion.div>
       </div>
@@ -324,14 +459,14 @@ export default function SelfAssessment() {
   }
 
   if (phase === 'frameworks') {
-    const steps = ['sixhats', 'belbin', 'via', 'johari'] as const
+    const steps = depth.frameworks
     const titles: Record<string, string> = {
       sixhats: 'Your thinking hats',
       belbin: 'Your team role',
       via: 'Your signature strengths',
       johari: 'Words for yourself',
     }
-    const fw = steps[fwIdx]
+    const fw = steps[Math.min(fwIdx, steps.length - 1)]
     const last = fwIdx === steps.length - 1
     const next = () => (last ? save() : setFwIdx((i) => i + 1))
     return (
@@ -395,7 +530,7 @@ export default function SelfAssessment() {
         <div className="mb-2 flex items-center justify-between">
           <span className="kicker text-pink-deep">your self-read</span>
           <span className="kicker text-ink-soft">
-            {i + 1} / {BIG_FIVE_ITEMS.length}
+            {i + 1} / {items.length}
           </span>
         </div>
         <div className="h-3 overflow-hidden rounded-full border-2 border-ink bg-paper-hi">
