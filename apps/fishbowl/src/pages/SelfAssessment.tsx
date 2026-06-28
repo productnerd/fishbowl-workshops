@@ -146,6 +146,7 @@ export default function SelfAssessment() {
   const [mbti, setMbti] = useState<MbtiType | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(false)
+  const [confirmSkip, setConfirmSkip] = useState(false)
 
   const q = items[Math.min(i, items.length - 1)]
   const pct = ((i + 1) / items.length) * 100
@@ -214,6 +215,39 @@ export default function SelfAssessment() {
     localStorage.setItem(`fishbowl_self_nudge_seen_${slug}`, '1')
     navigate(`/r/${slug}`)
   }
+
+  // "Are you sure" confirmation before skipping the remaining deeper activities.
+  const skipModal = (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-ink/40 px-5" onClick={() => setConfirmSkip(false)}>
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-sm">
+        <Card tone="paper" className="p-6 text-center">
+          <p className="display text-2xl">Skip the rest?</p>
+          <p className="mt-2 text-sm text-ink-soft">
+            You can finish later, but your report is richer with the deeper activities included.
+          </p>
+          <div className="mt-5 flex flex-col items-center gap-2">
+            <Button
+              variant="pink"
+              onClick={() => {
+                setConfirmSkip(false)
+                save()
+              }}
+              disabled={saving}
+              className="!text-lg"
+            >
+              {saving ? 'Saving…' : 'Skip and save →'}
+            </Button>
+            <button
+              onClick={() => setConfirmSkip(false)}
+              className="cursor-pointer text-sm font-semibold text-ink-soft hover:underline"
+            >
+              Keep going
+            </button>
+          </div>
+        </Card>
+      </div>
+    </div>
+  )
 
   // ── render ──
   if (phase === 'checking') {
@@ -515,6 +549,7 @@ export default function SelfAssessment() {
     return (
       <div className="mx-auto min-h-dvh w-full max-w-lg px-5 py-10">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+          {confirmSkip && skipModal}
           <p className="kicker text-pink-deep">what you own</p>
           <h1 className="display mt-2 text-4xl">Your responsibilities</h1>
           <p className="mt-3 text-ink-soft">
@@ -578,7 +613,7 @@ export default function SelfAssessment() {
                 >
                   Next: a deeper read →
                 </Button>
-                <button onClick={save} disabled={saving} className="cursor-pointer text-sm font-semibold text-ink-soft hover:underline">
+                <button onClick={() => setConfirmSkip(true)} disabled={saving} className="cursor-pointer text-sm font-semibold text-ink-soft hover:underline">
                   {saving ? 'Saving…' : 'Skip the rest, save now'}
                 </button>
               </>
@@ -631,6 +666,7 @@ export default function SelfAssessment() {
     }
     return (
       <div className="mx-auto min-h-dvh w-full max-w-lg px-5 py-10">
+        {confirmSkip && skipModal}
         <motion.div key={fw} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
           <p className="kicker text-pink-deep">
             a deeper read · {fwIdx + 1} / {steps.length}
@@ -669,7 +705,7 @@ export default function SelfAssessment() {
             <Button variant="pink" onClick={next} disabled={saving} className="!text-xl">
               {last ? (saving ? 'Saving…' : 'Save & see my report →') : 'Next →'}
             </Button>
-            <button onClick={save} disabled={saving} className="cursor-pointer text-sm font-semibold text-ink-soft hover:underline">
+            <button onClick={() => setConfirmSkip(true)} disabled={saving} className="cursor-pointer text-sm font-semibold text-ink-soft hover:underline">
               Skip the rest, save now
             </button>
             {saveError && (

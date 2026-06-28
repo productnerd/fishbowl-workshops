@@ -7,24 +7,6 @@ const OFF_PINK = ['', '#f6cdda', '#efaac4', '#e486a6', '#d56690']
 const STAR_BLUE = '#bcd6ef'
 const SEGMENTS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-// A small ⓘ that explains what too little / ideal / too much look like for a hat,
-// so people can grade fairly. Hover (desktop) or tap.
-function HatInfo({ mode, tooLittle, ideal, tooMuch }: { mode: string; tooLittle: string; ideal: string; tooMuch: string }) {
-  return (
-    <InfoDot label={`What ${mode} looks like at each level`}>
-      <span className="block">
-        <strong className="font-bold">Too little:</strong> {tooLittle}
-      </span>
-      <span className="mt-1.5 block">
-        <strong className="font-bold">Ideal:</strong> {ideal}
-      </span>
-      <span className="mt-1.5 block">
-        <strong className="font-bold">Too much:</strong> {tooMuch}
-      </span>
-    </InfoDot>
-  )
-}
-
 // Six rows, one per de Bono hat. Each box is tinted in that hat's (pastel) colour.
 // A compact bipolar 1-9 picker (1 = too little, 5 = ideal/blue center, 9 = too much)
 // with the hat's mode + too-little/too-much pole labels, and an ⓘ explaining each
@@ -49,12 +31,24 @@ export default function HatsTagger({
           className="rounded-2xl border-[2.5px] border-ink p-3 shadow-chunky-sm"
         >
           <div className="mb-2 grid grid-cols-[1fr_auto_1fr] items-baseline gap-3">
-            <span className="kicker text-ink-soft">{h.tooLittle}</span>
-            <span className="kicker flex items-center justify-center whitespace-nowrap text-center text-ink">
-              {h.mode}
-              <HatInfo mode={h.mode} tooLittle={h.tooLittle} ideal={h.ideal} tooMuch={h.tooMuch} />
+            <span className="kicker text-ink-soft">
+              {h.tooLittle}
+              <InfoDot label={`More on too little ${h.mode}`}>
+                <strong className="font-bold">Too little</strong> ({h.tooLittle}): {h.tooLittleInfo}
+              </InfoDot>
             </span>
-            <span className="kicker text-right text-ink-soft">{h.tooMuch}</span>
+            <span className="kicker whitespace-nowrap text-center text-ink">
+              {h.mode}
+              <InfoDot label={`What balanced ${h.mode} looks like`}>
+                <strong className="font-bold">Just right</strong> ({h.ideal}): {h.idealInfo}
+              </InfoDot>
+            </span>
+            <span className="kicker text-right text-ink-soft">
+              {h.tooMuch}
+              <InfoDot label={`More on too much ${h.mode}`}>
+                <strong className="font-bold">Too much</strong> ({h.tooMuch}): {h.tooMuchInfo}
+              </InfoDot>
+            </span>
           </div>
           <div className="flex gap-1.5">
             {SEGMENTS.map((s) => {
