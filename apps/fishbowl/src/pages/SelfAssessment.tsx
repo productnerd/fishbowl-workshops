@@ -24,8 +24,8 @@ import {
   type HatScores,
   type VirtueScores,
 } from '@fishbowl/feedback-core'
-import { requestMagicLink, saveSelf, getSelfReport } from '../lib/self'
-import { getSubjectAuth } from '../lib/subjectAuth'
+import { requestMagicLink, saveSelf, finishSelf, getSelfReport } from '../lib/self'
+import { getSubjectAuth, setSubjectAuth } from '../lib/subjectAuth'
 import { playTick, playScaleNote } from '../lib/sound'
 import LikertScale from '../components/LikertScale'
 import Button from '../components/Button'
@@ -58,7 +58,7 @@ const DEPTHS: SelfDepth[] = [
   { id: 'extended', name: 'Extended', perTrait: 8, time: '~10 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
 ]
 
-type Phase = 'checking' | 'email' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks'
+type Phase = 'checking' | 'finish' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks'
 
 // The 10 virtue scales, reused from the colleague survey so the vice/virtue behaviours
 // (deficientTraits / virtueTraits / excessiveTraits) are a single source of truth.
@@ -87,15 +87,19 @@ export default function SelfAssessment() {
   // fill the whole thing, fail the save, and bounce them to a self-less report.
   useEffect(() => {
     if (!slug) return
+    // Ungated: anyone with the link can start straight away. We collect an email only
+    // at the very end (the 'finish' step) to save the read and mail the results link.
     if (!getSubjectAuth()) {
-      setPhase('email')
+      setAuthed(false)
+      setPhase('depth')
       return
     }
     let cancelled = false
     getSelfReport(slug).then((r) => {
       if (cancelled) return
+      setAuthed(r.authed)
       if (!r.authed) {
-        setPhase('email')
+        setPhase('depth')
         return
       }
       const s = r.self
@@ -137,19 +141,28 @@ export default function SelfAssessment() {
   const [selfJohari, setSelfJohari] = useState<string[]>([])
   const [selfNohari, setSelfNohari] = useState<string[]>([])
 
-  // ── email gate ──
+  // ── finish: collect the email at the very end (ungated start) ──
+  const [authed, setAuthed] = useState(false)
   const [email, setEmail] = useState('')
   const [sending, setSending] = useState(false)
-  const [sent, setSent] = useState(false)
-  const [devUrl, setDevUrl] = useState<string | null>(null)
+  const [finishError, setFinishError] = useState<string | null>(null)
 
-  const sendLink = async () => {
-    if (!email.trim() || !slug) return
+  // Save the completed read, mint a device bearer, and email the results link, then
+  // open the report. Used when the subject started without signing in.
+  const onFinish = async () => {
+    if (!slug || !bigFive || !mbti || !email.trim()) return
     setSending(true)
-    const r = await requestMagicLink(email.trim(), slug)
-    setSending(false)
-    setSent(true)
-    if (r.devClaimUrl) setDevUrl(r.devClaimUrl)
+    setFinishError(null)
+    const res = await finishSelf(email.trim(), slug, buildPayload(true, 'done'))
+    if (!res.ok || !res.bearer || !res.person_id) {
+      setSending(false)
+      setFinishError(res.error ?? 'error')
+      return
+    }
+    setSubjectAuth({ bearer: res.bearer, person_id: res.person_id, slug })
+    void requestMagicLink(email.trim(), slug) // the one email: a link back to the results
+    localStorage.setItem(`fishbowl_self_nudge_seen_${slug}`, '1')
+    navigate(`/r/${slug}`)
   }
 
   // ── depth ──
@@ -221,6 +234,11 @@ export default function SelfAssessment() {
 
   const save = async () => {
     if (!slug || !bigFive || !mbti) return
+    // Started without signing in — collect an email at the end, then save + redirect.
+    if (!authed) {
+      setPhase('finish')
+      return
+    }
     setSaving(true)
     setSaveError(false)
     const res = await saveSelf(slug, buildPayload(true, 'done'))
@@ -279,47 +297,36 @@ export default function SelfAssessment() {
     )
   }
 
-  if (phase === 'email') {
+  if (phase === 'finish') {
     return (
       <div className="grid min-h-dvh place-items-center px-5">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm text-center">
           <Card tone="paper" className="p-7">
             <div className="text-5xl">🪞</div>
-            <h1 className="display mt-3 text-4xl">Your self-read</h1>
-            {!sent ? (
-              <>
-                <p className="mt-2 text-ink-soft">
-                  Enter your email and we'll send a private link to your self-assessment and your report.
-                </p>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && sendLink()}
-                  autoFocus
-                  placeholder="you@work.com"
-                  className="mt-5 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-center text-base text-ink shadow-chunky-sm outline-none focus:shadow-chunky"
-                />
-                <div className="mt-5">
-                  <Button variant="blue" onClick={sendLink} disabled={sending || !email.trim()}>
-                    {sending ? 'Sending…' : 'Send my link →'}
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="mt-3 text-lg text-ink-soft">
-                  ✉️ Check your email for your private link.
-                </p>
-                {devUrl && (
-                  <div className="mt-5">
-                    <Button variant="pink" onClick={() => navigate('/' + devUrl.split('#/')[1])}>
-                      Continue (dev) →
-                    </Button>
-                    <p className="mt-2 text-xs text-ink-soft">Dev mode: email isn't wired yet, so use this link.</p>
-                  </div>
-                )}
-              </>
+            <h1 className="display mt-3 text-4xl">Your read is ready</h1>
+            <p className="mt-2 text-ink-soft">
+              Drop your email and we'll open your report now, and send you a link to come back to it anytime.
+            </p>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && onFinish()}
+              autoFocus
+              placeholder="you@work.com"
+              className="mt-5 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-center text-base text-ink shadow-chunky-sm outline-none focus:shadow-chunky"
+            />
+            <div className="mt-5">
+              <Button variant="pink" onClick={onFinish} disabled={sending || !email.trim()} className="!text-lg">
+                {sending ? 'Opening…' : 'Open my report →'}
+              </Button>
+            </div>
+            {finishError && (
+              <p className="mt-3 text-sm font-semibold text-pink-deep">
+                {finishError === 'this link belongs to someone else'
+                  ? 'This link is already tied to another email.'
+                  : "Couldn't save your read. Try again."}
+              </p>
             )}
           </Card>
         </motion.div>

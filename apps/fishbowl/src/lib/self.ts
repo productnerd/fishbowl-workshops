@@ -58,6 +58,29 @@ export async function getSelfInsight(slug: string, force = false): Promise<SelfI
   return (data.insight as SelfInsight) ?? null
 }
 
+// Finish an ungated self-assessment: identify the email, claim the session, mint a
+// device bearer and save the self-read in one call. Returns the bearer to store
+// locally so the report opens with the self-view immediately.
+export async function finishSelf(
+  email: string,
+  slug: string,
+  payload: {
+    ocean_answers: Record<string, number>
+    big_five: BigFiveScores
+    mbti: MbtiType
+    self_payload?: Record<string, unknown>
+    responsibilities?: string[]
+    completed: boolean
+  }
+): Promise<{ ok: boolean; bearer?: string; person_id?: string; error?: string }> {
+  const { data, error } = await supabase.functions.invoke('fishbowl-finish-self', {
+    body: { email, slug, ...payload },
+  })
+  if (error) return { ok: false, error: 'network' }
+  if (!data || data.error) return { ok: false, error: data?.error }
+  return { ok: true, bearer: data.bearer, person_id: data.person_id }
+}
+
 export async function saveSelf(
   slug: string,
   payload: {
