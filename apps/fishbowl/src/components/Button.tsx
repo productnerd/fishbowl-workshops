@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { playStart } from '../lib/sound'
 
 type Variant = 'pink' | 'ink' | 'blue' | 'paper'
 const variants: Record<Variant, string> = {
@@ -26,7 +27,15 @@ export default function Button({
   return (
     <button
       type={type}
-      onClick={onClick}
+      onClick={
+        onClick || variant === 'pink'
+          ? () => {
+              // Every pink (primary) button shares the same launch cue.
+              if (variant === 'pink') playStart()
+              onClick?.()
+            }
+          : undefined
+      }
       disabled={disabled}
       className={`press inline-flex items-center justify-center gap-2 rounded-full border-[2.5px] border-ink px-7 py-3.5 font-display text-lg font-black shadow-chunky cursor-pointer disabled:opacity-50 disabled:pointer-events-none ${variants[variant]} ${className}`}
     >

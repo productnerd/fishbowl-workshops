@@ -160,7 +160,10 @@ export default function PersonalityCard({ mbti, scores, sideChar }: { mbti: Mbti
       <PageBackdrop type={mbti.type} />
       <CharacterCutout type={mbti.type} character={mbti.character || ''} hideOnWide={sideChar} />
       <div className="text-center">
-        <p className="kicker text-pink-deep">your personality type is</p>
+        <p className="kicker text-pink-deep">
+          your personality type is
+          <InfoDot>A playful Big-Five-to-16-personalities approximation, with a Disney archetype to match. Fun, not a clinical test.</InfoDot>
+        </p>
         <h2 className="display mt-1 text-[clamp(1.7rem,6vw,2.6rem)] leading-[1.05]">{mbti.nickname}</h2>
         <p className="serif mt-1 text-2xl tracking-wide text-ink-soft">{code}</p>
         <p className="mx-auto mt-3 max-w-md leading-relaxed text-ink-soft">{mbti.flavour}</p>

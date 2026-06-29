@@ -279,31 +279,6 @@ export default function Results() {
       ),
     },
     {
-      tone: 'paper',
-      node: (
-        <div>
-          <p className="kicker mb-5 text-blue-deep">grow here</p>
-          <div className="flex flex-col gap-4">
-            {insights.growthEdges.map((g) => (
-              <div key={g.dimension} className="rounded-2xl border-[2.5px] border-ink bg-sand p-4 shadow-chunky-sm">
-                <p className="serif text-xl font-semibold">{g.title}</p>
-                <ul className="mt-2 flex flex-col gap-1.5">
-                  {g.actions.filter(Boolean).map((b, i) => (
-                    <li key={i} className="flex gap-2 leading-snug text-ink-soft">
-                      <span className="text-blue-deep">→</span>
-                      <span>
-                        <Rich text={b} />
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      ),
-    },
-    {
       tone: 'ink',
       node: (
         <div className="flex min-h-[55vh] flex-col justify-center">
@@ -345,10 +320,6 @@ export default function Results() {
       ...(hasSelf && self?.mbti?.character ? { character: { type: self.mbti.type, name: self.mbti.character } } : {}),
       node: (
         <div>
-          <p className="kicker mb-4 text-pink-deep">
-            this is you, by you
-            <InfoTip text="A playful Big-Five-to-16-personalities approximation, with a Disney archetype to match. Fun, not a clinical test." />
-          </p>
           {hasSelf && self?.mbti && self?.big_five ? (
             <PersonalityCard mbti={self.mbti} scores={self.big_five} sideChar />
           ) : (
@@ -752,11 +723,6 @@ export default function Results() {
     })
     L.push('\nHOW THEY RATE YOU (1-5)')
     insights.competencies.forEach((c) => L.push(`- ${plain(c.statement)}: ${c.average}/5`))
-    L.push('\nGROW HERE')
-    insights.growthEdges.forEach((g) => {
-      L.push(`- ${g.title}`)
-      g.actions.filter(Boolean).forEach((a) => L.push(`  • ${plain(a)}`))
-    })
     L.push('\nWHAT THEY APPRECIATE')
     insights.appreciations.forEach((a) => L.push(`- ${plain(a)}`))
     if (teamNohari.length || (selfNohari && selfNohari.length)) {

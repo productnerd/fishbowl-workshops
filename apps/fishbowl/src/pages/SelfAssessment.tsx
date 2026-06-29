@@ -26,7 +26,7 @@ import {
 } from '@fishbowl/feedback-core'
 import { requestMagicLink, saveSelf, getSelfReport } from '../lib/self'
 import { getSubjectAuth } from '../lib/subjectAuth'
-import { playTick, playQuizTick, playQuizNote, playStart } from '../lib/sound'
+import { playTick, playScaleNote } from '../lib/sound'
 import LikertScale from '../components/LikertScale'
 import Button from '../components/Button'
 import Card from '../components/Card'
@@ -63,6 +63,19 @@ type Phase = 'checking' | 'email' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'e
 // The 10 virtue scales, reused from the colleague survey so the vice/virtue behaviours
 // (deficientTraits / virtueTraits / excessiveTraits) are a single source of truth.
 const VIRTUE_QS = questions.filter((q) => q.type === 'virtue')
+
+// A subtle "← Back" used to step back to the previous activity in the self-flow.
+function BackButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="press cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-5 py-3 font-semibold text-ink shadow-chunky-sm"
+    >
+      ← Back
+    </button>
+  )
+}
 
 export default function SelfAssessment() {
   const { slug } = useParams<{ slug: string }>()
@@ -157,7 +170,7 @@ export default function SelfAssessment() {
   const pct = ((i + 1) / items.length) * 100
 
   const pick = (v: number) => {
-    playQuizNote(v)
+    playScaleNote(v)
     const isLast = i === items.length - 1
     const next = { ...answers, [q.id]: v }
     setAnswers(next)
@@ -323,7 +336,6 @@ export default function SelfAssessment() {
       ...(cur.frameworks.length ? [`${cur.frameworks.length} deeper activit${cur.frameworks.length === 1 ? 'y' : 'ies'}`] : []),
     ]
     const start = () => {
-      playStart()
       setDepth(cur)
       setPhase('quiz')
     }
@@ -426,7 +438,7 @@ export default function SelfAssessment() {
           <Card tone="paper" className="p-6 sm:p-7">
             <PersonalityCard mbti={mbti} scores={bigFive} />
           </Card>
-          <div className="mt-7 flex justify-center">
+          <div className="mt-7 flex flex-col items-center gap-3">
             <Button
               variant="pink"
               onClick={() => {
@@ -437,6 +449,7 @@ export default function SelfAssessment() {
             >
               Next: the ten virtues →
             </Button>
+            <BackButton onClick={() => { setI(items.length - 1); setPhase('quiz') }} />
           </div>
         </motion.div>
       </div>
@@ -449,7 +462,7 @@ export default function SelfAssessment() {
     const last = vIdx === VIRTUE_QS.length - 1
     const next = depth.energizers ? 'energizers' : 'responsibilities'
     const onPick = (val: number) => {
-      playQuizTick()
+      playScaleNote(val)
       const dim = vq.dimension!
       setSelfVirtues((p) => ({ ...p, [dim]: val }))
       setTimeout(() => {
@@ -508,12 +521,7 @@ export default function SelfAssessment() {
         </div>
 
         <div className="pb-6">
-          <button
-            onClick={() => (vIdx > 0 ? setVIdx((i) => i - 1) : setPhase('reveal'))}
-            className="press cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-5 py-3 font-semibold text-ink shadow-chunky-sm"
-          >
-            ← Back
-          </button>
+          <BackButton onClick={() => (vIdx > 0 ? setVIdx((i) => i - 1) : setPhase('reveal'))} />
         </div>
       </div>
     )
@@ -531,7 +539,7 @@ export default function SelfAssessment() {
           <div className="mt-6">
             <EnergizerTagger value={energizerTags} onChange={setEnergizerTags} />
           </div>
-          <div className="mt-7 flex justify-center">
+          <div className="mt-7 flex flex-col items-center gap-3">
             <Button
               variant="pink"
               onClick={() => {
@@ -542,6 +550,7 @@ export default function SelfAssessment() {
             >
               Next: your responsibilities →
             </Button>
+            <BackButton onClick={() => { setVIdx(VIRTUE_QS.length - 1); setPhase('virtues') }} />
           </div>
         </motion.div>
       </div>
@@ -645,6 +654,15 @@ export default function SelfAssessment() {
                 Couldn't save your read. Your link may have expired, reopen it from your email and try again.
               </p>
             )}
+            <BackButton
+              onClick={() => {
+                if (depth.energizers) setPhase('energizers')
+                else {
+                  setVIdx(VIRTUE_QS.length - 1)
+                  setPhase('virtues')
+                }
+              }}
+            />
           </div>
         </motion.div>
       </div>
@@ -723,6 +741,7 @@ export default function SelfAssessment() {
             <button onClick={() => setConfirmSkip(true)} disabled={saving} className="cursor-pointer text-sm font-semibold text-ink-soft hover:underline">
               Skip the rest, save now
             </button>
+            <BackButton onClick={() => (fwIdx > 0 ? setFwIdx((c) => c - 1) : setPhase('responsibilities'))} />
             {saveError && (
               <p className="text-center text-sm font-semibold text-pink-deep">
                 Couldn't save your read. Your link may have expired, reopen it from your email and try again.
@@ -765,16 +784,9 @@ export default function SelfAssessment() {
         </AnimatePresence>
       </div>
 
-      {i > 0 && (
-        <div className="pb-6">
-          <button
-            onClick={() => setI((c) => Math.max(0, c - 1))}
-            className="press cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-5 py-3 font-semibold text-ink shadow-chunky-sm"
-          >
-            ← Back
-          </button>
-        </div>
-      )}
+      <div className="pb-6">
+        <BackButton onClick={() => (i > 0 ? setI((c) => c - 1) : setPhase('depth'))} />
+      </div>
     </div>
   )
 }
