@@ -116,7 +116,7 @@ export default function Landing() {
           <p className="kicker mb-2 text-blue-deep">the activities &amp; their frameworks</p>
           <h2 className="display text-4xl sm:text-5xl">Many lenses, one you</h2>
           <p className="mt-3 max-w-xl text-ink-soft">
-            Not a single quiz. A dozen short activities, each grounded in a real framework, layered into one report.
+            Not one quiz. A dozen quick activities, each backed by a real framework, mashed into a single report.
           </p>
         </motion.div>
 
@@ -161,7 +161,7 @@ export default function Landing() {
       {/* What you get */}
       <section className="pt-24">
         <motion.h2 {...rise(0.05)} className="display mb-8 text-4xl sm:text-5xl">
-          What you walk away with
+          What you actually get
         </motion.h2>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <motion.div {...rise(0.1)} className="lg:row-span-2">
@@ -176,7 +176,7 @@ export default function Landing() {
           </motion.div>
           <motion.div {...rise(0.16)} className="sm:col-span-1 lg:col-span-3">
             <Card tone="paper" className="p-6">
-              <p className="kicker mb-3 text-pink-deep">three things they appreciate</p>
+              <p className="kicker mb-3 text-pink-deep">stuff they secretly love about you</p>
               <ul className="space-y-2.5 text-lg">
                 <li className="flex gap-3"><span className="text-pink-deep">❤</span> A <span className="font-semibold">brilliant, generous mind</span> who lifts the team.</li>
                 <li className="flex gap-3"><span className="text-pink-deep">❤</span> <span className="font-semibold">Dependable under pressure</span>, the steady one in chaos.</li>
@@ -186,9 +186,9 @@ export default function Landing() {
           </motion.div>
           <motion.div {...rise(0.22)} className="lg:col-span-3">
             <Card tone="sand" className="p-6">
-              <p className="kicker mb-3 text-ink">a growth edge</p>
+              <p className="kicker mb-3 text-ink">one thing to work on</p>
               <p className="serif text-2xl">Slow down before deciding.</p>
-              <p className="mt-1 text-ink-soft">Two small, specific moves your team is quietly hoping for.</p>
+              <p className="mt-1 text-ink-soft">Two tiny moves your team is quietly rooting for.</p>
             </Card>
           </motion.div>
         </div>
