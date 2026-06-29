@@ -26,7 +26,7 @@ import {
 } from '@fishbowl/feedback-core'
 import { requestMagicLink, saveSelf, getSelfReport } from '../lib/self'
 import { getSubjectAuth } from '../lib/subjectAuth'
-import { playTick, playQuizTick } from '../lib/sound'
+import { playTick, playQuizTick, playStart } from '../lib/sound'
 import LikertScale from '../components/LikertScale'
 import Button from '../components/Button'
 import Card from '../components/Card'
@@ -323,6 +323,7 @@ export default function SelfAssessment() {
       ...(cur.frameworks.length ? [`${cur.frameworks.length} deeper activit${cur.frameworks.length === 1 ? 'y' : 'ies'}`] : []),
     ]
     const start = () => {
+      playStart()
       setDepth(cur)
       setPhase('quiz')
     }

@@ -22,11 +22,12 @@ function audio(): AudioContext | null {
   }
 }
 
-// A soft bell blip at `freq` Hz (fundamental + a quieter octave shimmer).
-function blip(freq: number, peak: number, dur: number) {
+// A soft bell blip at `freq` Hz (fundamental + a quieter octave shimmer). `at` delays
+// the onset (seconds from now) so callers can stagger notes into a little melody.
+function blip(freq: number, peak: number, dur: number, at = 0) {
   const c = audio()
   if (!c) return
-  const t = c.currentTime
+  const t = c.currentTime + at
   const g = c.createGain()
   g.gain.setValueAtTime(0.0001, t)
   g.gain.exponentialRampToValueAtTime(peak, t + 0.006)
@@ -74,6 +75,14 @@ export function playClick() {
   osc.connect(gain).connect(c.destination)
   osc.start(t)
   osc.stop(t + 0.09)
+}
+
+// A short ascending three-note flourish (D5 -> G5 -> C6) for launching the
+// self-assessment from the Start button: a confident "here we go" cue.
+export function playStart() {
+  blip(587.33, 0.055, 0.18)
+  blip(783.99, 0.055, 0.2, 0.085)
+  blip(1046.5, 0.06, 0.28, 0.17)
 }
 
 // Back-compat: existing imports of playTick are non-quiz UI interactions.
