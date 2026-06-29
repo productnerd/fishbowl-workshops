@@ -17,7 +17,9 @@ export default function WatchoutsDeck({
   const top = [...team].sort((a, b) => b.count - a.count).slice(0, 6)
   const pct = (c: number) => (total > 0 ? Math.round((c / total) * 100) : 0)
 
-  const selfSet = self ? new Set(self) : null
+  // Treat null OR empty as "not answered": no self-overlay tags or "what you own"
+  // section, so an unanswered self-read never reads as "you flagged nothing".
+  const selfSet = self && self.length > 0 ? new Set(self) : null
   const teamSet = new Set(team.map((t) => t.word))
   const ownedOnly = selfSet ? [...selfSet].filter((w) => !teamSet.has(w)) : []
 

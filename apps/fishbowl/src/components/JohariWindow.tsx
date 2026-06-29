@@ -82,14 +82,17 @@ export default function JohariWindow({
   const teamPicked = teamCounts.filter((t) => t.count > 0)
   const countOf = (word: string) => teamPicked.find((t) => t.word === word)?.count
 
-  if (self === null) {
+  // "Not answered" (null OR empty) collapses to a team-only view: with no self-words
+  // there's no real intersection to show, and an empty Open pane would wrongly read as
+  // "zero overlap" rather than "we don't have your self-read yet".
+  if (!self || self.length === 0) {
     const sorted = [...teamPicked].sort((a, b) => b.count - a.count)
     return (
       <div className="card-3d bg-paper-hi p-5">
         <p className="kicker text-ink-soft">how your team sees you</p>
         <p className="mt-0.5 text-xs text-ink-soft">
-          The four-pane window unlocks with your self-read — pick your own adjectives to split these into Open, Blind
-          Spot and Hidden.
+          The four-pane window unlocks with your self-read: pick your own words to split these into Open, Blind Spot
+          and Hidden.
         </p>
         <div className="mt-3 flex flex-wrap gap-1.5">
           {sorted.map((t) => (
