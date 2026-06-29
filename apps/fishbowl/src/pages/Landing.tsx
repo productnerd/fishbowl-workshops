@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import { REQUIRED_RESPONSES } from '@fishbowl/feedback-core'
 import Card from '../components/Card'
 import Button from '../components/Button'
-import VirtueSlider from '../components/VirtueSlider'
 import { getResponseCount } from '../lib/data'
 
 const rise = (delay: number) => ({
@@ -19,9 +18,32 @@ const STEPS = [
   { n: '03', tone: 'sand' as const, title: 'Get your Wrapped', body: 'An interactive report: your strengths, your blind spots, and where you land.' },
 ]
 
+type Tone = 'pink' | 'blue' | 'sand' | 'paper'
+// The variety of activities, each grounded in an established framework. Sizes vary for
+// a bento layout: the personality tile is the 2x2 hero, virtues and feedback span wide.
+const FRAMEWORKS: { title: string; framework: string; blurb: string; tone: Tone; cls?: string }[] = [
+  { title: 'Your personality type', framework: 'Big Five → 16 types', blurb: 'Five traits resolve into a type, paired with a Disney hero or villain to match.', tone: 'blue', cls: 'col-span-2 lg:row-span-2' },
+  { title: 'The ten virtues', framework: "Aristotle's golden mean", blurb: 'Every strength, taken too far, becomes a flaw. See where you balance on ten.', tone: 'sand', cls: 'col-span-2' },
+  { title: 'Thinking hats', framework: 'Edward de Bono', blurb: 'Which modes of thinking you reach for.', tone: 'pink' },
+  { title: 'Signature strengths', framework: 'VIA classification', blurb: 'Your top character strengths.', tone: 'paper' },
+  { title: 'Team role', framework: 'Belbin', blurb: 'The part you play on a team.', tone: 'pink' },
+  { title: 'Johari window', framework: 'Luft & Ingham', blurb: 'Your open, blind and hidden selves.', tone: 'blue' },
+  { title: 'Watch-outs', framework: 'The Nohari window', blurb: 'Growth edges, named kindly.', tone: 'sand' },
+  { title: 'Energy map', framework: 'Energizers & drains', blurb: 'What lifts you, what wears you down.', tone: 'paper' },
+  { title: 'Feedback style', framework: 'Radical Candor', blurb: 'Do you care personally and challenge directly?', tone: 'blue', cls: 'col-span-2' },
+  { title: 'What you fuel', framework: 'Self-Determination Theory', blurb: 'The needs you meet in others.', tone: 'sand' },
+  { title: 'Light & shadow', framework: 'Your Jungian archetype', blurb: 'The two faces of your type.', tone: 'pink' },
+]
+
+const TONE: Record<Tone, { kicker: string; title: string; blurb: string }> = {
+  blue: { kicker: 'text-paper-hi/70', title: 'text-paper-hi', blurb: 'text-paper-hi/85' },
+  pink: { kicker: 'text-pink-shadow', title: 'text-ink', blurb: 'text-ink/75' },
+  sand: { kicker: 'text-pink-deep', title: 'text-ink', blurb: 'text-ink-soft' },
+  paper: { kicker: 'text-blue-deep', title: 'text-ink', blurb: 'text-ink-soft' },
+}
+
 export default function Landing() {
   const navigate = useNavigate()
-  const [demo, setDemo] = useState(4)
   const [mySlug, setMySlug] = useState<string | null>(null)
   const [myCount, setMyCount] = useState(0)
 
@@ -53,16 +75,13 @@ export default function Landing() {
       </motion.nav>
 
       {/* Hero */}
-      <section className="grid items-center gap-10 pt-6 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:pt-12">
-        <div>
+      <section className="pt-6 lg:pt-10">
+        <div className="max-w-3xl">
           <motion.p {...rise(0.05)} className="kicker mb-5 text-pink-deep">
             workplace feedback, reimagined
           </motion.p>
-          <motion.h1 {...rise(0.12)} className="display text-[clamp(3rem,9vw,6.5rem)]">
-            See yourself
-            <br />
-            the way your
-            <br />
+          <motion.h1 {...rise(0.12)} className="display text-[clamp(2.8rem,8vw,6rem)] leading-[0.95]">
+            See yourself the way your{' '}
             <span className="relative inline-block text-blue-deep">
               team does
               <svg className="absolute -bottom-3 left-0 w-full" height="16" viewBox="0 0 300 16" fill="none" preserveAspectRatio="none">
@@ -71,9 +90,9 @@ export default function Landing() {
             </span>
             .
           </motion.h1>
-          <motion.p {...rise(0.22)} className="mt-9 max-w-md text-lg leading-relaxed text-ink-soft">
-            Your colleagues answer a few honest questions about you, anonymously. We turn it into a
-            report worth reading: not a score, a <span className="font-semibold text-ink">mirror</span>.
+          <motion.p {...rise(0.22)} className="mt-9 max-w-xl text-lg leading-relaxed text-ink-soft">
+            Your colleagues answer a few honest questions about you, anonymously. We turn it into a report worth
+            reading: not a score, a <span className="font-semibold text-ink">mirror</span> built from a dozen lenses.
           </motion.p>
           <motion.div {...rise(0.3)} className="mt-9 flex flex-wrap items-center gap-4">
             <Button variant="pink" className="!text-xl" onClick={onCta}>
@@ -82,27 +101,34 @@ export default function Landing() {
             <span className="text-sm font-semibold text-ink-soft">Free · no sign-up for them</span>
           </motion.div>
         </div>
+      </section>
 
-        {/* Virtue slider teaser */}
-        <motion.div {...rise(0.4)}>
-          <Card tone="paper" className="p-6 sm:p-7">
-            <p className="kicker mb-1 text-blue-deep">the idea</p>
-            <p className="serif mb-5 text-2xl leading-tight">
-              Every strength, taken too far, becomes a flaw.
-            </p>
-            <VirtueSlider
-              id="demo-courage"
-              value={demo}
-              onChange={setDemo}
-              virtueLabel="Courage"
-              deficientLabel="Timid"
-              excessiveLabel="Reckless"
-            />
-            <p className="mt-5 text-[15px] leading-relaxed text-ink-soft">
-              Your team places you between two extremes. The <span className="font-semibold text-blue-deep">sweet spot is the middle</span> — and Fishbowl shows you exactly where you land on ten of them.
-            </p>
-          </Card>
+      {/* The activities — a bento of the frameworks we map */}
+      <section className="pt-20">
+        <motion.div {...rise(0.05)} className="mb-8">
+          <p className="kicker mb-2 text-blue-deep">the activities &amp; their frameworks</p>
+          <h2 className="display text-4xl sm:text-5xl">Many lenses, one you</h2>
+          <p className="mt-3 max-w-xl text-ink-soft">
+            Not a single quiz. A dozen short activities, each grounded in a real framework, layered into one report.
+          </p>
         </motion.div>
+
+        <div className="grid grid-cols-2 gap-4 lg:auto-rows-[12.5rem] lg:grid-cols-4">
+          {FRAMEWORKS.map((f, i) => {
+            const t = TONE[f.tone]
+            return (
+              <motion.div key={f.title} {...rise(0.08 + Math.min(i, 8) * 0.04)} className={f.cls ?? ''}>
+                <Card tone={f.tone} className="flex h-full flex-col justify-between gap-3 p-5">
+                  <p className={`kicker ${t.kicker}`}>{f.framework}</p>
+                  <div>
+                    <h3 className={`font-display text-xl font-black leading-tight ${t.title}`}>{f.title}</h3>
+                    <p className={`mt-1.5 text-sm leading-relaxed ${t.blurb}`}>{f.blurb}</p>
+                  </div>
+                </Card>
+              </motion.div>
+            )
+          })}
+        </div>
       </section>
 
       {/* How it works */}
