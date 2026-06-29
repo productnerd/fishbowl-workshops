@@ -22,18 +22,18 @@ const STEPS = [
 type Tone = 'pink' | 'blue' | 'sand' | 'paper'
 // The variety of activities, each grounded in an established framework. Sizes vary for
 // a bento layout: the personality tile is the 2x2 hero, virtues and feedback span wide.
-const FRAMEWORKS: { title: string; framework: string; blurb: string; tone: Tone; cls?: string }[] = [
-  { title: 'Your personality type', framework: 'Big Five → 16 types', blurb: 'Five traits resolve into a type, paired with a Disney hero or villain to match.', tone: 'blue', cls: 'col-span-2 lg:row-span-2' },
-  { title: 'The ten virtues', framework: "Aristotle's golden mean", blurb: 'Every strength, taken too far, becomes a flaw. See where you balance on ten.', tone: 'sand', cls: 'col-span-2' },
-  { title: 'Thinking hats', framework: 'Edward de Bono', blurb: 'Which modes of thinking you reach for.', tone: 'pink' },
-  { title: 'Signature strengths', framework: 'VIA classification', blurb: 'Your top character strengths.', tone: 'paper' },
-  { title: 'Team role', framework: 'Belbin', blurb: 'The part you play on a team.', tone: 'pink' },
-  { title: 'Johari window', framework: 'Luft & Ingham', blurb: 'Your open, blind and hidden selves.', tone: 'blue' },
-  { title: 'Watch-outs', framework: 'The Nohari window', blurb: 'Growth edges, named kindly.', tone: 'sand' },
-  { title: 'Energy map', framework: 'Energizers & drains', blurb: 'What lifts you, what wears you down.', tone: 'paper' },
-  { title: 'Feedback style', framework: 'Radical Candor', blurb: 'Do you care personally and challenge directly?', tone: 'blue', cls: 'col-span-2' },
-  { title: 'What you fuel', framework: 'Self-Determination Theory', blurb: 'The needs you meet in others.', tone: 'sand' },
-  { title: 'Light & shadow', framework: 'Your Jungian archetype', blurb: 'The two faces of your type.', tone: 'pink' },
+const FRAMEWORKS: { title: string; framework: string; blurb: string; tone: Tone; icon: string; cls?: string }[] = [
+  { title: 'Your personality type', framework: 'Big Five → 16 types', blurb: 'Five traits resolve into a type, paired with a Disney hero or villain to match.', tone: 'blue', icon: '🎭', cls: 'col-span-2 lg:row-span-2' },
+  { title: 'The ten virtues', framework: "Aristotle's golden mean", blurb: 'Every strength, taken too far, becomes a flaw. See where you balance on ten.', tone: 'sand', icon: '⚖️', cls: 'col-span-2' },
+  { title: 'Thinking hats', framework: 'Edward de Bono', blurb: 'Which modes of thinking you reach for.', tone: 'pink', icon: '🎩' },
+  { title: 'Signature strengths', framework: 'VIA classification', blurb: 'Your top character strengths.', tone: 'paper', icon: '⭐' },
+  { title: 'Team role', framework: 'Belbin', blurb: 'The part you play on a team.', tone: 'pink', icon: '🧩' },
+  { title: 'Johari window', framework: 'Luft & Ingham', blurb: 'Your open, blind and hidden selves.', tone: 'blue', icon: '🪟' },
+  { title: 'Watch-outs', framework: 'The Nohari window', blurb: 'Growth edges, named kindly.', tone: 'sand', icon: '⚠️' },
+  { title: 'Energy map', framework: 'Energizers & drains', blurb: 'What lifts you, what wears you down.', tone: 'paper', icon: '⚡' },
+  { title: 'Feedback style', framework: 'Radical Candor', blurb: 'Do you care personally and challenge directly?', tone: 'blue', icon: '💬', cls: 'col-span-2' },
+  { title: 'What you fuel', framework: 'Self-Determination Theory', blurb: 'The needs you meet in others.', tone: 'sand', icon: '🔋' },
+  { title: 'Light & shadow', framework: 'Your Jungian archetype', blurb: 'The two faces of your type.', tone: 'pink', icon: '☯️' },
 ]
 
 const TONE: Record<Tone, { kicker: string; title: string; blurb: string }> = {
@@ -64,7 +64,7 @@ export default function Landing() {
   }, [])
 
   const reportReady = mySlug != null && myCount >= REQUIRED_RESPONSES
-  const ctaLabel = !mySlug ? 'Make your link →' : reportReady ? 'Check out report →' : 'See progress →'
+  const ctaLabel = !mySlug ? 'Create your link →' : reportReady ? 'Check out report →' : 'See progress →'
   const onCta = () => navigate(!mySlug ? '/create' : reportReady ? `/r/${mySlug}` : '/create')
 
   return (
@@ -125,9 +125,19 @@ export default function Landing() {
             const t = TONE[f.tone]
             return (
               <motion.div key={f.title} {...rise(0.08 + Math.min(i, 8) * 0.04)} className={f.cls ?? ''}>
-                <Card tone={f.tone} className="flex h-full flex-col justify-between gap-3 p-5">
-                  <p className={`kicker ${t.kicker}`}>{f.framework}</p>
-                  <div>
+                <Card tone={f.tone} className="relative flex h-full flex-col justify-between gap-3 overflow-hidden p-5">
+                  {/* framework "background" — a big, faded watermark of its icon */}
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute -bottom-6 -right-3 select-none text-[7.5rem] leading-none opacity-[0.14]"
+                  >
+                    {f.icon}
+                  </span>
+                  <p className={`kicker relative ${t.kicker}`}>{f.framework}</p>
+                  <div className="relative">
+                    <span className="mb-3 inline-grid h-11 w-11 place-items-center rounded-xl border-2 border-ink bg-paper-hi text-2xl shadow-chunky-sm">
+                      {f.icon}
+                    </span>
                     <h3 className={`font-display text-xl font-black leading-tight ${t.title}`}>{f.title}</h3>
                     <p className={`mt-1.5 text-sm leading-relaxed ${t.blurb}`}>{f.blurb}</p>
                   </div>
