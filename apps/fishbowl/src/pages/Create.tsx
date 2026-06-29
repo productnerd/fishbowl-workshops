@@ -75,18 +75,16 @@ export default function Create() {
           <p className="kicker mb-4 text-pink-deep">your link is live</p>
           <h1 className="display text-5xl">Hey {creator}.</h1>
           <p className="mt-3 text-lg text-ink-soft">
-            Send this to {REQUIRED_RESPONSES}+ colleagues. When {REQUIRED_RESPONSES} have answered, your
-            report unlocks.
+            Fire your link at a few coworkers. Three answers and your report pops open.
           </p>
 
-          <Card tone={selfDone ? 'sand' : 'blue'} className="mt-7 p-6">
+          {/* Step 1 — label outside the card */}
+          <p className="kicker mt-8 mb-2 text-pink-deep">step 1 · take yours first</p>
+          <Card tone={selfDone ? 'sand' : 'blue'} className="p-6">
             <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className={`kicker ${selfDone ? 'text-blue-deep' : 'text-paper-hi/80'}`}>step 1 · take yours first</p>
-                <p className={`serif mt-1 text-xl font-semibold ${selfDone ? 'text-ink' : 'text-paper-hi'}`}>
-                  {selfDone ? 'Self-assessment done ✓' : 'Your self-assessment'}
-                </p>
-              </div>
+              <p className={`serif text-xl font-semibold ${selfDone ? 'text-ink' : 'text-paper-hi'}`}>
+                {selfDone ? 'Self-assessment done ✓' : 'Your self-assessment'}
+              </p>
               {!selfDone && (
                 <button
                   onClick={() => navigate(`/self/${slug}`)}
@@ -99,27 +97,28 @@ export default function Create() {
             <p className={`mt-2 text-sm ${selfDone ? 'text-ink-soft' : 'text-paper-hi/85'}`}>
               {selfDone
                 ? "Your report will show your self-view next to your team's."
-                : 'Richer when you see yourself first (~2 min). You can share with colleagues in parallel.'}
+                : 'Do your own first (~2 min). It makes the whole thing sharper. Share in parallel.'}
             </p>
           </Card>
 
-          <p className="kicker mt-7 mb-2 text-pink-deep">step 2 · share with colleagues</p>
-          <Card tone="paper" className="flex items-center gap-3 p-3">
-            <input
-              readOnly
-              value={buildShareLink(slug)}
-              className="min-w-0 flex-1 truncate bg-transparent px-2 font-mono text-sm text-ink outline-none"
-            />
-            <button
-              onClick={copy}
-              className="press shrink-0 cursor-pointer rounded-xl border-[2.5px] border-ink bg-pink sc-pink px-4 py-2 font-display font-black text-ink shadow-chunky-sm"
-            >
-              {copied ? 'Copied!' : 'Copy'}
-            </button>
-          </Card>
+          {/* Step 2 — label outside, everything in one card */}
+          <p className="kicker mt-8 mb-2 text-pink-deep">step 2 · share with colleagues</p>
+          <Card tone="sand" className="p-6">
+            <div className="flex items-center gap-3 rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3">
+              <input
+                readOnly
+                value={buildShareLink(slug)}
+                className="min-w-0 flex-1 truncate bg-transparent px-2 font-mono text-sm text-ink outline-none"
+              />
+              <button
+                onClick={copy}
+                className="press shrink-0 cursor-pointer rounded-xl border-[2.5px] border-ink bg-pink sc-pink px-4 py-2 font-display font-black text-ink shadow-chunky-sm"
+              >
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
 
-          <Card tone="sand" className="mt-5 p-6">
-            <div className="mb-3 flex items-baseline justify-between">
+            <div className="mt-6 mb-3 flex items-baseline justify-between">
               <span className="kicker text-ink">responses</span>
               <span className="display text-2xl">
                 {count} / {REQUIRED_RESPONSES}
@@ -129,7 +128,7 @@ export default function Create() {
               <motion.div className="h-full bg-blue" animate={{ width: `${pct}%` }} transition={{ ease: 'easeOut', duration: 0.7 }} />
             </div>
             <p className="mt-3 text-sm font-semibold text-ink-soft">
-              {unlocked ? '✨ Your report is ready.' : `${remaining} more to unlock your report.`}
+              {unlocked ? '✨ Your report is ready.' : `${remaining} more and it's yours.`}
             </p>
           </Card>
 

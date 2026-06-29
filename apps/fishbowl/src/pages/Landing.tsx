@@ -13,9 +13,10 @@ const rise = (delay: number) => ({
 })
 
 const STEPS = [
-  { n: '01', tone: 'pink' as const, title: 'Share one link', body: 'Send it to five or more colleagues. It takes them about five minutes.' },
-  { n: '02', tone: 'blue' as const, title: 'They answer anonymously', body: 'Sliders, quick scales, and a few honest words. No names. Ever.' },
-  { n: '03', tone: 'sand' as const, title: 'Get your Wrapped', body: 'An interactive report: your strengths, your blind spots, and where you land.' },
+  { n: '01', tone: 'pink' as const, title: 'Grab your link', body: 'One tap. No account, no setup, nothing to install.' },
+  { n: '02', tone: 'blue' as const, title: 'Do your own first', body: 'A quick self-read, about two minutes. Seeing yourself first makes the rest hit harder.' },
+  { n: '03', tone: 'sand' as const, title: 'Your team weighs in', body: 'They answer anonymously: sliders, quick taps, a few honest words. No names. Ever.' },
+  { n: '04', tone: 'paper' as const, title: 'Three in, report out', body: 'The second three teammates have answered, your Wrapped pops open.' },
 ]
 
 type Tone = 'pink' | 'blue' | 'sand' | 'paper'
@@ -78,7 +79,7 @@ export default function Landing() {
       <section className="pt-6 lg:pt-10">
         <div className="max-w-3xl">
           <motion.p {...rise(0.05)} className="kicker mb-5 text-pink-deep">
-            workplace feedback, reimagined
+            honest feedback, minus the cringe
           </motion.p>
           <motion.h1 {...rise(0.12)} className="display text-[clamp(2.8rem,8vw,6rem)] leading-[0.95]">
             See yourself the way your{' '}
@@ -88,17 +89,23 @@ export default function Landing() {
                 <path d="M3 11C70 4 230 3 297 9" stroke="var(--color-pink-deep)" strokeWidth="5" strokeLinecap="round" />
               </svg>
             </span>
-            .
           </motion.h1>
           <motion.p {...rise(0.22)} className="mt-9 max-w-xl text-lg leading-relaxed text-ink-soft">
-            Your colleagues answer a few honest questions about you, anonymously. We turn it into a report worth
-            reading: not a score, a <span className="font-semibold text-ink">mirror</span> built from a dozen lenses.
+            Your coworkers answer a few honest questions about you, anonymously. We spin it into a report you'll
+            actually want to read. Not a score. A <span className="font-semibold text-ink">mirror</span>, from a dozen angles.
           </motion.p>
-          <motion.div {...rise(0.3)} className="mt-9 flex flex-wrap items-center gap-4">
+          <motion.div {...rise(0.3)} className="mt-9 flex flex-col items-start gap-3">
             <Button variant="pink" className="!text-xl" onClick={onCta}>
-              {ctaLabel}
+              {mySlug ? (
+                <span className="flex flex-col items-center leading-tight">
+                  <span>{ctaLabel}</span>
+                  <span className="kicker mt-0.5 text-[11px] text-ink/55">{myCount} of {REQUIRED_RESPONSES} responded</span>
+                </span>
+              ) : (
+                ctaLabel
+              )}
             </Button>
-            <span className="text-sm font-semibold text-ink-soft">Free · no sign-up for them</span>
+            <span className="text-sm font-semibold text-ink-soft">FREE · no sign-up for them</span>
           </motion.div>
         </div>
       </section>
@@ -136,9 +143,9 @@ export default function Landing() {
         <motion.h2 {...rise(0.05)} className="display mb-8 text-4xl sm:text-5xl">
           How it works
         </motion.h2>
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((s, i) => (
-            <motion.div key={s.n} {...rise(0.12 + i * 0.08)}>
+            <motion.div key={s.n} {...rise(0.12 + i * 0.07)}>
               <Card tone={s.tone} className="h-full p-6">
                 <span className="display text-5xl opacity-90">{s.n}</span>
                 <h3 className="serif mt-3 text-2xl font-semibold">{s.title}</h3>
