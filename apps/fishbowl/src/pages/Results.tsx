@@ -350,7 +350,7 @@ export default function Results() {
             <InfoTip text="A playful Big-Five-to-16-personalities approximation, with a Disney archetype to match. Fun, not a clinical test." />
           </p>
           {hasSelf && self?.mbti && self?.big_five ? (
-            <PersonalityCard mbti={self.mbti} scores={self.big_five} />
+            <PersonalityCard mbti={self.mbti} scores={self.big_five} sideChar />
           ) : (
             <LockedCard caption="Take the self-read to reveal your type and five traits." onUnlock={goSelf}>
               <PersonalityCard mbti={teaserType} scores={teaserBig} />

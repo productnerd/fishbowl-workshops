@@ -103,16 +103,17 @@ function PageBackdrop({ type }: { type: string }) {
   )
 }
 
-// The character cut-out (transparent). On wide screens the character moves OUTSIDE the
-// card to the right (see SideCharacter); this is the in-card fallback for narrower
-// screens where there's no room in the margin.
+// The character cut-out (transparent), centered above the type name. `hideOnWide` is
+// set in the report, where a big SideCharacter takes over on wide screens; elsewhere
+// (e.g. the self-read reveal) there's no side character, so the cut-out shows at all
+// sizes.
 //   public/characters/<TYPE>.png
-function CharacterCutout({ type, character }: { type: string; character: string }) {
+function CharacterCutout({ type, character, hideOnWide }: { type: string; character: string; hideOnWide?: boolean }) {
   const charSrc = `${import.meta.env.BASE_URL}characters/${type}.png`
   const ok = useImageReady(charSrc)
   if (!ok) return null
   return (
-    <div className="mb-2 flex justify-center xl:hidden">
+    <div className={`mb-2 flex justify-center ${hideOnWide ? 'xl:hidden' : ''}`}>
       <img
         src={charSrc}
         alt={character}
@@ -150,14 +151,16 @@ export function SideCharacter({ type, name }: { type: string; name: string }) {
 }
 
 // The full self-read card: optional character hero, archetype header, five dimension bars.
-export default function PersonalityCard({ mbti, scores }: { mbti: MbtiType; scores: BigFiveScores }) {
+// `sideChar` marks the report context, where a big SideCharacter is shown separately on
+// wide screens (so the in-card cut-out hides there); elsewhere the cut-out always shows.
+export default function PersonalityCard({ mbti, scores, sideChar }: { mbti: MbtiType; scores: BigFiveScores; sideChar?: boolean }) {
   const code = mbti.fullCode ?? mbti.type
   return (
     <div>
       <PageBackdrop type={mbti.type} />
-      <CharacterCutout type={mbti.type} character={mbti.character || ''} />
+      <CharacterCutout type={mbti.type} character={mbti.character || ''} hideOnWide={sideChar} />
       <div className="text-center">
-        <p className="kicker text-pink-deep">your type is</p>
+        <p className="kicker text-pink-deep">your personality type is</p>
         <h2 className="display mt-1 text-[clamp(1.7rem,6vw,2.6rem)] leading-[1.05]">{mbti.nickname}</h2>
         <p className="serif mt-1 text-2xl tracking-wide text-ink-soft">{code}</p>
         <p className="mx-auto mt-3 max-w-md leading-relaxed text-ink-soft">{mbti.flavour}</p>

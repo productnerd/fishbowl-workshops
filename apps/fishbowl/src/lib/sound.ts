@@ -60,6 +60,15 @@ export function playQuizTick() {
   blip(QUIZ_NOTES[Math.floor(Math.random() * QUIZ_NOTES.length)], 0.05, 0.14)
 }
 
+// A quiz blip pitched by where the answer sits on the scale: far left (value 1) is
+// the lowest note, far right (value `max`) the highest. Used by the personality test
+// so the tone rises as you move across the buttons.
+export function playQuizNote(value: number, max = 5) {
+  const frac = (value - 1) / Math.max(1, max - 1)
+  const i = Math.max(0, Math.min(QUIZ_NOTES.length - 1, Math.round(frac * (QUIZ_NOTES.length - 1))))
+  blip(QUIZ_NOTES[i], 0.05, 0.14)
+}
+
 export function playClick() {
   const c = audio()
   if (!c) return
