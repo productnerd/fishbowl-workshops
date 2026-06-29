@@ -7,4 +7,7 @@ export const useAiInsights = createUseAiInsights<FishbowlReport>({
   table: 'fishbowl_ai_insights',
   fn: 'fishbowl-ai-insights',
   isConfigured: isSupabaseConfigured,
+  // Generate the report when the user opens it; regenerate only when new answers
+  // arrived since the last generation (otherwise serve the cache).
+  generateOnView: true,
 })

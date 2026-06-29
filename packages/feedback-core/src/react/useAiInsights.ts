@@ -6,6 +6,12 @@ export interface UseAiInsightsOptions {
   table: string // e.g. 'tte_ai_insights' | 'fishbowl_ai_insights'
   fn: string // edge function name, e.g. 'tte-ai-insights'
   isConfigured: () => boolean
+  // When true, opening the report generates it on demand: if the cache is missing or
+  // stale (more responses than at generation time) the hook calls the edge fn
+  // (non-force), which returns the cache when unchanged, regenerates when new answers
+  // arrived, and generates the first time. Off by default (apps that rely on a DB
+  // trigger keep read-only behaviour).
+  generateOnView?: boolean
 }
 
 interface State<T> {
@@ -26,7 +32,7 @@ export interface UseAiInsightsResult<T> extends State<T> {
 // triggers Claude from the browser (a DB trigger fires generation at threshold).
 // The one exception is regenerate(), which the user explicitly invokes.
 export function createUseAiInsights<T>(opts: UseAiInsightsOptions) {
-  const { client, table, fn, isConfigured } = opts
+  const { client, table, fn, isConfigured, generateOnView } = opts
 
   return function useAiInsights(
     sessionId: string | undefined,
@@ -67,6 +73,30 @@ export function createUseAiInsights<T>(opts: UseAiInsightsOptions) {
           return
         }
 
+        const fresh =
+          cached?.insights != null && cached.response_count_at_generation === currentResponseCount
+
+        // Generate-on-view: when the cache is missing or stale, ask the edge fn to
+        // produce it (non-force: returns cache when unchanged, regenerates on new
+        // answers, generates the first time).
+        if (generateOnView && !fresh) {
+          const { data, error: genErr } = await client.functions.invoke(fn, {
+            body: { session_id: sessionId, force: false },
+          })
+          if (cancelled) return
+          if (!genErr && data?.insights) {
+            setState({
+              insights: data.insights as T,
+              cachedAt: currentResponseCount ?? null,
+              loading: false,
+              regenerating: false,
+              error: null,
+            })
+            return
+          }
+          // On failure, fall back to whatever cache we have (if any).
+        }
+
         if (cached?.insights) {
           setState({
             insights: cached.insights as T,
@@ -78,9 +108,7 @@ export function createUseAiInsights<T>(opts: UseAiInsightsOptions) {
           return
         }
 
-        // No cache row yet. The DB trigger should have created one at the
-        // threshold. If we land here, generation is still in flight or the
-        // trigger is not deployed. Surface a static "not ready" state.
+        // No cache and nothing generated. Surface a static "not ready" state.
         setState({
           insights: null,
           cachedAt: null,
@@ -94,7 +122,7 @@ export function createUseAiInsights<T>(opts: UseAiInsightsOptions) {
       return () => {
         cancelled = true
       }
-    }, [sessionId, ready])
+    }, [sessionId, ready, currentResponseCount])
 
     const regenerate = useCallback(async () => {
       if (!sessionId || !isConfigured()) return
