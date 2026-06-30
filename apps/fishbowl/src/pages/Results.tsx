@@ -657,9 +657,9 @@ export default function Results() {
   // every activity together. Bearer-gated, generated with extended thinking. Sits
   // right before the action plan.
   if (hasSelf && (synthesis || synthesisLoading)) {
-    const para = (text: string, tone: 'ink' | 'light' = 'ink') =>
+    const para = (text: string) =>
       text.split('\n\n').filter(Boolean).map((p, i) => (
-        <p key={i} className={`mt-3 leading-relaxed first:mt-0 ${tone === 'ink' ? 'text-ink' : 'text-paper-hi/90'}`}>
+        <p key={i} className="mt-4 leading-relaxed text-ink first:mt-0">
           <Rich text={p} />
         </p>
       ))
@@ -668,13 +668,13 @@ export default function Results() {
       node: synthesis ? (
         <div>
           <p className="kicker mb-1 text-blue-deep">the full read</p>
-          <h2 className="display mb-4 text-3xl leading-tight">{synthesis.title}</h2>
-          <div className="mb-6">{para(synthesis.portrait)}</div>
+          <h2 className="display mb-5 text-3xl leading-tight">{synthesis.title}</h2>
+          <div className="mb-7 text-[1.05rem]">{para(synthesis.portrait)}</div>
           <div className="flex flex-col gap-4">
             {synthesis.sections.map((s, i) => (
-              <div key={i} className="rounded-2xl border-[2.5px] border-ink bg-sand p-4 shadow-chunky-sm">
-                <h3 className="serif text-xl font-black text-ink">{s.heading}</h3>
-                <div className="mt-1">{para(s.body)}</div>
+              <div key={i} className="rounded-2xl border-[2.5px] border-ink bg-sand p-5 shadow-chunky-sm">
+                <h3 className="serif border-b-2 border-ink/15 pb-2 text-xl font-black text-ink">{s.heading}</h3>
+                <div className="mt-2.5">{para(s.body)}</div>
               </div>
             ))}
           </div>

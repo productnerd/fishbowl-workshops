@@ -45,8 +45,16 @@ async function verifyOwner(sb: any, bearer: string, slug: string) {
   return { session }
 }
 
+// Clean dashes and stray whitespace, but PRESERVE paragraph breaks (\n\n) so the
+// client can render real paragraphs instead of one wall of text.
 const stripDashes = (s: string): string =>
-  s.replace(/\s*[—–]\s*/g, ', ').replace(/,\s*,/g, ',').replace(/\s{2,}/g, ' ').trim()
+  s
+    .replace(/[ \t]*[—–]+[ \t]*/g, ', ')
+    .replace(/,\s*,/g, ',')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/[ \t]*\n[ \t]*/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
 
 const HAT_NAMES: Record<string, string> = {
   hat_white: 'White (facts & data)', hat_red: 'Red (feelings & intuition)', hat_yellow: 'Yellow (optimism)',
@@ -174,15 +182,16 @@ Second person ("you", "your"). Warm, sharp, honest, a little playful, like a per
 === NO DASHES (critical) ===
 Never use an em dash, en dash, double hyphen, or spaced hyphen anywhere. Use commas, periods, or parentheses.
 
-=== BOLD ===
-Wrap only the few most important phrases per section in **double asterisks**. Never bold a whole sentence. The title has no bold.
+=== FORMATTING FOR SCANNABILITY (important) ===
+Write in SHORT paragraphs, 2 to 4 sentences each, separated by a blank line (\\n\\n). NEVER write a wall of text; if a paragraph runs past ~4 sentences, split it. Keep sentences short and punchy.
+Wrap the few most important phrases per paragraph in **bold** (the claims someone should catch while skimming). Use *italic* for framework names, playful asides, and soft emphasis. Never bold or italicize a whole sentence. The title and section headings have no bold or italic.
 
 === OUTPUT (JSON only, no code fences, no prose outside the JSON) ===
 {
   "title": "a short, evocative title for this person's read (<= 6 words, no bold, no dashes)",
-  "portrait": "2 to 3 short paragraphs: who they are at their core. Separate paragraphs with \\n\\n.",
+  "portrait": "2 to 3 SHORT paragraphs (2 to 4 sentences each) on who they are at their core. MUST separate every paragraph with a blank line \\n\\n. With **bold** and *italic*.",
   "sections": [
-    { "heading": "Where you shine", "body": "1 to 3 paragraphs, cross-referenced, with **bold**. \\n\\n between paragraphs." },
+    { "heading": "Where you shine", "body": "2 to 3 SHORT paragraphs, cross-referenced, with **bold** and *italic*. MUST put \\n\\n between every paragraph." },
     { "heading": "How you like to work", "body": "..." },
     { "heading": "You vs. how they see you", "body": "the biggest gaps; blind spots first, then hidden strengths." },
     { "heading": "Watch-outs, tendencies and biases", "body": "weaknesses named kindly; the biases and tendencies to keep in mind." }
@@ -195,7 +204,7 @@ Aim for roughly 2 to 4 A4 pages of reading total. Rich and specific, never padde
 
 === PERSONALITY (Big Five, 0-100) ===
 Openness ${Math.round(bf.openness ?? 0)}, Conscientiousness ${Math.round(bf.conscientiousness ?? 0)}, Extraversion ${Math.round(bf.extraversion ?? 0)}, Agreeableness ${Math.round(bf.agreeableness ?? 0)}, Neuroticism ${Math.round(bf.neuroticism ?? 0)} (Emotional stability ${Math.round(bf.emotionalStability ?? (100 - (bf.neuroticism ?? 0)))}).
-Playful type: ${type}${nick}.
+Playful type: ${type}${nick}. (Use this exact type code if you mention it; never recompute or change it from the scores.)
 
 === JUNGIAN ARCHETYPE ===
 ${arch ? `${arch.name}: ${arch.essence || ''}\nLight: ${arch.light || ''}\nShadow: ${arch.shadow || ''}${arch.runnerUp ? `\nWith a touch of: ${arch.runnerUp}` : ''}` : '(not available)'}
