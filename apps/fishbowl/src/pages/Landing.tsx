@@ -4,6 +4,9 @@ import { motion } from 'framer-motion'
 import { REQUIRED_RESPONSES } from '@fishbowl/feedback-core'
 import Card from '../components/Card'
 import Button from '../components/Button'
+import JohariWindow from '../components/JohariWindow'
+import ViaDeck from '../components/ViaDeck'
+import WatchoutsDeck from '../components/WatchoutsDeck'
 import { getResponseCount } from '../lib/data'
 
 const rise = (delay: number) => ({
@@ -114,6 +117,29 @@ function BentoTile({ f, delay }: { f: (typeof FRAMEWORKS)[number]; delay: number
   )
 }
 
+// A faithful mini of a personality dimension bar (matches the report's AxisRow).
+function MiniAxis({ left, right, leftPct }: { left: string; right: string; leftPct: number }) {
+  const leftDom = leftPct >= 50
+  const pct = leftDom ? leftPct : 100 - leftPct
+  const label = leftDom ? left : right
+  const badge = <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border-2 border-ink bg-pink text-[11px] font-black text-ink sc-pink">{pct}</span>
+  return (
+    <div>
+      <div className="mb-1 flex justify-between text-[11px] font-bold">
+        <span className={leftDom ? 'text-pink-deep' : 'text-ink-soft'}>{left}</span>
+        <span className={!leftDom ? 'text-pink-deep' : 'text-ink-soft'}>{right}</span>
+      </div>
+      <div className="relative h-9 overflow-hidden rounded-full border-2 border-ink bg-paper-hi">
+        <div className={`absolute inset-y-0 ${leftDom ? 'left-0' : 'right-0'} bg-blue`} style={{ width: `${pct}%` }} />
+        <div className={`absolute inset-y-0 flex items-center gap-1.5 px-1 ${leftDom ? 'left-0' : 'right-0 flex-row-reverse'}`}>
+          {badge}
+          <span className="text-sm font-bold text-paper-hi">{label}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // A little carousel that flips through sample report slides so visitors can see how
 // the Wrapped-style report looks before making a link.
 function ReportPreview() {
@@ -141,22 +167,42 @@ function ReportPreview() {
       cancelled = true
     }
   }, [])
+  const johariTeam = [
+    { word: 'confident', count: 5 }, { word: 'bold', count: 4 }, { word: 'logical', count: 4 },
+    { word: 'dependable', count: 3 }, { word: 'witty', count: 2 }, { word: 'calm', count: 1 },
+  ]
+  const viaTeam = [
+    { id: 'curiosity', name: 'Curiosity', virtue: 'Wisdom & Knowledge', count: 5 },
+    { id: 'leadership', name: 'Leadership', virtue: 'Justice', count: 4 },
+    { id: 'perspective', name: 'Perspective', virtue: 'Wisdom & Knowledge', count: 4 },
+    { id: 'humor', name: 'Humor', virtue: 'Transcendence', count: 3 },
+    { id: 'bravery', name: 'Bravery', virtue: 'Courage', count: 2 },
+  ]
+  const watchTeam = [
+    { word: 'impatient', count: 5 }, { word: 'perfectionist', count: 4 }, { word: 'blunt', count: 3 }, { word: 'overcommitted', count: 2 },
+  ]
   const mock = [
-    <div key="a" className="card-3d flex min-h-[19rem] flex-col justify-center bg-pink p-7 text-ink sc-pink">
+    <div key="headline" className="card-3d flex min-h-[19rem] flex-col justify-center bg-pink p-7 text-ink sc-pink">
       <p className="kicker text-ink/65">your fishbowl</p>
       <p className="display mt-3 text-3xl leading-tight">A force who ships everything. Now bring people with you.</p>
       <p className="mt-4 text-sm font-semibold text-ink/70">10 colleagues · one honest mirror.</p>
     </div>,
-    <div key="b" className="card-3d flex min-h-[19rem] flex-col justify-center bg-blue p-7 text-paper-hi sc-navy">
-      <p className="kicker text-paper-hi/65">how they rate you</p>
-      <p className="display mt-2 text-7xl">top 8%</p>
-      <p className="serif text-2xl">on follow-through</p>
-      <p className="mt-4 text-sm text-paper-hi/70">Ranked against everyone who's been Fishbowled.</p>
+    <div key="personality" className="card-3d bg-paper-hi p-6 text-ink">
+      <p className="kicker text-pink-deep">your personality type is</p>
+      <h3 className="display mt-1 text-3xl leading-tight">The Quiet Storm</h3>
+      <p className="serif text-xl tracking-wide text-ink-soft">INFJ-A</p>
+      <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-sand px-3 py-1 text-sm font-bold text-ink shadow-chunky-sm">🎬 Disney match: Elsa</span>
+      <div className="mt-5 flex flex-col gap-3">
+        <MiniAxis left="Extraverted" right="Introverted" leftPct={40} />
+        <MiniAxis left="Intuitive" right="Observant" leftPct={72} />
+        <MiniAxis left="Thinking" right="Feeling" leftPct={33} />
+      </div>
     </div>,
-    <div key="c" className="card-3d flex min-h-[19rem] flex-col justify-center bg-paper-hi p-7 text-ink">
+    <div key="virtues" className="card-3d bg-paper-hi p-6 text-ink">
       <p className="kicker text-blue-deep">the ten virtues</p>
-      <p className="serif mt-1 text-xl font-semibold">Candor</p>
-      <div className="relative mt-5 h-3 rounded-full border-2 border-ink bg-sand">
+      <h3 className="display mb-5 text-2xl">Where you balance</h3>
+      <p className="serif mb-1 text-lg font-semibold">Candor</p>
+      <div className="relative h-3 rounded-full border-2 border-ink bg-sand">
         <div className="absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-blue" style={{ left: '58%' }} />
         <div className="absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-pink sc-pink" style={{ left: '40%' }} />
       </div>
@@ -166,7 +212,37 @@ function ReportPreview() {
         <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full border-2 border-ink bg-pink" />you</span>
       </div>
     </div>,
-    <div key="d" className="card-3d flex min-h-[19rem] flex-col justify-center bg-sand p-7 text-ink">
+    <div key="johari" className="card-3d bg-paper-hi p-6 text-ink">
+      <p className="kicker text-pink-deep">the window</p>
+      <h3 className="display mb-4 text-2xl">Johari window</h3>
+      <JohariWindow teamCounts={johariTeam} self={['confident', 'bold', 'curious', 'kind']} n={5} />
+    </div>,
+    <div key="via" className="card-3d bg-paper-hi p-6 text-ink">
+      <p className="kicker text-blue-deep">signature strengths</p>
+      <h3 className="display mb-4 text-2xl">Your top strengths</h3>
+      <ViaDeck team={viaTeam} self={null} total={5} />
+    </div>,
+    <div key="watch" className="card-3d bg-paper-hi p-6 text-ink">
+      <p className="kicker text-pink-deep">watch-outs</p>
+      <h3 className="display mb-4 text-2xl">Your top watch-outs</h3>
+      <WatchoutsDeck team={watchTeam} self={['impatient', 'perfectionist', 'self-critical']} total={5} />
+    </div>,
+    <div key="archetype" className="card-3d bg-blue p-6 text-paper-hi sc-navy">
+      <p className="kicker text-paper-hi/65">your jungian archetype</p>
+      <h3 className="display mt-1 text-3xl">The Sage</h3>
+      <p className="mt-2 text-sm text-paper-hi/80">The seeker of truth who turns experience into wisdom.</p>
+      <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
+        <div className="rounded-2xl border-2 border-ink/40 bg-paper-hi/10 p-3"><p className="kicker text-paper-hi/70">light</p><p className="mt-1 font-semibold">Clear-eyed, patient, deeply principled.</p></div>
+        <div className="rounded-2xl border-2 border-ink/40 bg-paper-hi/10 p-3"><p className="kicker text-paper-hi/70">shadow</p><p className="mt-1 font-semibold">Aloof, over-certain, slow to act.</p></div>
+      </div>
+    </div>,
+    <div key="percentile" className="card-3d flex min-h-[19rem] flex-col justify-center bg-blue p-7 text-paper-hi sc-navy">
+      <p className="kicker text-paper-hi/65">how they rate you</p>
+      <p className="display mt-2 text-7xl">top 8%</p>
+      <p className="serif text-2xl">on follow-through</p>
+      <p className="mt-4 text-sm text-paper-hi/70">Ranked against everyone who's been Fishbowled.</p>
+    </div>,
+    <div key="appreciate" className="card-3d flex min-h-[19rem] flex-col justify-center bg-sand p-7 text-ink">
       <p className="kicker text-pink-deep">what they appreciate</p>
       <ul className="mt-4 space-y-3 text-base">
         <li className="flex gap-2.5"><span className="text-pink-deep">❤</span> A brilliant, generous mind.</li>
