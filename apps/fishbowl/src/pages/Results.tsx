@@ -691,6 +691,13 @@ export default function Results() {
               </ul>
             </div>
           )}
+          <button
+            onClick={() => copySummary()}
+            className="press mt-5 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-ink px-5 py-3 font-display font-black text-paper-hi shadow-chunky-sm"
+          >
+            {copied ? 'Copied ✓' : 'Copy this read for your AI agent'}
+          </button>
+          <p className="mt-2 text-center text-xs text-ink-soft">Paste it into your AI assistant so it knows how you work.</p>
         </div>
       ) : (
         <div className="flex min-h-[50vh] flex-col justify-center">
@@ -804,36 +811,55 @@ export default function Results() {
     L.push(`\n${plain(insights.closing)}`)
     return L.join('\n')
   }
+  // The deep "full read" as plain text, so it can be handed to an AI agent verbatim.
+  const synthesisText = (): string => {
+    if (!synthesis) return ''
+    const plain = (s: string) => (s || '').replace(/\*\*/g, '').replace(/\*/g, '')
+    const L: string[] = [`THE FULL READ — ${synthesis.title}`, '', plain(synthesis.portrait)]
+    synthesis.sections.forEach((s) => L.push('', s.heading.toUpperCase(), plain(s.body)))
+    if (synthesis.practice.length) {
+      L.push('', 'PUT IT INTO PRACTICE')
+      synthesis.practice.forEach((p) => L.push(`- ${plain(p)}`))
+    }
+    return L.join('\n')
+  }
+  // Copy the deep read (when present) plus the structured facts, so the AI agent gets
+  // both the narrative and the hard numbers.
   const copySummary = async () => {
+    const text = [synthesisText(), buildSummary()].filter(Boolean).join('\n\n──────────\n\n')
     try {
-      await navigator.clipboard.writeText(buildSummary())
+      await navigator.clipboard.writeText(text)
       setCopied(true)
       setTimeout(() => setCopied(false), 2200)
     } catch {
       /* clipboard unavailable */
     }
   }
-  cards.push({
-    tone: 'paper',
-    node: (
-      <div>
-        <p className="kicker mb-1 text-blue-deep">take it with you</p>
-        <h2 className="display mb-3 text-3xl">Your report, to go</h2>
-        <p className="mb-4 text-sm text-ink-soft">
-          Copy the whole report and paste it into your AI assistant as context, so it actually knows how you work.
-        </p>
-        <div className="max-h-[34vh] overflow-y-auto whitespace-pre-wrap rounded-2xl border-2 border-ink bg-sand p-3 font-mono text-xs leading-relaxed text-ink-soft">
-          {buildSummary()}
+  // Standalone "report, to go" only for users without a self-read (no deep synthesis to
+  // copy from). When there's a synthesis, the copy lives on that card instead.
+  if (!hasSelf) {
+    cards.push({
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-blue-deep">take it with you</p>
+          <h2 className="display mb-3 text-3xl">Your report, to go</h2>
+          <p className="mb-4 text-sm text-ink-soft">
+            Copy the whole report and paste it into your AI assistant as context, so it actually knows how you work.
+          </p>
+          <div className="max-h-[34vh] overflow-y-auto whitespace-pre-wrap rounded-2xl border-2 border-ink bg-sand p-3 font-mono text-xs leading-relaxed text-ink-soft">
+            {buildSummary()}
+          </div>
+          <button
+            onClick={copySummary}
+            className="press mt-4 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-blue px-5 py-3 font-display font-black text-paper-hi shadow-chunky-sm sc-navy"
+          >
+            {copied ? 'Copied ✓' : 'Copy for your AI agent'}
+          </button>
         </div>
-        <button
-          onClick={copySummary}
-          className="press mt-4 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-blue px-5 py-3 font-display font-black text-paper-hi shadow-chunky-sm sc-navy"
-        >
-          {copied ? 'Copied ✓' : 'Copy for your AI agent'}
-        </button>
-      </div>
-    ),
-  })
+      ),
+    })
+  }
 
   const seenNudge = Boolean(slug && localStorage.getItem(`fishbowl_self_nudge_seen_${slug}`))
   const showEntryModal = selfLoaded && !hasSelf && !modalDismissed && !seenNudge
