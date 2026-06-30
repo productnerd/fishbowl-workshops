@@ -7,6 +7,13 @@ import Button from '../components/Button'
 import JohariWindow from '../components/JohariWindow'
 import ViaDeck from '../components/ViaDeck'
 import WatchoutsDeck from '../components/WatchoutsDeck'
+import StatBar from '../components/StatBar'
+import EnergyOverlay from '../components/EnergyOverlay'
+import HatsProfile from '../components/HatsProfile'
+import CandorPlot from '../components/CandorPlot'
+import SdtProfile from '../components/SdtProfile'
+import BelbinReport from '../components/BelbinReport'
+import ResponsibilitiesLadder from '../components/ResponsibilitiesLadder'
 import LikertScale from '../components/LikertScale'
 import VirtueSlider from '../components/VirtueSlider'
 import ChipPicker from '../components/ChipPicker'
@@ -198,6 +205,50 @@ function ReportPreview() {
   const watchTeam = [
     { word: 'impatient', count: 5 }, { word: 'perfectionist', count: 4 }, { word: 'blunt', count: 3 }, { word: 'overcommitted', count: 2 },
   ]
+  const statRows = [
+    { label: 'Follows through on what they commit to', value: 4.6, percent: 8 },
+    { label: 'Communicates clearly under pressure', value: 4.2, percent: 15 },
+    { label: 'Makes the people around them better', value: 4.4, percent: 12 },
+    { label: 'Stays calm when the plan changes', value: 3.9, percent: 35 },
+  ]
+  const energyTeam = [
+    { id: 'connect', label: 'Talking to people & building relationships', teamMean: 1.4, n: 5 },
+    { id: 'deepwork', label: 'Deep-focus solo work', teamMean: 0.8, n: 5 },
+    { id: 'firefight', label: 'Firefighting & the unexpected', teamMean: -0.6, n: 5 },
+    { id: 'mentor', label: 'Mentoring & developing others', teamMean: 1.1, n: 5 },
+    { id: 'analyze', label: 'Analysis & working with data', teamMean: 0.2, n: 5 },
+  ]
+  const energySelf = { connect: 2, deepwork: 1, firefight: -1, mentor: 2, analyze: 0 }
+  const respRows = [
+    { index: 0, label: 'Ship the weekly release', teamTier: 2, n: 5 },
+    { index: 1, label: 'Mentor two juniors', teamTier: 1, n: 5 },
+    { index: 2, label: 'Own the on-call rotation', teamTier: 2, n: 5 },
+  ]
+  const hatsTeam = [
+    { key: 'hat_white', label: 'Facts & info', mu: 5, n: 5 },
+    { key: 'hat_red', label: 'Feelings & intuition', mu: 6, n: 5 },
+    { key: 'hat_yellow', label: 'Optimism & value', mu: 6, n: 5 },
+    { key: 'hat_black', label: 'Caution & risks', mu: 7, n: 5 },
+    { key: 'hat_green', label: 'Creativity & ideas', mu: 4, n: 5 },
+    { key: 'hat_blue', label: 'Process & meta', mu: 5, n: 5 },
+  ]
+  const hatsSelf = { hat_white: 5, hat_red: 5, hat_yellow: 5, hat_black: 6, hat_green: 4, hat_blue: 5 }
+  const sdtTeam = [
+    { key: 'autonomy', label: 'Autonomy', meanPoints: 18, n: 5 },
+    { key: 'competence', label: 'Competence', meanPoints: 24, n: 5 },
+    { key: 'relatedness', label: 'Relatedness', meanPoints: 20, n: 5 },
+    { key: 'purpose', label: 'Purpose', meanPoints: 16, n: 5 },
+    { key: 'safety', label: 'Safety', meanPoints: 12, n: 5 },
+    { key: 'vitality', label: 'Vitality', meanPoints: 10, n: 5 },
+  ]
+  const belbinTeam = [
+    { key: 'plant', name: 'Plant', cluster: 'Thinking', teamShare: 0.28, n: 5 },
+    { key: 'coordinator', name: 'Co-ordinator', cluster: 'People', teamShare: 0.22, n: 5 },
+    { key: 'shaper', name: 'Shaper', cluster: 'Action', teamShare: 0.2, n: 5 },
+    { key: 'implementer', name: 'Implementer', cluster: 'Action', teamShare: 0.18, n: 5 },
+    { key: 'teamworker', name: 'Teamworker', cluster: 'People', teamShare: 0.12, n: 5 },
+  ]
+  const belbinSelf = { plant: 6, coordinator: 4, shaper: 3, implementer: 2 }
   const mock = [
     <div key="headline" className="card-3d flex flex-col justify-center bg-pink p-7 text-ink sc-pink">
       <p className="kicker text-ink/65">your fishbowl</p>
@@ -240,34 +291,32 @@ function ReportPreview() {
         <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full border-2 border-ink bg-pink" />you</span>
       </div>
     </div>,
-    <div key="johari" className="card-3d bg-paper-hi p-6 text-ink">
-      <p className="kicker text-pink-deep">the window</p>
-      <h3 className="display mb-4 text-2xl">Johari window</h3>
-      <JohariWindow teamCounts={johariTeam} self={['confident', 'bold', 'curious', 'kind']} n={5} />
-    </div>,
-    <div key="via" className="card-3d bg-paper-hi p-6 text-ink">
-      <p className="kicker text-blue-deep">signature strengths</p>
-      <h3 className="display mb-4 text-2xl">Your top strengths</h3>
-      <ViaDeck team={viaTeam} self={null} total={5} />
-    </div>,
-    <div key="watch" className="card-3d bg-paper-hi p-6 text-ink">
-      <p className="kicker text-pink-deep">watch-outs</p>
-      <h3 className="display mb-4 text-2xl">Your top watch-outs</h3>
-      <WatchoutsDeck team={watchTeam} self={['impatient', 'perfectionist', 'self-critical']} total={5} />
-    </div>,
-    <div key="archetype" className="card-3d bg-blue p-6 text-paper-hi sc-navy">
-      <p className="kicker text-paper-hi/65">your jungian archetype</p>
-      <h3 className="display mt-1 text-3xl">The Sage</h3>
-      <p className="mt-2 text-sm text-paper-hi/80">The seeker of truth who turns experience into wisdom.</p>
-      <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-        <div className="rounded-2xl border-2 border-ink/40 bg-paper-hi/10 p-3"><p className="kicker text-paper-hi/70">light</p><p className="mt-1 font-semibold">Clear-eyed, patient, deeply principled.</p></div>
-        <div className="rounded-2xl border-2 border-ink/40 bg-paper-hi/10 p-3"><p className="kicker text-paper-hi/70">shadow</p><p className="mt-1 font-semibold">Aloof, over-certain, slow to act.</p></div>
+    <div key="shine" className="card-3d bg-paper-hi p-6 text-ink">
+      <p className="kicker mb-4 text-pink-deep">where you shine</p>
+      <div className="flex flex-col gap-3">
+        {[
+          { label: 'Relentless follow-through', blurb: 'When you commit, it ships. People plan around your reliability.' },
+          { label: 'Calm in the storm', blurb: 'The harder things get, the steadier you read to the room.' },
+          { label: 'A quietly high bar', blurb: 'You raise the standard without ever making it a lecture.' },
+        ].map((s) => (
+          <div key={s.label} className="rounded-2xl border-[2.5px] border-ink bg-sand p-4 shadow-chunky-sm">
+            <p className="serif text-lg font-semibold">{s.label}</p>
+            <p className="mt-1 text-sm leading-relaxed text-ink-soft">{s.blurb}</p>
+          </div>
+        ))}
       </div>
     </div>,
-    <div key="percentile" className="card-3d flex flex-col justify-center bg-blue p-7 text-paper-hi sc-navy">
-      <p className="kicker text-paper-hi/65">how they rate you</p>
+    <div key="ratings" className="card-3d bg-paper-hi p-6 text-ink">
+      <p className="kicker mb-1 text-pink-deep">at work</p>
+      <h3 className="display mb-5 text-2xl">How they rate you</h3>
+      <div className="flex flex-col gap-4">
+        {statRows.map((s) => <StatBar key={s.label} label={s.label} value={s.value} percent={s.percent} />)}
+      </div>
+    </div>,
+    <div key="balanced" className="card-3d flex flex-col justify-center bg-blue p-7 text-paper-hi sc-navy">
+      <p className="kicker text-paper-hi/65">most balanced</p>
       <p className="display mt-2 text-7xl">top 8%</p>
-      <p className="serif text-2xl">on follow-through</p>
+      <p className="serif text-2xl">on composure</p>
       <p className="mt-4 text-sm text-paper-hi/70">Ranked against everyone who's been Fishbowled.</p>
     </div>,
     <div key="appreciate" className="card-3d flex flex-col justify-center bg-sand p-7 text-ink">
@@ -277,6 +326,98 @@ function ReportPreview() {
         <li className="flex gap-2.5"><span className="text-pink-deep">❤</span> Dependable under pressure.</li>
         <li className="flex gap-2.5"><span className="text-pink-deep">❤</span> Sets a quietly high standard.</li>
       </ul>
+    </div>,
+    <div key="energy" className="card-3d bg-paper-hi p-6 text-ink">
+      <p className="kicker mb-1 text-pink-deep">energy</p>
+      <h3 className="display mb-4 text-2xl">What lifts you, what drains you</h3>
+      <EnergyOverlay team={energyTeam} self={energySelf} />
+    </div>,
+    <div key="resp" className="card-3d bg-paper-hi p-6 text-ink">
+      <p className="kicker mb-1 text-pink-deep">their role</p>
+      <h3 className="display mb-4 text-2xl">How you deliver</h3>
+      <ResponsibilitiesLadder team={respRows} self={null} />
+    </div>,
+    <div key="hats" className="card-3d bg-paper-hi p-6 text-ink">
+      <p className="kicker mb-1 text-blue-deep">thinking style</p>
+      <h3 className="display mb-4 text-2xl">Six thinking hats</h3>
+      <HatsProfile team={hatsTeam} self={hatsSelf} />
+    </div>,
+    <div key="candor" className="card-3d bg-paper-hi p-6 text-ink">
+      <p className="kicker mb-1 text-pink-deep">feedback style</p>
+      <h3 className="display mb-4 text-2xl">Care × challenge</h3>
+      <CandorPlot teamCare={7} teamChallenge={6} selfCare={6} selfChallenge={7} />
+    </div>,
+    <div key="sdt" className="card-3d bg-sand p-6 text-ink">
+      <p className="kicker mb-1 text-blue-deep">what you fuel</p>
+      <h3 className="display mb-4 text-2xl">What you fuel in others</h3>
+      <SdtProfile team={sdtTeam} />
+    </div>,
+    <div key="belbin" className="card-3d bg-paper-hi p-6 text-ink">
+      <p className="kicker mb-1 text-pink-deep">team role</p>
+      <h3 className="display mb-4 text-2xl">The roles you play</h3>
+      <BelbinReport team={belbinTeam} self={belbinSelf} />
+    </div>,
+    <div key="via" className="card-3d bg-paper-hi p-6 text-ink">
+      <p className="kicker text-blue-deep">signature strengths</p>
+      <h3 className="display mb-4 text-2xl">Your top strengths</h3>
+      <ViaDeck team={viaTeam} self={['curiosity', 'perspective']} total={5} />
+    </div>,
+    <div key="johari" className="card-3d bg-paper-hi p-6 text-ink">
+      <p className="kicker text-pink-deep">the window</p>
+      <h3 className="display mb-4 text-2xl">Johari window</h3>
+      <JohariWindow teamCounts={johariTeam} self={['confident', 'bold', 'curious', 'kind']} n={5} />
+    </div>,
+    <div key="watch" className="card-3d bg-paper-hi p-6 text-ink">
+      <p className="kicker text-pink-deep">watch-outs</p>
+      <h3 className="display mb-4 text-2xl">Your top watch-outs</h3>
+      <WatchoutsDeck team={watchTeam} self={['impatient', 'perfectionist', 'self-critical']} total={5} />
+    </div>,
+    <div key="nohari" className="card-3d bg-paper-hi p-6 text-ink">
+      <p className="kicker text-pink-deep">the other window</p>
+      <h3 className="display mb-4 text-2xl">Nohari window</h3>
+      <JohariWindow teamCounts={watchTeam} self={['impatient', 'perfectionist', 'self-critical']} n={5} dense />
+    </div>,
+    <div key="archetype" className="card-3d flex flex-col items-center bg-blue p-6 text-center text-paper-hi sc-navy">
+      <p className="kicker text-paper-hi/65">your jungian archetype</p>
+      <svg viewBox="0 0 64 64" className="mt-3 h-16 w-16" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+        <circle cx="32" cy="32" r="26" />
+        <path d="M32 12 L50 44 L14 44 Z" />
+        <circle cx="32" cy="33" r="5" fill="currentColor" stroke="none" />
+      </svg>
+      <h3 className="display mt-3 text-3xl">The Sage</h3>
+      <p className="mt-2 text-sm text-paper-hi/80">The seeker of truth who turns experience into wisdom.</p>
+      <div className="mt-5 grid w-full grid-cols-2 gap-3 text-left text-sm">
+        <div className="rounded-2xl border-2 border-ink bg-paper-hi p-3 text-ink shadow-chunky-sm">
+          <p className="kicker text-pink-deep">☀ light</p>
+          <p className="mt-1 font-semibold">Clear-eyed, patient, deeply principled.</p>
+        </div>
+        <div className="rounded-2xl border-2 border-ink bg-ink p-3 text-paper-hi">
+          <p className="kicker text-blue">☾ shadow</p>
+          <p className="mt-1 font-semibold">Aloof, over-certain, slow to act.</p>
+        </div>
+      </div>
+      <p className="mt-4 text-xs text-paper-hi/60">two sides of the same coin</p>
+    </div>,
+    <div key="action" className="card-3d bg-pink p-6 text-ink sc-pink">
+      <p className="kicker text-ink/70">your move</p>
+      <h3 className="display mb-4 text-2xl">Start here</h3>
+      <div className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-4 shadow-chunky-sm">
+        <p className="kicker text-pink-deep">stop doing now</p>
+        <ul className="mt-1 flex flex-col gap-1.5 text-sm">
+          <li className="flex gap-2"><span className="text-ink/50">•</span>Saying yes before you've checked your plate.</li>
+          <li className="flex gap-2"><span className="text-ink/50">•</span>Rewriting work that was already good enough.</li>
+        </ul>
+        <p className="kicker mt-4 text-blue-deep">start doing now</p>
+        <ul className="mt-1 flex flex-col gap-1.5 text-sm">
+          <li className="flex gap-2"><span className="text-ink/50">•</span>Naming the one risk you see before you commit.</li>
+          <li className="flex gap-2"><span className="text-ink/50">•</span>Handing off the last 10% to grow the team.</li>
+        </ul>
+      </div>
+      <div className="mt-4 rounded-2xl border-[2.5px] border-ink bg-blue px-5 py-3 text-center font-display font-black text-paper-hi shadow-chunky-sm sc-navy">Email this plan to me</div>
+    </div>,
+    <div key="closing" className="card-3d flex flex-col justify-center bg-ink p-7 text-paper-hi">
+      <p className="kicker text-blue">one last thing</p>
+      <p className="serif mt-4 text-2xl leading-snug">You don't have to choose between a high bar and bringing people with you. The best version of you does both.</p>
     </div>,
   ]
   const slides = imgs.length
@@ -288,13 +429,13 @@ function ReportPreview() {
     <div className="mx-auto max-w-md">
       {/* Fixed-height viewport so the arrows below stay pinned as slides change;
           slides are vertically centered within it. */}
-      <div className="flex h-[33rem] items-center justify-center overflow-y-auto">
+      <div className="flex h-[33rem] overflow-y-auto">
         <motion.div
           key={idx}
           initial={{ opacity: 0, x: 28 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] as const }}
-          className="w-full"
+          className="m-auto w-full"
         >
           {slides[idx]}
         </motion.div>

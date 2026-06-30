@@ -52,7 +52,9 @@ export default function ViaDeck({
       <div>
         <p className="kicker mb-3 text-ink-soft">How your team reads you</p>
         <div className="flex flex-col gap-3">
-          {top.map((s, i) => (
+          {top.map((s, i) => {
+            const youToo = selfSet?.has(s.id)
+            return (
             <div
               key={s.id}
               className="card-3d mx-auto w-[94%] bg-paper-hi p-4 text-ink"
@@ -70,11 +72,19 @@ export default function ViaDeck({
               <div className="mt-3 h-2.5 overflow-hidden rounded-full border-2 border-ink bg-sand">
                 <div className="h-full bg-blue" style={{ width: `${pct(s.count)}%` }} />
               </div>
-              <p className="mt-2 text-xs font-semibold text-ink-soft">
-                {s.count} of {total} saw this in you
-              </p>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-ink-soft">
+                  {s.count} of {total} saw this in you
+                </p>
+                {youToo && (
+                  <span className="shrink-0 rounded-full border-2 border-ink bg-pink px-2 py-0.5 text-xs font-bold text-ink sc-pink">
+                    you picked this too
+                  </span>
+                )}
+              </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       </div>
       )}
