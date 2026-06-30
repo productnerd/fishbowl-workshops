@@ -17,6 +17,7 @@ import {
   WEAKNESSES,
   NOHARI_MIN,
   NOHARI_MAX,
+  REQUIRED_RESPONSES,
   type BigFiveScores,
   type MbtiType,
   type EnergizerTags,
@@ -25,6 +26,7 @@ import {
   type VirtueScores,
 } from '@fishbowl/feedback-core'
 import { requestMagicLink, saveSelf, finishSelf, getSelfReport } from '../lib/self'
+import { getSession } from '../lib/data'
 import { getSubjectAuth, setSubjectAuth } from '../lib/subjectAuth'
 import { playTick, playScaleNote } from '../lib/sound'
 import LikertScale from '../components/LikertScale'
@@ -147,8 +149,35 @@ export default function SelfAssessment() {
   const [sending, setSending] = useState(false)
   const [finishError, setFinishError] = useState<string | null>(null)
 
-  // Save the completed read, mint a device bearer, and email the results link, then
-  // open the report. Used when the subject started without signing in.
+  // The creator's own session, as stored by the Create page (slug, name, email).
+  const MY_KEY = 'fishbowl_my_session'
+  const readMine = (): { slug: string; creator_name?: string; email?: string | null } | null => {
+    try {
+      const m = JSON.parse(localStorage.getItem(MY_KEY) || 'null')
+      return m && m.slug === slug ? m : null
+    } catch {
+      return null
+    }
+  }
+
+  // After a completed self-read is saved: keep the personal/share screen renderable
+  // for this session, then route. If the team already has enough answers, open the
+  // report; otherwise go back to the share screen (which now shows the read as done,
+  // plus the invite link + copy). self_completed_at is stamped server-side during the
+  // awaited save, so the screen reads it as done with no race.
+  const routeAfter = async (knownEmail?: string | null) => {
+    if (!slug) return
+    localStorage.setItem(`fishbowl_self_nudge_seen_${slug}`, '1')
+    const session = await getSession(slug)
+    const mine = readMine()
+    localStorage.setItem(
+      MY_KEY,
+      JSON.stringify({ slug, creator_name: session?.creator_name ?? mine?.creator_name ?? '', email: knownEmail ?? mine?.email ?? null })
+    )
+    navigate((session?.response_count ?? 0) >= REQUIRED_RESPONSES ? `/r/${slug}` : '/create')
+  }
+
+  // Email fallback: only reached when we genuinely don't already have their email.
   const onFinish = async () => {
     if (!slug || !bigFive || !mbti || !email.trim()) return
     setSending(true)
@@ -161,8 +190,7 @@ export default function SelfAssessment() {
     }
     setSubjectAuth({ bearer: res.bearer, person_id: res.person_id, slug })
     void requestMagicLink(email.trim(), slug) // the one email: a link back to the results
-    localStorage.setItem(`fishbowl_self_nudge_seen_${slug}`, '1')
-    navigate(`/r/${slug}`)
+    await routeAfter(email.trim())
   }
 
   // ── depth ──
@@ -234,23 +262,38 @@ export default function SelfAssessment() {
 
   const save = async () => {
     if (!slug || !bigFive || !mbti) return
-    // Started without signing in — collect an email at the end, then save + redirect.
-    if (!authed) {
-      setPhase('finish')
-      return
-    }
     setSaving(true)
     setSaveError(false)
-    const res = await saveSelf(slug, buildPayload(true, 'done'))
-    // Only move on if it actually saved, else the report would load with no self and
-    // re-nag them. On success, suppress the "take it first" modal for good.
-    if (!res.ok) {
-      setSaving(false)
-      setSaveError(true)
+    // Signed in (magic link / device bearer): just save and route.
+    if (authed) {
+      const res = await saveSelf(slug, buildPayload(true, 'done'))
+      if (!res.ok) {
+        setSaving(false)
+        setSaveError(true)
+        return
+      }
+      await routeAfter()
       return
     }
-    localStorage.setItem(`fishbowl_self_nudge_seen_${slug}`, '1')
-    navigate(`/r/${slug}`)
+    // Not signed in, but the creator already gave their email when they made the link.
+    // Reuse it so we never ask twice; only fall back to the email step if we truly
+    // don't have one on record.
+    const known = readMine()?.email?.trim()
+    if (known) {
+      const res = await finishSelf(known, slug, buildPayload(true, 'done'))
+      if (!res.ok) {
+        setSaving(false)
+        setFinishError(res.error ?? 'error')
+        setPhase('finish')
+        return
+      }
+      if (res.bearer && res.person_id) setSubjectAuth({ bearer: res.bearer, person_id: res.person_id, slug })
+      void requestMagicLink(known, slug)
+      await routeAfter(known)
+      return
+    }
+    setSaving(false)
+    setPhase('finish')
   }
 
   // "Are you sure" confirmation before skipping the remaining deeper activities.
@@ -641,7 +684,7 @@ export default function SelfAssessment() {
             ) : (
               <>
                 <Button variant="pink" onClick={save} disabled={saving} className="!text-xl">
-                  {saving ? 'Saving…' : 'Save & see my report →'}
+                  {saving ? 'Saving…' : 'Save & finish →'}
                 </Button>
                 <button
                   onClick={() => {
@@ -743,7 +786,7 @@ export default function SelfAssessment() {
           </div>
           <div className="mt-7 flex flex-col items-center gap-3">
             <Button variant="pink" onClick={next} disabled={saving} className="!text-xl">
-              {last ? (saving ? 'Saving…' : 'Save & see my report →') : 'Next →'}
+              {last ? (saving ? 'Saving…' : 'Save & finish →') : 'Next →'}
             </Button>
             <button onClick={() => setConfirmSkip(true)} disabled={saving} className="cursor-pointer text-sm font-semibold text-ink-soft hover:underline">
               Skip the rest, save now
