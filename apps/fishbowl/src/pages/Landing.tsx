@@ -250,11 +250,6 @@ function ReportPreview() {
   ]
   const belbinSelf = { plant: 6, coordinator: 4, shaper: 3, implementer: 2 }
   const mock = [
-    <div key="headline" className="card-3d flex flex-col justify-center bg-pink p-7 text-ink sc-pink">
-      <p className="kicker text-ink/65">your fishbowl</p>
-      <p className="display mt-3 text-3xl leading-tight">A force who ships everything. Now bring people with you.</p>
-      <p className="mt-4 text-sm font-semibold text-ink/70">10 colleagues · one honest mirror.</p>
-    </div>,
     <div key="personality" className="card-3d relative overflow-hidden bg-paper-hi p-6 text-ink">
       <img src={`${import.meta.env.BASE_URL}characters/INFJ.png`} alt="Elsa" className="pointer-events-none absolute -right-3 -top-3 h-40 w-auto select-none object-contain drop-shadow-[3px_3px_0_rgba(42,36,32,0.25)]" />
       <p className="kicker text-pink-deep">your personality type is</p>
