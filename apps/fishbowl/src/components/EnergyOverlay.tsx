@@ -7,6 +7,9 @@ type TeamEnergizer = { id: string; label: string; teamMean: number; n: number }
 // Falls back to a self-only view when the team hasn't been asked these.
 export default function EnergyOverlay({ team, self }: { team: TeamEnergizer[]; self: EnergizerTags | null }) {
   const pos = (v: number) => ((v + 2) / 4) * 100
+  // Map a 0–100 position to a `left` that keeps the 16px marker fully inside the
+  // track at the extremes (inset by the 8px radius), so +2 / −2 never crop.
+  const clp = (p: number) => `calc(8px + (100% - 16px) * ${p} / 100)`
   const teamHasData = team.some((r) => r.n > 0)
   const rows = team
     .filter((r) => r.n > 0 || (self && typeof self[r.id] === 'number'))
@@ -26,20 +29,20 @@ export default function EnergyOverlay({ team, self }: { team: TeamEnergizer[]; s
               {r.n > 0 && typeof s === 'number' && Math.abs(pos(r.teamMean) - pos(s)) > 4 && (
                 <div
                   className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full"
-                  style={{ left: `${Math.min(pos(r.teamMean), pos(s))}%`, width: `${Math.abs(pos(r.teamMean) - pos(s))}%`, backgroundColor: '#5e2746' }}
+                  style={{ left: clp(Math.min(pos(r.teamMean), pos(s))), width: `calc((100% - 16px) * ${Math.abs(pos(r.teamMean) - pos(s))} / 100)`, backgroundColor: '#5e2746' }}
                 />
               )}
               {r.n > 0 && (
                 <div
                   className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-blue"
-                  style={{ left: `${pos(r.teamMean)}%` }}
+                  style={{ left: clp(pos(r.teamMean)) }}
                   title={`team ${r.teamMean}`}
                 />
               )}
               {typeof s === 'number' && (
                 <div
                   className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-pink"
-                  style={{ left: `${pos(s)}%` }}
+                  style={{ left: clp(pos(s)) }}
                   title={`you ${s}`}
                 />
               )}
