@@ -112,7 +112,7 @@ function BentoTile({ f, delay }: { f: (typeof FRAMEWORKS)[number]; delay: number
   }, [src])
   return (
     <motion.div {...rise(delay)}>
-      <Card tone={f.tone} className="relative flex h-full flex-col gap-3 overflow-hidden p-5">
+      <Card tone={f.tone} className="relative flex h-full flex-col gap-3 overflow-hidden px-5 pt-5">
         <span aria-hidden className="pointer-events-none absolute -bottom-7 -right-3 select-none text-[6rem] leading-none opacity-[0.1]">
           {f.icon}
         </span>
@@ -124,9 +124,10 @@ function BentoTile({ f, delay }: { f: (typeof FRAMEWORKS)[number]; delay: number
           <h3 className={`font-display text-xl font-black leading-tight ${t.title}`}>{f.title}</h3>
           <p className={`mt-1.5 text-sm leading-relaxed ${t.blurb}`}>{f.blurb}</p>
         </div>
-        <div className="relative mt-1">
+        {/* Activity sits flush against the bottom of the card (no bottom padding). */}
+        <div className="relative mt-auto">
           {hasImg ? (
-            <img src={src} alt={f.title} className="w-full rounded-lg border-2 border-ink object-cover" />
+            <img src={src} alt={f.title} className="w-full border-t-2 border-ink object-cover" />
           ) : (
             <BentoActivity kind={f.key} />
           )}
