@@ -129,16 +129,8 @@ export const questions: Question[] = [
   { id: 18, type: 'scenario', dimension: 'deadline_style', pool: 'scenarios', section: 'In the Moment', sectionDescription: 'Pick what feels most true.', text: 'Facing a slipping deadline, {name} tends to…', options: ['Quietly hope it works out', 'Flag it early and re-plan', 'Pull all-nighters and burn out'], optionTendencies: { 'Quietly hope it works out': 'deficient', 'Flag it early and re-plan': 'balanced', 'Pull all-nighters and burn out': 'excessive' } },
   { id: 19, type: 'scenario', dimension: 'feedback_style', pool: 'scenarios', section: 'In the Moment', sectionDescription: 'Pick what feels most true.', text: 'Given critical feedback, {name}…', options: ['Gets defensive', 'Considers it and adjusts', 'Over-corrects and loses their own view'], optionTendencies: { 'Gets defensive': 'deficient', 'Considers it and adjusts': 'balanced', 'Over-corrects and loses their own view': 'excessive' } },
 
-  // ── Energy: energizers vs drains (the subject self-tags too; report overlays) ──
-  {
-    id: 23,
-    type: 'energizer',
-    dimension: 'energizers',
-    pool: 'energy',
-    section: 'Energy',
-    sectionDescription: 'Tap how each kind of work seems to leave {name}.',
-    text: 'Where does {name} get their energy?',
-  },
+  // Energizers are a self-only lens (only you can say what energizes/drains you), so
+  // colleagues are never asked — the question lives only in the self-assessment.
 
   // ── Their Role: rate the subject's own responsibilities (shown only if authored) ──
   {

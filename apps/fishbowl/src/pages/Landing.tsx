@@ -208,10 +208,12 @@ function ReportPreview() {
     { label: 'Communicates clearly under pressure', value: 4.2, percent: 15 },
     { label: 'Makes the people around them better', value: 4.4, percent: 12 },
   ]
+  // Energizers are self-only (the team isn't asked), so the preview shows just the
+  // subject's markers — team rows carry n:0 so no team dot renders.
   const energyTeam = [
-    { id: 'connect', label: 'Talking to people & building relationships', teamMean: 1.4, n: 5 },
-    { id: 'deepwork', label: 'Deep-focus solo work', teamMean: 0.8, n: 5 },
-    { id: 'firefight', label: 'Firefighting & the unexpected', teamMean: -0.6, n: 5 },
+    { id: 'connect', label: 'Talking to people & building relationships', teamMean: 0, n: 0 },
+    { id: 'deepwork', label: 'Deep-focus solo work', teamMean: 0, n: 0 },
+    { id: 'firefight', label: 'Firefighting & the unexpected', teamMean: 0, n: 0 },
   ]
   const energySelf = { connect: 2, deepwork: 1, firefight: -1 }
   const respRows = [

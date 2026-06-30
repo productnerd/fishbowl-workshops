@@ -371,38 +371,24 @@ export default function Results() {
       }
     : null
 
-  // Energizers overlay: team layer shows at >=5; the subject's own markers overlay
-  // once they've self-assessed (else a nudge to add their read).
+  // Energizers: a self-only lens — only the subject can say what energizes or drains
+  // them, so colleagues are never asked. Shows once they've self-assessed.
   const selfEnergizers = hasSelf ? ((self?.self_payload?.energizers as EnergizerTags | undefined) ?? null) : null
-  const teamEnerg = insights.energizers ?? []
-  const teamEnergHasData = teamEnerg.some((e) => e.n > 0)
-  if (teamEnergHasData || (selfEnergizers && Object.keys(selfEnergizers).length > 0)) {
-    const energyTeam = teamEnergHasData
-      ? teamEnerg
-      : ENERGIZER_ACTIVITIES.filter((a) => selfEnergizers && typeof selfEnergizers[a.id] === 'number').map((a) => ({ id: a.id, label: a.label, teamMean: 0, n: 0 }))
+  if (selfEnergizers && Object.keys(selfEnergizers).length > 0) {
+    const energyRows = ENERGIZER_ACTIVITIES
+      .filter((a) => typeof selfEnergizers[a.id] === 'number')
+      .map((a) => ({ id: a.id, label: a.label, teamMean: 0, n: 0 }))
     const energyCard = {
       tone: 'paper' as const,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
             energy
-            <InfoTip text="Marcus Buckingham's strengths idea: a strength is an activity that energizes you, not merely one you're good at. Lean into your energizers." />
+            <InfoTip text="Marcus Buckingham's strengths idea: a strength is an activity that energizes you, not merely one you're good at. This one's yours alone — only you can know what lifts or drains you." />
           </p>
           <h2 className="display mb-1 text-3xl">What lifts you, what drains you</h2>
-          <p className="mb-5 text-sm text-ink-soft">
-            {teamEnergHasData
-              ? `How your ${session.response_count} colleagues read your energy${hasSelf ? ', next to your own read' : ''}.`
-              : 'Your own read on what lifts and drains you.'}
-          </p>
-          <EnergyOverlay team={energyTeam} self={selfEnergizers} />
-          {!hasSelf && (
-            <button
-              onClick={goSelf}
-              className="press mt-5 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-pink sc-pink px-5 py-3 font-display font-black text-ink shadow-chunky-sm"
-            >
-              Take your self-read to overlay your view →
-            </button>
-          )}
+          <p className="mb-5 text-sm text-ink-soft">Your own read — only you can call this one.</p>
+          <EnergyOverlay team={energyRows} self={selfEnergizers} />
         </div>
       ),
     }
