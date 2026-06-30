@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { johariQuadrants, JOHARI_ADJECTIVES } from '@fishbowl/feedback-core'
+import { johariQuadrants } from '@fishbowl/feedback-core'
 
 type TeamCount = { word: string; count: number }
 
@@ -69,7 +69,6 @@ export default function JohariWindow({
   teamCounts,
   self,
   n,
-  total,
   dense,
 }: {
   teamCounts: TeamCount[]
@@ -78,7 +77,6 @@ export default function JohariWindow({
   total?: number
   dense?: boolean
 }) {
-  const poolSize = total ?? JOHARI_ADJECTIVES.length
   const teamPicked = teamCounts.filter((t) => t.count > 0)
   const countOf = (word: string) => teamPicked.find((t) => t.word === word)?.count
 
@@ -124,19 +122,13 @@ export default function JohariWindow({
           )}
         </Pane>
       </div>
-      <div className="grid grid-cols-2 divide-x-[3px] divide-ink [&>*]:min-h-[8.5rem]">
+      <div className="[&>*]:min-h-[8.5rem]">
         <Pane kicker="Hidden" caption="You see it, they didn't">
           {hidden.length ? (
             hidden.map((w) => <Chip key={w} word={w} tone="blue" dense={dense} />)
           ) : (
             <span className="text-xs text-ink-soft">Nothing held back.</span>
           )}
-        </Pane>
-        <Pane kicker="Unknown" caption="Neither of you picked it">
-          <span className="font-display text-3xl font-black text-ink-soft tabular-nums">
-            {Math.max(0, poolSize - new Set([...self, ...teamPicked.map((t) => t.word)]).size)}
-          </span>
-          <span className="self-center text-xs text-ink-soft">words left unclaimed</span>
         </Pane>
       </div>
     </div>

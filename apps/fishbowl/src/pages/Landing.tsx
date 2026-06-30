@@ -204,7 +204,8 @@ function ReportPreview() {
       <p className="display mt-3 text-3xl leading-tight">A force who ships everything. Now bring people with you.</p>
       <p className="mt-4 text-sm font-semibold text-ink/70">10 colleagues · one honest mirror.</p>
     </div>,
-    <div key="personality" className="card-3d bg-paper-hi p-6 text-ink">
+    <div key="personality" className="card-3d relative overflow-hidden bg-paper-hi p-6 text-ink">
+      <img src={`${import.meta.env.BASE_URL}characters/INFJ.png`} alt="Elsa" className="pointer-events-none absolute -right-3 -top-3 h-40 w-auto select-none object-contain drop-shadow-[3px_3px_0_rgba(42,36,32,0.25)]" />
       <p className="kicker text-pink-deep">your personality type is</p>
       <h3 className="display mt-1 text-3xl leading-tight">The Quiet Storm</h3>
       <p className="serif text-xl tracking-wide text-ink-soft">INFJ-A</p>
@@ -218,12 +219,22 @@ function ReportPreview() {
     <div key="virtues" className="card-3d bg-paper-hi p-6 text-ink">
       <p className="kicker text-blue-deep">the ten virtues</p>
       <h3 className="display mb-5 text-2xl">Where you balance</h3>
-      <p className="serif mb-1 text-lg font-semibold">Candor</p>
-      <div className="relative h-3 rounded-full border-2 border-ink bg-sand">
-        <div className="absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-blue" style={{ left: '58%' }} />
-        <div className="absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-pink sc-pink" style={{ left: '40%' }} />
+      <div className="flex flex-col gap-5">
+        {[
+          { name: 'Candor', deficient: 'evasive', excess: 'blunt', team: 58, you: 40 },
+          { name: 'Courage', deficient: 'timid', excess: 'reckless', team: 62, you: 70 },
+          { name: 'Composure', deficient: 'volatile', excess: 'detached', team: 45, you: 52 },
+        ].map((v) => (
+          <div key={v.name}>
+            <p className="serif mb-1 text-lg font-semibold">{v.name}</p>
+            <div className="relative h-3 rounded-full border-2 border-ink bg-sand">
+              <div className="absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-blue" style={{ left: `${v.team}%` }} />
+              <div className="absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-pink sc-pink" style={{ left: `${v.you}%` }} />
+            </div>
+            <div className="mt-1.5 flex justify-between text-xs font-bold text-ink-soft"><span>{v.deficient}</span><span>{v.excess}</span></div>
+          </div>
+        ))}
       </div>
-      <div className="mt-2 flex justify-between text-xs font-bold text-ink-soft"><span>evasive</span><span>the virtue</span><span>blunt</span></div>
       <div className="mt-5 flex gap-4 text-xs font-semibold text-ink-soft">
         <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full border-2 border-ink bg-blue" />team</span>
         <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full border-2 border-ink bg-pink" />you</span>
@@ -275,14 +286,15 @@ function ReportPreview() {
   const go = (d: number) => setI((c) => (Math.min(c, slides.length - 1) + d + slides.length) % slides.length)
   return (
     <div className="mx-auto max-w-md">
-      {/* Fixed-height viewport so the arrows below stay pinned as slides change. */}
-      <div className="h-[33rem] overflow-y-auto">
+      {/* Fixed-height viewport so the arrows below stay pinned as slides change;
+          slides are vertically centered within it. */}
+      <div className="flex h-[33rem] items-center justify-center overflow-y-auto">
         <motion.div
           key={idx}
           initial={{ opacity: 0, x: 28 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] as const }}
-          className="min-h-full [&>*]:min-h-full"
+          className="w-full"
         >
           {slides[idx]}
         </motion.div>
@@ -362,7 +374,7 @@ export default function Landing() {
                   ctaLabel
                 )}
               </Button>
-              <span className="text-sm font-semibold text-ink-soft">FREE · no sign-up for them</span>
+              <span className="text-sm font-semibold text-ink-soft">FREE · no signup needed</span>
             </div>
           </motion.div>
         </div>
