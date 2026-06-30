@@ -46,8 +46,38 @@ const TONE: Record<Tone, { kicker: string; title: string; blurb: string }> = {
   paper: { kicker: 'text-blue-deep', title: 'text-ink', blurb: 'text-ink-soft' },
 }
 
-// One bento tile: shows public/bento/<key>.png as a faded, tone-washed cover when the
-// file exists, otherwise a big faded emoji watermark. Icon sits in a rounded chip.
+// A tiny, static preview of each activity in the real test's format. Blue/beige only
+// (pink is reserved for primary actions), so these are bespoke mini-renders.
+function BentoActivity({ kind }: { kind: string }) {
+  const chip = 'rounded-full border-2 border-ink bg-paper-hi px-2 py-0.5 text-[10px] font-bold text-ink'
+  switch (kind) {
+    case 'personality':
+      return <div className="flex gap-1">{[0, 1, 2, 3, 4].map((n) => <div key={n} className={`h-5 flex-1 rounded border-2 border-ink ${n === 3 ? 'bg-blue' : 'bg-paper-hi'}`} />)}</div>
+    case 'virtues':
+      return <div className="flex gap-0.5">{Array.from({ length: 9 }).map((_, n) => <div key={n} className={`h-5 flex-1 rounded-sm border-2 border-ink ${n === 4 ? 'bg-blue' : 'bg-paper-hi'}`} />)}</div>
+    case 'hats':
+      return <div className="flex gap-1">{[0, 1, 2, 3, 4, 5].map((n) => <div key={n} className={`h-5 w-5 rounded border-2 border-ink ${n % 2 ? 'bg-sand' : 'bg-blue'}`} />)}</div>
+    case 'via':
+    case 'johari':
+      return <div className="flex flex-wrap gap-1"><span className={chip}>honest</span><span className={chip}>curious</span><span className={chip}>steady</span></div>
+    case 'nohari':
+      return <div className="flex flex-wrap gap-1"><span className={chip}>impatient</span><span className={chip}>blunt</span></div>
+    case 'belbin':
+    case 'sdt':
+      return <div className="flex flex-col gap-1">{[78, 52, 30].map((w, k) => <div key={k} className="h-2.5 overflow-hidden rounded-full border-2 border-ink bg-paper-hi"><div className="h-full rounded-full bg-blue" style={{ width: `${w}%` }} /></div>)}</div>
+    case 'energy':
+      return <div className="flex items-center gap-1.5"><span className="text-[10px] font-bold text-ink-soft">drains</span><div className="flex flex-1 gap-1">{[0, 1, 2, 3, 4].map((n) => <div key={n} className={`h-2.5 flex-1 rounded-full border border-ink ${n >= 3 ? 'bg-blue' : 'bg-paper-hi'}`} />)}</div><span className="text-[10px] font-bold text-ink-soft">lifts</span></div>
+    case 'candor':
+      return <div className="grid h-11 w-11 grid-cols-2 grid-rows-2 gap-px border-2 border-ink bg-ink">{[0, 1, 2, 3].map((n) => <div key={n} className="relative bg-paper-hi">{n === 1 && <span className="absolute right-0.5 top-0.5 h-2.5 w-2.5 rounded-full border border-ink bg-blue" />}</div>)}</div>
+    case 'jungian':
+      return <div className="flex h-6 overflow-hidden rounded-md border-2 border-ink"><div className="flex-1 bg-sand" /><div className="flex-1 bg-blue" /></div>
+    default:
+      return null
+  }
+}
+
+// One bento tile: optional public/bento/<key>.png background (faded, tone-washed), icon
+// chip above the title, blurb, then a small example of the activity.
 function BentoTile({ f, delay }: { f: (typeof FRAMEWORKS)[number]; delay: number }) {
   const t = TONE[f.tone]
   const src = `${import.meta.env.BASE_URL}bento/${f.key}.png`
@@ -58,15 +88,15 @@ function BentoTile({ f, delay }: { f: (typeof FRAMEWORKS)[number]; delay: number
     img.src = src
   }, [src])
   return (
-    <motion.div {...rise(delay)} className={f.cls ?? ''}>
-      <Card tone={f.tone} className="relative flex h-full flex-col justify-between gap-3 overflow-hidden p-5">
+    <motion.div {...rise(delay)}>
+      <Card tone={f.tone} className="relative flex h-full flex-col gap-3 overflow-hidden p-5">
         {hasImg ? (
           <>
             <img src={src} alt="" aria-hidden className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
             <div className={`pointer-events-none absolute inset-0 ${f.tone === 'blue' ? 'bg-blue/55' : 'bg-paper/40'}`} />
           </>
         ) : (
-          <span aria-hidden className="pointer-events-none absolute -bottom-6 -right-3 select-none text-[7.5rem] leading-none opacity-[0.14]">
+          <span aria-hidden className="pointer-events-none absolute -bottom-7 -right-3 select-none text-[6rem] leading-none opacity-[0.12]">
             {f.icon}
           </span>
         )}
@@ -77,6 +107,9 @@ function BentoTile({ f, delay }: { f: (typeof FRAMEWORKS)[number]; delay: number
           </span>
           <h3 className={`font-display text-xl font-black leading-tight ${t.title}`}>{f.title}</h3>
           <p className={`mt-1.5 text-sm leading-relaxed ${t.blurb}`}>{f.blurb}</p>
+        </div>
+        <div className="relative mt-1">
+          <BentoActivity kind={f.key} />
         </div>
       </Card>
     </motion.div>
@@ -161,9 +194,9 @@ export default function Landing() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-2 gap-4 lg:auto-rows-[12.5rem] lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FRAMEWORKS.map((f, i) => (
-            <BentoTile key={f.key} f={f} delay={0.08 + Math.min(i, 8) * 0.04} />
+            <BentoTile key={f.key} f={f} delay={0.06 + Math.min(i, 8) * 0.03} />
           ))}
         </div>
       </section>
