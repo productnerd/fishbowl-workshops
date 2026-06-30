@@ -45,6 +45,31 @@ export interface SelfInsight {
   n: number
 }
 
+export interface SelfSynthesis {
+  title: string
+  portrait: string
+  sections: { heading: string; body: string }[]
+  practice: string[]
+  n: number
+}
+
+// The deep, cross-referenced "full read" (bearer-gated, generated with extended
+// thinking server-side, cached on the self row). Pass the derived archetype so the
+// synthesis can weave it in. Returns null until a team report + self-read both exist.
+export async function getSynthesis(
+  slug: string,
+  archetype: { name: string; essence: string; light: string; shadow: string; runnerUp?: string } | null,
+  force = false
+): Promise<SelfSynthesis | null> {
+  const auth = getSubjectAuth()
+  if (!auth) return null
+  const { data, error } = await supabase.functions.invoke('fishbowl-synthesis', {
+    body: { bearer: auth.bearer, slug, archetype, force },
+  })
+  if (error || !data || data.error) return null
+  return (data.synthesis as SelfSynthesis) ?? null
+}
+
 // The private "you vs your team" narrative. Bearer-gated and generated server-side;
 // returns null until a team report exists. Cached on the self row, regenerated when
 // the team report grows (or force=true).

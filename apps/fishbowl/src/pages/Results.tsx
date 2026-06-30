@@ -20,7 +20,7 @@ import {
   type VirtueScores,
 } from '@fishbowl/feedback-core'
 import { getSession } from '../lib/data'
-import { getSelfReport, getSelfInsight, type SelfData, type SelfInsight } from '../lib/self'
+import { getSelfReport, getSelfInsight, getSynthesis, type SelfData, type SelfInsight, type SelfSynthesis } from '../lib/self'
 import { useAiInsights } from '../lib/aiInsights'
 import { topPercent } from '../lib/percentile'
 import Card from '../components/Card'
@@ -59,6 +59,8 @@ export default function Results() {
   const [modalDismissed, setModalDismissed] = useState(false)
   const [selfInsight, setSelfInsight] = useState<SelfInsight | null>(null)
   const [selfInsightLoading, setSelfInsightLoading] = useState(false)
+  const [synthesis, setSynthesis] = useState<SelfSynthesis | null>(null)
+  const [synthesisLoading, setSynthesisLoading] = useState(false)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -112,6 +114,25 @@ export default function Results() {
       cancelled = true
     }
   }, [slug, hasSelf, insights])
+
+  // The deep cross-referenced "full read" — bearer-gated, generated with extended
+  // thinking. Pass the derived archetype so the synthesis can weave it through.
+  useEffect(() => {
+    if (!slug || !hasSelf || !insights || !self) return
+    let cancelled = false
+    setSynthesisLoading(true)
+    const virtueMeans = Object.fromEntries(insights.virtues.map((v) => [v.dimension, v.mu]))
+    const a = deriveArchetype(self.big_five ?? null, virtueMeans)
+    const archPayload = a ? { name: a.name, essence: a.essence, light: a.light, shadow: a.shadow, runnerUp: a.runnerUp } : null
+    getSynthesis(slug, archPayload).then((r) => {
+      if (cancelled) return
+      setSynthesis(r)
+      setSynthesisLoading(false)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [slug, hasSelf, insights, self])
 
   if (loading) {
     return (
@@ -627,6 +648,57 @@ export default function Results() {
           ) : (
             <p className="text-ink-soft">Reading the gaps between how you see yourself and how your team does…</p>
           )}
+        </div>
+      ),
+    })
+  }
+
+  // The deep "full read" synthesis — the long, cross-referenced portrait that ties
+  // every activity together. Bearer-gated, generated with extended thinking. Sits
+  // right before the action plan.
+  if (hasSelf && (synthesis || synthesisLoading)) {
+    const para = (text: string, tone: 'ink' | 'light' = 'ink') =>
+      text.split('\n\n').filter(Boolean).map((p, i) => (
+        <p key={i} className={`mt-3 leading-relaxed first:mt-0 ${tone === 'ink' ? 'text-ink' : 'text-paper-hi/90'}`}>
+          <Rich text={p} />
+        </p>
+      ))
+    cards.push({
+      tone: 'paper',
+      node: synthesis ? (
+        <div>
+          <p className="kicker mb-1 text-blue-deep">the full read</p>
+          <h2 className="display mb-4 text-3xl leading-tight">{synthesis.title}</h2>
+          <div className="mb-6">{para(synthesis.portrait)}</div>
+          <div className="flex flex-col gap-4">
+            {synthesis.sections.map((s, i) => (
+              <div key={i} className="rounded-2xl border-[2.5px] border-ink bg-sand p-4 shadow-chunky-sm">
+                <h3 className="serif text-xl font-black text-ink">{s.heading}</h3>
+                <div className="mt-1">{para(s.body)}</div>
+              </div>
+            ))}
+          </div>
+          {synthesis.practice.length > 0 && (
+            <div className="mt-4 rounded-2xl border-[2.5px] border-ink bg-blue p-4 text-paper-hi shadow-chunky-sm sc-navy">
+              <p className="kicker text-paper-hi/80">put it into practice</p>
+              <ul className="mt-2.5 flex flex-col gap-2.5">
+                {synthesis.practice.map((p, i) => (
+                  <li key={i} className="flex gap-2.5 leading-relaxed">
+                    <span className="shrink-0 text-paper-hi/60">→</span>
+                    <span><Rich text={p} /></span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex min-h-[50vh] flex-col justify-center">
+          <p className="kicker mb-1 text-blue-deep">the full read</p>
+          <h2 className="display mb-3 text-3xl">Synthesizing everything…</h2>
+          <p className="leading-relaxed text-ink-soft">
+            Weaving every activity together with your personality and archetype into one read. This one thinks hard, so it takes a few seconds to write, then it appears right here.
+          </p>
         </div>
       ),
     })
