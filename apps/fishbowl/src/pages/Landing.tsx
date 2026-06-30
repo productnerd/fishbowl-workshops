@@ -374,7 +374,7 @@ export default function Landing() {
           <p className="kicker mb-2 text-blue-deep">the activities &amp; their frameworks</p>
           <h2 className="display text-4xl sm:text-5xl">Many lenses, one you</h2>
           <p className="mt-3 max-w-xl text-ink-soft">
-            Not one quiz. A dozen quick activities, each backed by a real framework, mashed into a single report.
+            A dozen quick activities, each backed by a real framework, mashed into a single report.
           </p>
         </motion.div>
 
