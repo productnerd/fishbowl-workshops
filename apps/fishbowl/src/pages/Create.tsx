@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { REQUIRED_RESPONSES, buildShareLink } from '@fishbowl/feedback-core'
 import { createSession, getResponseCount, getSession } from '../lib/data'
-import { finishSelf } from '../lib/self'
-import { setSubjectAuth } from '../lib/subjectAuth'
 import Card from '../components/Card'
 import Button from '../components/Button'
 
@@ -49,18 +47,6 @@ export default function Create() {
     try {
       const s = await createSession(name.trim(), context.trim() || undefined, email.trim() || undefined)
       localStorage.setItem(KEY, JSON.stringify({ slug: s, creator_name: name.trim(), email: email.trim() || null }))
-      // If they just did a self-read elsewhere (the "create your own Fishbowl" invite),
-      // carry it straight into this new session. Needs an email to tie it to them.
-      const pending = localStorage.getItem('fishbowl_pending_self')
-      if (pending && email.trim()) {
-        try {
-          const res = await finishSelf(email.trim(), s, JSON.parse(pending))
-          if (res.ok && res.bearer && res.person_id) setSubjectAuth({ bearer: res.bearer, person_id: res.person_id, slug: s })
-        } catch {
-          /* if it fails, they can still take the self-read from the share screen */
-        }
-      }
-      localStorage.removeItem('fishbowl_pending_self')
       setSlug(s)
       setCreator(name.trim())
     } catch {

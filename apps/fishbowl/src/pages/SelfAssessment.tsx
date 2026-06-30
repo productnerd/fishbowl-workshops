@@ -60,7 +60,7 @@ const DEPTHS: SelfDepth[] = [
   { id: 'extended', name: 'Extended', perTrait: 8, time: '~10 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
 ]
 
-type Phase = 'checking' | 'invite' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks'
+type Phase = 'checking' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks'
 
 // The 10 virtue scales, reused from the colleague survey so the vice/virtue behaviours
 // (deficientTraits / virtueTraits / excessiveTraits) are a single source of truth.
@@ -157,11 +157,10 @@ export default function SelfAssessment() {
     }
   }
 
-  // After a completed self-read is saved: keep the personal/share screen renderable
-  // for this session, then route. If the team already has enough answers, open the
-  // report; otherwise go back to the share screen (which now shows the read as done,
-  // plus the invite link + copy). self_completed_at is stamped server-side during the
-  // awaited save, so the screen reads it as done with no race.
+  // After the subject's self-read: open the report if the team already has enough
+  // answers, otherwise go home (the landing reflects their session progress). We also
+  // remember the session locally so home/report can find it. self_completed_at is
+  // stamped server-side during the awaited save, so it reads as done with no race.
   const routeAfter = async (knownEmail?: string | null) => {
     if (!slug) return
     localStorage.setItem(`fishbowl_self_nudge_seen_${slug}`, '1')
@@ -171,7 +170,7 @@ export default function SelfAssessment() {
       MY_KEY,
       JSON.stringify({ slug, creator_name: session?.creator_name ?? mine?.creator_name ?? '', email: knownEmail ?? mine?.email ?? null })
     )
-    navigate((session?.response_count ?? 0) >= REQUIRED_RESPONSES ? `/r/${slug}` : '/create')
+    navigate((session?.response_count ?? 0) >= REQUIRED_RESPONSES ? `/r/${slug}` : '/')
   }
 
   // ── depth ──
@@ -262,23 +261,14 @@ export default function SelfAssessment() {
     const known = readMine()?.email?.trim()
     if (known) {
       const res = await finishSelf(known, slug, buildPayload(true, 'done'))
-      if (res.ok) {
-        if (res.bearer && res.person_id) setSubjectAuth({ bearer: res.bearer, person_id: res.person_id, slug })
+      if (res.ok && res.bearer && res.person_id) {
+        setSubjectAuth({ bearer: res.bearer, person_id: res.person_id, slug })
         void requestMagicLink(known, slug)
-        await routeAfter(known)
-        return
       }
-      // fall through to the invite if we couldn't save against this link
     }
-    // No identity for this session: don't ask for an email. Stash the completed read
-    // and invite them to spin up their own Fishbowl, where it carries straight over.
-    try {
-      localStorage.setItem('fishbowl_pending_self', JSON.stringify(buildPayload(true, 'done')))
-    } catch {
-      /* storage unavailable */
-    }
-    setSaving(false)
-    setPhase('invite')
+    // This is the subject's own self-read. Whether or not we could persist it, head to
+    // the report if the team has enough answers, otherwise home. Never the email box.
+    await routeAfter(known)
   }
 
   // "Are you sure" confirmation before skipping the remaining deeper activities.
@@ -320,28 +310,6 @@ export default function SelfAssessment() {
       <div className="grid min-h-dvh place-items-center px-5">
         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.1 }} className="text-5xl">
           🐟
-        </motion.div>
-      </div>
-    )
-  }
-
-  if (phase === 'invite') {
-    return (
-      <div className="grid min-h-dvh place-items-center px-5">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm text-center">
-          <Card tone="paper" className="p-7">
-            <div className="text-5xl">🪞</div>
-            <h1 className="display mt-3 text-4xl">Your read is ready</h1>
-            <p className="mt-2 text-ink-soft">
-              Now see how your team sees you. Spin up your own Fishbowl, share it with a few colleagues, and your full report opens up, with this self-read already in it.
-            </p>
-            <div className="mt-6">
-              <Button variant="pink" onClick={() => navigate('/create')} className="!text-lg">
-                Create my Fishbowl →
-              </Button>
-            </div>
-            <p className="mt-3 text-xs text-ink-soft">Takes 30 seconds. Add your email there to keep this read.</p>
-          </Card>
         </motion.div>
       </div>
     )
