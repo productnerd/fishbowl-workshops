@@ -30,7 +30,7 @@ export interface FishbowlReport {
   // Phase 2 — team energizers/drains aggregate (−2..2 mean per activity).
   energizers?: { id: string; label: string; teamMean: number; n: number }[]
   // Phase 2 — per-responsibility team tier (1=under, 2=meets, 3=exceeds) + spread.
-  responsibilities?: { index: number; label: string; teamTier: number; n: number; note?: string }[]
+  responsibilities?: { index: number; label: string; teamTier: number; n: number; note?: string; notes?: string[] }[]
   // Phase 3 — framework team aggregates (keys map to the feedback-core data modules).
   hats?: { key: string; mu: number; n: number }[]
   radicalCandor?: { teamCare: number; teamChallenge: number; n: number } | null

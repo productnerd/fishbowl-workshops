@@ -1,7 +1,7 @@
 import { RESPONSIBILITY_TIERS, type ResponsibilityTiers } from '@fishbowl/feedback-core'
 import Rich from './Rich'
 
-type TeamResp = { index: number; label: string; teamTier: number; n: number; note?: string }
+type TeamResp = { index: number; label: string; teamTier: number; n: number; note?: string; notes?: string[] }
 
 // Per responsibility, a 3-rung ladder (Exceeds at top). The team's modal tier is
 // highlighted; the subject's own tier is marked when present. Falls back to a
@@ -18,6 +18,7 @@ export default function ResponsibilitiesLadder({ team, self }: { team: TeamResp[
       {rows.map((r) => {
         const s = self?.[r.index]
         const teamShown = r.n > 0
+        const bullets = r.notes && r.notes.length ? r.notes : r.note ? [r.note] : []
         return (
           <div key={r.index} className="rounded-2xl border-[2.5px] border-ink bg-sand p-4 shadow-chunky-sm">
             <p className="serif text-lg font-semibold text-ink">{r.label}</p>
@@ -56,10 +57,17 @@ export default function ResponsibilitiesLadder({ team, self }: { team: TeamResp[
                   )
                 })}
             </div>
-            {teamShown && r.note && (
-              <p className="mt-3 text-sm leading-relaxed text-ink">
-                <Rich text={r.note} />
-              </p>
+            {teamShown && bullets.length > 0 && (
+              <ul className="mt-3 flex flex-col gap-1.5">
+                {bullets.map((b, i) => (
+                  <li key={i} className="flex gap-2 text-sm leading-relaxed text-ink">
+                    <span className="text-ink/50">•</span>
+                    <span>
+                      <Rich text={b} />
+                    </span>
+                  </li>
+                ))}
+              </ul>
             )}
             {teamShown && typeof s === 'number' && s !== r.teamTier && (
               <p className="mt-2 text-xs font-semibold text-ink-soft">

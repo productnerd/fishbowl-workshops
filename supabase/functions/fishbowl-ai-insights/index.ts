@@ -346,7 +346,7 @@ The most practical part of the whole report. Draw on the growth edges, scenarios
   "appreciations": ["3 distinct themes synthesized from the appreciation free-text, each 1 sentence with **bold**", "...", "..."],
   "closing": "2 warm sentences sending them off.",
   "actionPlan": { "stopNow": ["a behaviour to stop this week, **bold** 1 phrase", "a second one"], "startNow": ["a behaviour to start this week, **bold** 1 phrase", "a second one"], "stopNext": ["a stop to add once the first are habit", "a second one"], "startNext": ["a start to add once the first are habit", "a second one"] }${sessionResp.length ? `,
-  "responsibilities": { ${responsibilityStats.map((r) => `"${r.index}": "one sharp sentence on HOW the team reads you on this responsibility (where you exceed/delight or fall short), drawing on the colleague notes; synthesize, never quote anyone, **bold** 1 to 2 phrases"`).join(', ')} }` : ''}
+  "responsibilities": { ${responsibilityStats.map((r) => `"${r.index}": ["2 to 3 short bullet points on HOW the team reads you on this responsibility — concrete behaviours showing where you ${r.teamTier === 1 ? 'fall short' : r.teamTier === 3 ? 'exceed and delight' : 'meet expectations'}, drawn from the colleague notes; synthesize, never quote anyone, **bold** one phrase in each"]`).join(', ')} }` : ''}
 }
 Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} competency keys. Never reveal or quote any individual respondent verbatim; synthesize themes only (the team is small and quotes could identify people).`
 
@@ -421,10 +421,10 @@ Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} 
           }
         : null,
       energizers: energizerStats,
-      responsibilities: responsibilityStats.map((r) => ({
-        ...r,
-        note: (prose.responsibilities && prose.responsibilities[String(r.index)]) || '',
-      })),
+      responsibilities: responsibilityStats.map((r) => {
+        const rn = prose.responsibilities && prose.responsibilities[String(r.index)]
+        return { ...r, notes: Array.isArray(rn) ? rn : rn ? [String(rn)] : [] }
+      }),
       hats: hatsStats,
       radicalCandor,
       sdt: sdtStats,

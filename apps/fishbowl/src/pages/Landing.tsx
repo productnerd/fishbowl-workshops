@@ -199,56 +199,43 @@ function ReportPreview() {
     { id: 'curiosity', name: 'Curiosity', virtue: 'Wisdom & Knowledge', count: 5 },
     { id: 'leadership', name: 'Leadership', virtue: 'Justice', count: 4 },
     { id: 'perspective', name: 'Perspective', virtue: 'Wisdom & Knowledge', count: 4 },
-    { id: 'humor', name: 'Humor', virtue: 'Transcendence', count: 3 },
-    { id: 'bravery', name: 'Bravery', virtue: 'Courage', count: 2 },
   ]
   const watchTeam = [
-    { word: 'impatient', count: 5 }, { word: 'perfectionist', count: 4 }, { word: 'blunt', count: 3 }, { word: 'overcommitted', count: 2 },
+    { word: 'impatient', count: 5 }, { word: 'perfectionist', count: 4 },
   ]
   const statRows = [
     { label: 'Follows through on what they commit to', value: 4.6, percent: 8 },
     { label: 'Communicates clearly under pressure', value: 4.2, percent: 15 },
     { label: 'Makes the people around them better', value: 4.4, percent: 12 },
-    { label: 'Stays calm when the plan changes', value: 3.9, percent: 35 },
   ]
   const energyTeam = [
     { id: 'connect', label: 'Talking to people & building relationships', teamMean: 1.4, n: 5 },
     { id: 'deepwork', label: 'Deep-focus solo work', teamMean: 0.8, n: 5 },
     { id: 'firefight', label: 'Firefighting & the unexpected', teamMean: -0.6, n: 5 },
-    { id: 'mentor', label: 'Mentoring & developing others', teamMean: 1.1, n: 5 },
-    { id: 'analyze', label: 'Analysis & working with data', teamMean: 0.2, n: 5 },
   ]
-  const energySelf = { connect: 2, deepwork: 1, firefight: -1, mentor: 2, analyze: 0 }
+  const energySelf = { connect: 2, deepwork: 1, firefight: -1 }
   const respRows = [
-    { index: 0, label: 'Ship the weekly release', teamTier: 2, n: 5 },
-    { index: 1, label: 'Mentor two juniors', teamTier: 1, n: 5 },
-    { index: 2, label: 'Own the on-call rotation', teamTier: 2, n: 5 },
+    { index: 0, label: 'Ship the weekly release', teamTier: 3, n: 5, notes: ['Almost always lands **on time**, even when scope creeps in late.', 'Quietly catches the **edge cases** the rest of us miss.'] },
+    { index: 1, label: 'Keep the docs current', teamTier: 1, n: 5, notes: ['Docs tend to **drift a release or two** behind the code.', 'Onboarding from them usually needs a **follow-up call**.'] },
   ]
   const hatsTeam = [
     { key: 'hat_white', label: 'Facts & info', mu: 5, n: 5 },
     { key: 'hat_red', label: 'Feelings & intuition', mu: 6, n: 5 },
-    { key: 'hat_yellow', label: 'Optimism & value', mu: 6, n: 5 },
     { key: 'hat_black', label: 'Caution & risks', mu: 7, n: 5 },
     { key: 'hat_green', label: 'Creativity & ideas', mu: 4, n: 5 },
-    { key: 'hat_blue', label: 'Process & meta', mu: 5, n: 5 },
   ]
-  const hatsSelf = { hat_white: 5, hat_red: 5, hat_yellow: 5, hat_black: 6, hat_green: 4, hat_blue: 5 }
+  const hatsSelf = { hat_white: 5, hat_red: 5, hat_black: 6, hat_green: 4 }
   const sdtTeam = [
     { key: 'autonomy', label: 'Autonomy', meanPoints: 18, n: 5 },
     { key: 'competence', label: 'Competence', meanPoints: 24, n: 5 },
     { key: 'relatedness', label: 'Relatedness', meanPoints: 20, n: 5 },
-    { key: 'purpose', label: 'Purpose', meanPoints: 16, n: 5 },
-    { key: 'safety', label: 'Safety', meanPoints: 12, n: 5 },
-    { key: 'vitality', label: 'Vitality', meanPoints: 10, n: 5 },
   ]
   const belbinTeam = [
     { key: 'plant', name: 'Plant', cluster: 'Thinking', teamShare: 0.28, n: 5 },
     { key: 'coordinator', name: 'Co-ordinator', cluster: 'People', teamShare: 0.22, n: 5 },
     { key: 'shaper', name: 'Shaper', cluster: 'Action', teamShare: 0.2, n: 5 },
-    { key: 'implementer', name: 'Implementer', cluster: 'Action', teamShare: 0.18, n: 5 },
-    { key: 'teamworker', name: 'Teamworker', cluster: 'People', teamShare: 0.12, n: 5 },
   ]
-  const belbinSelf = { plant: 6, coordinator: 4, shaper: 3, implementer: 2 }
+  const belbinSelf = { plant: 6, coordinator: 4, shaper: 3 }
   const mock = [
     <div key="personality" className="card-3d relative overflow-hidden bg-paper-hi p-6 text-ink">
       <img src={`${import.meta.env.BASE_URL}characters/INFJ.png`} alt="Elsa" className="pointer-events-none absolute -right-3 -top-3 h-40 w-auto select-none object-contain drop-shadow-[3px_3px_0_rgba(42,36,32,0.25)]" />
@@ -355,7 +342,7 @@ function ReportPreview() {
     <div key="via" className="card-3d bg-paper-hi p-6 text-ink">
       <p className="kicker text-blue-deep">signature strengths</p>
       <h3 className="display mb-4 text-2xl">Your top strengths</h3>
-      <ViaDeck team={viaTeam} self={['curiosity', 'perspective']} total={5} />
+      <ViaDeck team={viaTeam} self={['curiosity', 'perspective']} total={5} compact />
     </div>,
     <div key="johari" className="card-3d bg-paper-hi p-6 text-ink">
       <p className="kicker text-pink-deep">the window</p>
@@ -408,7 +395,6 @@ function ReportPreview() {
           <li className="flex gap-2"><span className="text-ink/50">•</span>Handing off the last 10% to grow the team.</li>
         </ul>
       </div>
-      <div className="mt-4 rounded-2xl border-[2.5px] border-ink bg-blue px-5 py-3 text-center font-display font-black text-paper-hi shadow-chunky-sm sc-navy">Email this plan to me</div>
     </div>,
     <div key="closing" className="card-3d flex flex-col justify-center bg-ink p-7 text-paper-hi">
       <p className="kicker text-blue">one last thing</p>
@@ -424,7 +410,7 @@ function ReportPreview() {
     <div className="mx-auto max-w-md">
       {/* Fixed-height viewport so the arrows below stay pinned as slides change;
           slides are vertically centered within it. */}
-      <div className="flex h-[33rem] overflow-y-auto">
+      <div className="flex h-[40rem] overflow-y-auto">
         <motion.div
           key={idx}
           initial={{ opacity: 0, x: 28 }}

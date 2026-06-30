@@ -19,10 +19,12 @@ export default function ViaDeck({
   team,
   self,
   total,
+  compact,
 }: {
   team: TeamStrength[]
   self: string[] | null
   total: number
+  compact?: boolean
 }) {
   const teamHasData = team.length > 0
   const top = [...team].sort((a, b) => b.count - a.count).slice(0, 5)
@@ -89,7 +91,7 @@ export default function ViaDeck({
       </div>
       )}
 
-      {selfSet && teamHasData && (
+      {selfSet && teamHasData && !compact && (
         <>
           {/* Self vs team mini-sections */}
           <div className="grid gap-3">
