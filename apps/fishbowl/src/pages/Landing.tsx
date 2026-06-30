@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { REQUIRED_RESPONSES } from '@fishbowl/feedback-core'
@@ -7,6 +7,13 @@ import Button from '../components/Button'
 import JohariWindow from '../components/JohariWindow'
 import ViaDeck from '../components/ViaDeck'
 import WatchoutsDeck from '../components/WatchoutsDeck'
+import LikertScale from '../components/LikertScale'
+import VirtueSlider from '../components/VirtueSlider'
+import ChipPicker from '../components/ChipPicker'
+import HatsTagger from '../components/HatsTagger'
+import AllocationTagger from '../components/AllocationTagger'
+import EnergizerTagger from '../components/EnergizerTagger'
+import CandorTagger from '../components/CandorTagger'
 import { getResponseCount } from '../lib/data'
 
 const rise = (delay: number) => ({
@@ -49,33 +56,45 @@ const TONE: Record<Tone, { kicker: string; title: string; blurb: string }> = {
   paper: { kicker: 'text-blue-deep', title: 'text-ink', blurb: 'text-ink-soft' },
 }
 
-// A tiny, static preview of each activity in the real test's format. Blue/beige only
-// (pink is reserved for primary actions), so these are bespoke mini-renders.
+const noop = () => {}
+
+// Shrinks a real activity component to fit the card: scales from the top-left and clips
+// to a fixed height, so you see the actual UI in miniature.
+function Xs({ children, h, scale = 0.6 }: { children: ReactNode; h: string; scale?: number }) {
+  return (
+    <div className="pointer-events-none overflow-hidden" style={{ height: h }}>
+      <div className="origin-top-left" style={{ transform: `scale(${scale})`, width: `${100 / scale}%` }}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+// The actual activity UI from the test, extra-small.
 function BentoActivity({ kind }: { kind: string }) {
-  const chip = 'rounded-full border-2 border-ink bg-paper-hi px-2 py-0.5 text-[10px] font-bold text-ink'
   switch (kind) {
     case 'personality':
-      return <div className="flex gap-1">{[0, 1, 2, 3, 4].map((n) => <div key={n} className={`h-5 flex-1 rounded border-2 border-ink ${n === 3 ? 'bg-blue' : 'bg-paper-hi'}`} />)}</div>
+      return <Xs h="3.4rem" scale={0.62}><LikertScale value={4} onChange={noop} lowLabel="Not me" highLabel="So me" bipolar /></Xs>
     case 'virtues':
-      return <div className="flex gap-0.5">{Array.from({ length: 9 }).map((_, n) => <div key={n} className={`h-5 flex-1 rounded-sm border-2 border-ink ${n === 4 ? 'bg-blue' : 'bg-paper-hi'}`} />)}</div>
-    case 'hats':
-      return <div className="flex gap-1">{[0, 1, 2, 3, 4, 5].map((n) => <div key={n} className={`h-5 w-5 rounded border-2 border-ink ${n % 2 ? 'bg-sand' : 'bg-blue'}`} />)}</div>
+      return <Xs h="3.6rem" scale={0.58}><VirtueSlider value={5} onChange={noop} virtueLabel="Candor" deficientLabel="Evasive" excessiveLabel="Blunt" /></Xs>
     case 'via':
+      return <Xs h="4.5rem" scale={0.62}><ChipPicker options={[{ id: 'curiosity', label: 'Curiosity' }, { id: 'humor', label: 'Humor' }, { id: 'bravery', label: 'Bravery' }, { id: 'kindness', label: 'Kindness' }, { id: 'leadership', label: 'Leadership' }]} min={1} max={5} value={['curiosity', 'humor']} onChange={noop} /></Xs>
     case 'johari':
-      return <div className="flex flex-wrap gap-1"><span className={chip}>honest</span><span className={chip}>curious</span><span className={chip}>steady</span></div>
+      return <Xs h="4.5rem" scale={0.62}><ChipPicker options={[{ id: 'bold', label: 'bold' }, { id: 'calm', label: 'calm' }, { id: 'witty', label: 'witty' }, { id: 'kind', label: 'kind' }, { id: 'sharp', label: 'sharp' }]} min={1} max={5} value={['bold', 'witty']} onChange={noop} /></Xs>
     case 'nohari':
-      return <div className="flex flex-wrap gap-1"><span className={chip}>impatient</span><span className={chip}>blunt</span></div>
+      return <Xs h="4.5rem" scale={0.62}><ChipPicker options={[{ id: 'impatient', label: 'impatient' }, { id: 'blunt', label: 'blunt' }, { id: 'stubborn', label: 'stubborn' }, { id: 'aloof', label: 'aloof' }]} min={1} max={4} value={['impatient', 'blunt']} onChange={noop} /></Xs>
+    case 'hats':
+      return <Xs h="6rem" scale={0.5}><HatsTagger value={{ white: 5, red: 6 }} onChange={noop} /></Xs>
     case 'belbin':
+      return <Xs h="6rem" scale={0.55}><AllocationTagger buckets={[{ key: 'shaper', label: 'Shaper', sub: 'drives' }, { key: 'plant', label: 'Plant', sub: 'ideas' }, { key: 'finisher', label: 'Finisher', sub: 'wraps up' }]} total={20} value={{ shaper: 8, plant: 7 }} onChange={noop} /></Xs>
     case 'sdt':
-      return <div className="flex flex-col gap-1">{[78, 52, 30].map((w, k) => <div key={k} className="h-2.5 overflow-hidden rounded-full border-2 border-ink bg-paper-hi"><div className="h-full rounded-full bg-blue" style={{ width: `${w}%` }} /></div>)}</div>
+      return <Xs h="6rem" scale={0.55}><AllocationTagger buckets={[{ key: 'autonomy', label: 'Autonomy' }, { key: 'mastery', label: 'Mastery' }, { key: 'purpose', label: 'Purpose' }]} total={20} value={{ autonomy: 9, mastery: 6 }} onChange={noop} /></Xs>
     case 'energy':
-      return <div className="flex items-center gap-1.5"><span className="text-[10px] font-bold text-ink-soft">drains</span><div className="flex flex-1 gap-1">{[0, 1, 2, 3, 4].map((n) => <div key={n} className={`h-2.5 flex-1 rounded-full border border-ink ${n >= 3 ? 'bg-blue' : 'bg-paper-hi'}`} />)}</div><span className="text-[10px] font-bold text-ink-soft">lifts</span></div>
+      return <Xs h="6rem" scale={0.55}><EnergizerTagger value={{ connect: 2, deepwork: -1 }} onChange={noop} /></Xs>
     case 'candor':
-      return <div className="grid h-11 w-11 grid-cols-2 grid-rows-2 gap-px border-2 border-ink bg-ink">{[0, 1, 2, 3].map((n) => <div key={n} className="relative bg-paper-hi">{n === 1 && <span className="absolute right-0.5 top-0.5 h-2.5 w-2.5 rounded-full border border-ink bg-blue" />}</div>)}</div>
-    case 'jungian':
-      return <div className="flex h-6 overflow-hidden rounded-md border-2 border-ink"><div className="flex-1 bg-sand" /><div className="flex-1 bg-blue" /></div>
+      return <Xs h="6rem" scale={0.55}><CandorTagger name="you" value={{}} onChange={noop} /></Xs>
     default:
-      return null
+      return <div className="flex h-6 overflow-hidden rounded-md border-2 border-ink"><div className="flex-1 bg-sand" /><div className="flex-1 bg-blue" /></div>
   }
 }
 
