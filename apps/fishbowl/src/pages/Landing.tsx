@@ -113,14 +113,11 @@ function BentoTile({ f, delay }: { f: (typeof FRAMEWORKS)[number]; delay: number
   return (
     <motion.div {...rise(delay)}>
       <Card tone={f.tone} className="relative flex h-full flex-col gap-3 overflow-hidden px-5 pt-5">
-        <span aria-hidden className="pointer-events-none absolute -bottom-7 -right-3 select-none text-[6rem] leading-none opacity-[0.1]">
+        <span aria-hidden className="pointer-events-none absolute -bottom-8 -right-5 select-none text-[11rem] leading-none opacity-[0.13]">
           {f.icon}
         </span>
         <p className={`kicker relative ${t.kicker}`}>{f.framework}</p>
         <div className="relative">
-          <span className="mb-3 inline-grid h-11 w-11 place-items-center rounded-xl border-2 border-ink bg-paper-hi text-2xl shadow-chunky-sm">
-            {f.icon}
-          </span>
           <h3 className={`font-display text-xl font-black leading-tight ${t.title}`}>{f.title}</h3>
           <p className={`mt-1.5 text-sm leading-relaxed ${t.blurb}`}>{f.blurb}</p>
         </div>
@@ -202,7 +199,7 @@ function ReportPreview() {
     { word: 'impatient', count: 5 }, { word: 'perfectionist', count: 4 }, { word: 'blunt', count: 3 }, { word: 'overcommitted', count: 2 },
   ]
   const mock = [
-    <div key="headline" className="card-3d flex min-h-[19rem] flex-col justify-center bg-pink p-7 text-ink sc-pink">
+    <div key="headline" className="card-3d flex flex-col justify-center bg-pink p-7 text-ink sc-pink">
       <p className="kicker text-ink/65">your fishbowl</p>
       <p className="display mt-3 text-3xl leading-tight">A force who ships everything. Now bring people with you.</p>
       <p className="mt-4 text-sm font-semibold text-ink/70">10 colleagues · one honest mirror.</p>
@@ -256,13 +253,13 @@ function ReportPreview() {
         <div className="rounded-2xl border-2 border-ink/40 bg-paper-hi/10 p-3"><p className="kicker text-paper-hi/70">shadow</p><p className="mt-1 font-semibold">Aloof, over-certain, slow to act.</p></div>
       </div>
     </div>,
-    <div key="percentile" className="card-3d flex min-h-[19rem] flex-col justify-center bg-blue p-7 text-paper-hi sc-navy">
+    <div key="percentile" className="card-3d flex flex-col justify-center bg-blue p-7 text-paper-hi sc-navy">
       <p className="kicker text-paper-hi/65">how they rate you</p>
       <p className="display mt-2 text-7xl">top 8%</p>
       <p className="serif text-2xl">on follow-through</p>
       <p className="mt-4 text-sm text-paper-hi/70">Ranked against everyone who's been Fishbowled.</p>
     </div>,
-    <div key="appreciate" className="card-3d flex min-h-[19rem] flex-col justify-center bg-sand p-7 text-ink">
+    <div key="appreciate" className="card-3d flex flex-col justify-center bg-sand p-7 text-ink">
       <p className="kicker text-pink-deep">what they appreciate</p>
       <ul className="mt-4 space-y-3 text-base">
         <li className="flex gap-2.5"><span className="text-pink-deep">❤</span> A brilliant, generous mind.</li>
@@ -278,9 +275,18 @@ function ReportPreview() {
   const go = (d: number) => setI((c) => (Math.min(c, slides.length - 1) + d + slides.length) % slides.length)
   return (
     <div className="mx-auto max-w-md">
-      <motion.div key={idx} initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] as const }}>
-        {slides[idx]}
-      </motion.div>
+      {/* Fixed-height viewport so the arrows below stay pinned as slides change. */}
+      <div className="h-[33rem] overflow-y-auto">
+        <motion.div
+          key={idx}
+          initial={{ opacity: 0, x: 28 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] as const }}
+          className="min-h-full [&>*]:min-h-full"
+        >
+          {slides[idx]}
+        </motion.div>
+      </div>
       <div className="mt-5 flex items-center justify-center gap-4">
         <button onClick={() => go(-1)} aria-label="Previous" className="press grid h-11 w-11 cursor-pointer place-items-center rounded-full border-[2.5px] border-ink bg-paper-hi text-xl font-black text-ink shadow-chunky-sm">←</button>
         <div className="flex gap-2">
