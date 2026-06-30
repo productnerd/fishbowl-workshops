@@ -7,6 +7,7 @@ import Results from './pages/Results'
 import ManagerReport from './pages/ManagerReport'
 import SelfAssessment from './pages/SelfAssessment'
 import ClaimToken from './pages/ClaimToken'
+import Legal from './pages/Legal'
 import WaterBackground from './components/WaterBackground'
 
 export default function App() {
@@ -22,6 +23,8 @@ export default function App() {
         <Route path="/self/:slug" element={<SelfAssessment />} />
         <Route path="/claim/:token" element={<ClaimToken />} />
         <Route path="/manager-report" element={<ManagerReport />} />
+        <Route path="/privacy" element={<Legal kind="privacy" />} />
+        <Route path="/terms" element={<Legal kind="terms" />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </HashRouter>

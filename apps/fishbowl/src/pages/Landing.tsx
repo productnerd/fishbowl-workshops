@@ -12,35 +12,75 @@ const rise = (delay: number) => ({
   transition: { duration: 0.6, delay, ease: [0.2, 0.8, 0.2, 1] as const },
 })
 
+// One beige family, light to dark across the four steps.
 const STEPS = [
-  { n: '01', tone: 'pink' as const, title: 'Grab your link', body: 'One tap. No account, no setup, nothing to install.' },
-  { n: '02', tone: 'blue' as const, title: 'Do your own first', body: 'A quick self-read, about two minutes. Seeing yourself first makes the rest hit harder.' },
-  { n: '03', tone: 'sand' as const, title: 'Your team weighs in', body: 'They answer anonymously: sliders, quick taps, a few honest words. No names. Ever.' },
-  { n: '04', tone: 'paper' as const, title: 'Three in, report out', body: 'The second three teammates have answered, your Wrapped pops open.' },
+  { n: '01', bg: 'var(--color-paper-hi)', title: 'Grab your link', body: 'One tap. No account, no setup, nothing to install.' },
+  { n: '02', bg: 'var(--color-paper)', title: 'Do your own first', body: 'A quick self-read, about two minutes. Seeing yourself first makes the rest hit harder.' },
+  { n: '03', bg: 'var(--color-sand)', title: 'Your team weighs in', body: 'They answer anonymously: sliders, quick taps, a few honest words. No names. Ever.' },
+  { n: '04', bg: 'var(--color-sand-deep)', title: 'Three in, report out', body: 'The second three teammates answer, your Wrapped pops open.' },
 ]
 
 type Tone = 'pink' | 'blue' | 'sand' | 'paper'
 // The variety of activities, each grounded in an established framework. Sizes vary for
 // a bento layout: the personality tile is the 2x2 hero, virtues and feedback span wide.
-const FRAMEWORKS: { title: string; framework: string; blurb: string; tone: Tone; icon: string; cls?: string }[] = [
-  { title: 'Your personality type', framework: 'Big Five → 16 types', blurb: 'Five traits resolve into a type, paired with a Disney hero or villain to match.', tone: 'blue', icon: '🎭', cls: 'col-span-2 lg:row-span-2' },
-  { title: 'The ten virtues', framework: "Aristotle's golden mean", blurb: 'Every strength, taken too far, becomes a flaw. See where you balance on ten.', tone: 'sand', icon: '⚖️', cls: 'col-span-2' },
-  { title: 'Thinking hats', framework: 'Edward de Bono', blurb: 'Which modes of thinking you reach for.', tone: 'pink', icon: '🎩' },
-  { title: 'Signature strengths', framework: 'VIA classification', blurb: 'Your top character strengths.', tone: 'paper', icon: '⭐' },
-  { title: 'Team role', framework: 'Belbin', blurb: 'The part you play on a team.', tone: 'pink', icon: '🧩' },
-  { title: 'Johari window', framework: 'Luft & Ingham', blurb: 'Your open, blind and hidden selves.', tone: 'blue', icon: '🪟' },
-  { title: 'Watch-outs', framework: 'The Nohari window', blurb: 'Growth edges, named kindly.', tone: 'sand', icon: '⚠️' },
-  { title: 'Energy map', framework: 'Energizers & drains', blurb: 'What lifts you, what wears you down.', tone: 'paper', icon: '⚡' },
-  { title: 'Feedback style', framework: 'Radical Candor', blurb: 'Do you care personally and challenge directly?', tone: 'blue', icon: '💬', cls: 'col-span-2' },
-  { title: 'What you fuel', framework: 'Self-Determination Theory', blurb: 'The needs you meet in others.', tone: 'sand', icon: '🔋' },
-  { title: 'Light & shadow', framework: 'Your Jungian archetype', blurb: 'The two faces of your type.', tone: 'pink', icon: '☯️' },
+// Bento uses only blue + beige tones (pink is reserved for primary actions). `key`
+// maps to an optional background image at public/bento/<key>.png (emoji fallback).
+const FRAMEWORKS: { key: string; title: string; framework: string; blurb: string; tone: Tone; icon: string; cls?: string }[] = [
+  { key: 'personality', title: 'Your personality type', framework: 'Big Five → 16 types', blurb: 'Five traits resolve into a type, paired with a Disney hero or villain to match.', tone: 'blue', icon: '🎭', cls: 'col-span-2 lg:row-span-2' },
+  { key: 'virtues', title: 'The ten virtues', framework: "Aristotle's golden mean", blurb: 'Every strength, taken too far, becomes a flaw. See where you balance on ten.', tone: 'sand', icon: '⚖️', cls: 'col-span-2' },
+  { key: 'hats', title: 'Thinking hats', framework: 'Edward de Bono', blurb: 'Which modes of thinking you reach for.', tone: 'blue', icon: '🎩' },
+  { key: 'via', title: 'Signature strengths', framework: 'VIA classification', blurb: 'Your top character strengths.', tone: 'paper', icon: '⭐' },
+  { key: 'belbin', title: 'Team role', framework: 'Belbin', blurb: 'The part you play on a team.', tone: 'sand', icon: '🧩' },
+  { key: 'johari', title: 'Johari window', framework: 'Luft & Ingham', blurb: 'Your open, blind and hidden selves.', tone: 'blue', icon: '🪟' },
+  { key: 'nohari', title: 'Watch-outs', framework: 'The Nohari window', blurb: 'Growth edges, named kindly.', tone: 'sand', icon: '⚠️' },
+  { key: 'energy', title: 'Energy map', framework: 'Energizers & drains', blurb: 'What lifts you, what wears you down.', tone: 'paper', icon: '⚡' },
+  { key: 'candor', title: 'Feedback style', framework: 'Radical Candor', blurb: 'Do you care personally and challenge directly?', tone: 'blue', icon: '💬', cls: 'col-span-2' },
+  { key: 'sdt', title: 'What you fuel', framework: 'Self-Determination Theory', blurb: 'The needs you meet in others.', tone: 'sand', icon: '🔋' },
+  { key: 'jungian', title: 'Light & shadow', framework: 'Your Jungian archetype', blurb: 'The two faces of your type.', tone: 'paper', icon: '☯️' },
 ]
 
 const TONE: Record<Tone, { kicker: string; title: string; blurb: string }> = {
   blue: { kicker: 'text-paper-hi/70', title: 'text-paper-hi', blurb: 'text-paper-hi/85' },
   pink: { kicker: 'text-pink-shadow', title: 'text-ink', blurb: 'text-ink/75' },
-  sand: { kicker: 'text-pink-deep', title: 'text-ink', blurb: 'text-ink-soft' },
+  sand: { kicker: 'text-blue-deep', title: 'text-ink', blurb: 'text-ink-soft' },
   paper: { kicker: 'text-blue-deep', title: 'text-ink', blurb: 'text-ink-soft' },
+}
+
+// One bento tile: shows public/bento/<key>.png as a faded, tone-washed cover when the
+// file exists, otherwise a big faded emoji watermark. Icon sits in a rounded chip.
+function BentoTile({ f, delay }: { f: (typeof FRAMEWORKS)[number]; delay: number }) {
+  const t = TONE[f.tone]
+  const src = `${import.meta.env.BASE_URL}bento/${f.key}.png`
+  const [hasImg, setHasImg] = useState(false)
+  useEffect(() => {
+    const img = new Image()
+    img.onload = () => setHasImg(true)
+    img.src = src
+  }, [src])
+  return (
+    <motion.div {...rise(delay)} className={f.cls ?? ''}>
+      <Card tone={f.tone} className="relative flex h-full flex-col justify-between gap-3 overflow-hidden p-5">
+        {hasImg ? (
+          <>
+            <img src={src} alt="" aria-hidden className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
+            <div className={`pointer-events-none absolute inset-0 ${f.tone === 'blue' ? 'bg-blue/55' : 'bg-paper/40'}`} />
+          </>
+        ) : (
+          <span aria-hidden className="pointer-events-none absolute -bottom-6 -right-3 select-none text-[7.5rem] leading-none opacity-[0.14]">
+            {f.icon}
+          </span>
+        )}
+        <p className={`kicker relative ${t.kicker}`}>{f.framework}</p>
+        <div className="relative">
+          <span className="mb-3 inline-grid h-11 w-11 place-items-center rounded-xl border-2 border-ink bg-paper-hi text-2xl shadow-chunky-sm">
+            {f.icon}
+          </span>
+          <h3 className={`font-display text-xl font-black leading-tight ${t.title}`}>{f.title}</h3>
+          <p className={`mt-1.5 text-sm leading-relaxed ${t.blurb}`}>{f.blurb}</p>
+        </div>
+      </Card>
+    </motion.div>
+  )
 }
 
 export default function Landing() {
@@ -70,9 +110,8 @@ export default function Landing() {
   return (
     <div className="mx-auto min-h-dvh w-full max-w-6xl px-5 pb-24 sm:px-8">
       {/* Nav */}
-      <motion.nav {...rise(0)} className="flex items-center justify-between py-7">
+      <motion.nav {...rise(0)} className="flex items-center py-7">
         <span className="display text-2xl">Fishbowl</span>
-        <span className="kicker hidden text-ink-soft sm:block">anonymous · honest · yours</span>
       </motion.nav>
 
       {/* Hero */}
@@ -94,18 +133,20 @@ export default function Landing() {
             Your coworkers answer a few honest questions about you, anonymously. We spin it into a report you'll
             actually want to read. Not a score. A <span className="font-semibold text-ink">mirror</span>, from a dozen angles.
           </motion.p>
-          <motion.div {...rise(0.3)} className="mt-9 flex flex-col items-start gap-3">
-            <Button variant="pink" className="!text-xl" onClick={onCta}>
-              {mySlug ? (
-                <span className="flex flex-col items-center leading-tight">
-                  <span>{ctaLabel}</span>
-                  <span className="kicker mt-0.5 text-[11px] text-ink/55">{myCount} of {REQUIRED_RESPONSES} responded</span>
-                </span>
-              ) : (
-                ctaLabel
-              )}
-            </Button>
-            <span className="text-sm font-semibold text-ink-soft">FREE · no sign-up for them</span>
+          <motion.div {...rise(0.3)} className="mt-9">
+            <div className="inline-flex flex-col items-center gap-2.5">
+              <Button variant="pink" className="!text-xl" onClick={onCta}>
+                {mySlug ? (
+                  <span className="flex flex-col items-center leading-tight">
+                    <span>{ctaLabel}</span>
+                    <span className="kicker mt-0.5 text-[11px] text-ink/55">{myCount} of {REQUIRED_RESPONSES} responded</span>
+                  </span>
+                ) : (
+                  ctaLabel
+                )}
+              </Button>
+              <span className="text-sm font-semibold text-ink-soft">FREE · no sign-up for them</span>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -121,30 +162,9 @@ export default function Landing() {
         </motion.div>
 
         <div className="grid grid-cols-2 gap-4 lg:auto-rows-[12.5rem] lg:grid-cols-4">
-          {FRAMEWORKS.map((f, i) => {
-            const t = TONE[f.tone]
-            return (
-              <motion.div key={f.title} {...rise(0.08 + Math.min(i, 8) * 0.04)} className={f.cls ?? ''}>
-                <Card tone={f.tone} className="relative flex h-full flex-col justify-between gap-3 overflow-hidden p-5">
-                  {/* framework "background" — a big, faded watermark of its icon */}
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute -bottom-6 -right-3 select-none text-[7.5rem] leading-none opacity-[0.14]"
-                  >
-                    {f.icon}
-                  </span>
-                  <p className={`kicker relative ${t.kicker}`}>{f.framework}</p>
-                  <div className="relative">
-                    <span className="mb-3 inline-grid h-11 w-11 place-items-center rounded-xl border-2 border-ink bg-paper-hi text-2xl shadow-chunky-sm">
-                      {f.icon}
-                    </span>
-                    <h3 className={`font-display text-xl font-black leading-tight ${t.title}`}>{f.title}</h3>
-                    <p className={`mt-1.5 text-sm leading-relaxed ${t.blurb}`}>{f.blurb}</p>
-                  </div>
-                </Card>
-              </motion.div>
-            )
-          })}
+          {FRAMEWORKS.map((f, i) => (
+            <BentoTile key={f.key} f={f} delay={0.08 + Math.min(i, 8) * 0.04} />
+          ))}
         </div>
       </section>
 
@@ -156,13 +176,11 @@ export default function Landing() {
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((s, i) => (
             <motion.div key={s.n} {...rise(0.12 + i * 0.07)}>
-              <Card tone={s.tone} className="h-full p-6">
-                <span className="display text-5xl opacity-90">{s.n}</span>
-                <h3 className="serif mt-3 text-2xl font-semibold">{s.title}</h3>
-                <p className={`mt-2 leading-relaxed ${s.tone === 'blue' ? 'text-paper-hi/85' : 'text-ink/75'}`}>
-                  {s.body}
-                </p>
-              </Card>
+              <div className="card-3d h-full p-6" style={{ background: s.bg }}>
+                <span className="display text-5xl text-ink opacity-90">{s.n}</span>
+                <h3 className="serif mt-3 text-2xl font-semibold text-ink">{s.title}</h3>
+                <p className="mt-2 leading-relaxed text-ink/75">{s.body}</p>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -171,7 +189,7 @@ export default function Landing() {
       {/* What you get */}
       <section className="pt-24">
         <motion.h2 {...rise(0.05)} className="display mb-8 text-4xl sm:text-5xl">
-          What you actually get
+          Spotify-Wrapped Style Report
         </motion.h2>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <motion.div {...rise(0.1)} className="lg:row-span-2">
@@ -215,7 +233,14 @@ export default function Landing() {
             {ctaLabel}
           </Button>
         </Card>
-        <p className="mt-10 text-center kicker text-ink-soft">🐟 Fishbowl · see yourself clearly</p>
+        <div className="mt-10 flex flex-col items-center gap-3">
+          <p className="kicker text-ink-soft">🐟 Fishbowl · see yourself clearly</p>
+          <div className="flex items-center gap-4 text-sm font-semibold text-ink-soft">
+            <button onClick={() => navigate('/privacy')} className="cursor-pointer hover:underline">Privacy</button>
+            <span aria-hidden>·</span>
+            <button onClick={() => navigate('/terms')} className="cursor-pointer hover:underline">Terms</button>
+          </div>
+        </div>
       </motion.section>
     </div>
   )
