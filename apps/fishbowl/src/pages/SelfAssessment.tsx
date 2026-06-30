@@ -60,7 +60,7 @@ const DEPTHS: SelfDepth[] = [
   { id: 'extended', name: 'Extended', perTrait: 8, time: '~10 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
 ]
 
-type Phase = 'checking' | 'finish' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks'
+type Phase = 'checking' | 'invite' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks'
 
 // The 10 virtue scales, reused from the colleague survey so the vice/virtue behaviours
 // (deficientTraits / virtueTraits / excessiveTraits) are a single source of truth.
@@ -89,8 +89,9 @@ export default function SelfAssessment() {
   // fill the whole thing, fail the save, and bounce them to a self-less report.
   useEffect(() => {
     if (!slug) return
-    // Ungated: anyone with the link can start straight away. We collect an email only
-    // at the very end (the 'finish' step) to save the read and mail the results link.
+    // Ungated: anyone with the link can start straight away. At the end we save against
+    // their bearer or the creator email we already have; if neither exists we invite
+    // them to spin up their own Fishbowl (carrying the read over) rather than asking.
     if (!getSubjectAuth()) {
       setAuthed(false)
       setPhase('depth')
@@ -143,11 +144,7 @@ export default function SelfAssessment() {
   const [selfJohari, setSelfJohari] = useState<string[]>([])
   const [selfNohari, setSelfNohari] = useState<string[]>([])
 
-  // ── finish: collect the email at the very end (ungated start) ──
   const [authed, setAuthed] = useState(false)
-  const [email, setEmail] = useState('')
-  const [sending, setSending] = useState(false)
-  const [finishError, setFinishError] = useState<string | null>(null)
 
   // The creator's own session, as stored by the Create page (slug, name, email).
   const MY_KEY = 'fishbowl_my_session'
@@ -175,22 +172,6 @@ export default function SelfAssessment() {
       JSON.stringify({ slug, creator_name: session?.creator_name ?? mine?.creator_name ?? '', email: knownEmail ?? mine?.email ?? null })
     )
     navigate((session?.response_count ?? 0) >= REQUIRED_RESPONSES ? `/r/${slug}` : '/create')
-  }
-
-  // Email fallback: only reached when we genuinely don't already have their email.
-  const onFinish = async () => {
-    if (!slug || !bigFive || !mbti || !email.trim()) return
-    setSending(true)
-    setFinishError(null)
-    const res = await finishSelf(email.trim(), slug, buildPayload(true, 'done'))
-    if (!res.ok || !res.bearer || !res.person_id) {
-      setSending(false)
-      setFinishError(res.error ?? 'error')
-      return
-    }
-    setSubjectAuth({ bearer: res.bearer, person_id: res.person_id, slug })
-    void requestMagicLink(email.trim(), slug) // the one email: a link back to the results
-    await routeAfter(email.trim())
   }
 
   // ── depth ──
@@ -281,19 +262,23 @@ export default function SelfAssessment() {
     const known = readMine()?.email?.trim()
     if (known) {
       const res = await finishSelf(known, slug, buildPayload(true, 'done'))
-      if (!res.ok) {
-        setSaving(false)
-        setFinishError(res.error ?? 'error')
-        setPhase('finish')
+      if (res.ok) {
+        if (res.bearer && res.person_id) setSubjectAuth({ bearer: res.bearer, person_id: res.person_id, slug })
+        void requestMagicLink(known, slug)
+        await routeAfter(known)
         return
       }
-      if (res.bearer && res.person_id) setSubjectAuth({ bearer: res.bearer, person_id: res.person_id, slug })
-      void requestMagicLink(known, slug)
-      await routeAfter(known)
-      return
+      // fall through to the invite if we couldn't save against this link
+    }
+    // No identity for this session: don't ask for an email. Stash the completed read
+    // and invite them to spin up their own Fishbowl, where it carries straight over.
+    try {
+      localStorage.setItem('fishbowl_pending_self', JSON.stringify(buildPayload(true, 'done')))
+    } catch {
+      /* storage unavailable */
     }
     setSaving(false)
-    setPhase('finish')
+    setPhase('invite')
   }
 
   // "Are you sure" confirmation before skipping the remaining deeper activities.
@@ -340,7 +325,7 @@ export default function SelfAssessment() {
     )
   }
 
-  if (phase === 'finish') {
+  if (phase === 'invite') {
     return (
       <div className="grid min-h-dvh place-items-center px-5">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm text-center">
@@ -348,29 +333,14 @@ export default function SelfAssessment() {
             <div className="text-5xl">🪞</div>
             <h1 className="display mt-3 text-4xl">Your read is ready</h1>
             <p className="mt-2 text-ink-soft">
-              Drop your email and we'll open your report now, and send you a link to come back to it anytime.
+              Now see how your team sees you. Spin up your own Fishbowl, share it with a few colleagues, and your full report opens up, with this self-read already in it.
             </p>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && onFinish()}
-              autoFocus
-              placeholder="you@work.com"
-              className="mt-5 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-center text-base text-ink shadow-chunky-sm outline-none focus:shadow-chunky"
-            />
-            <div className="mt-5">
-              <Button variant="pink" onClick={onFinish} disabled={sending || !email.trim()} className="!text-lg">
-                {sending ? 'Opening…' : 'Open my report →'}
+            <div className="mt-6">
+              <Button variant="pink" onClick={() => navigate('/create')} className="!text-lg">
+                Create my Fishbowl →
               </Button>
             </div>
-            {finishError && (
-              <p className="mt-3 text-sm font-semibold text-pink-deep">
-                {finishError === 'this link belongs to someone else'
-                  ? 'This link is already tied to another email.'
-                  : "Couldn't save your read. Try again."}
-              </p>
-            )}
+            <p className="mt-3 text-xs text-ink-soft">Takes 30 seconds. Add your email there to keep this read.</p>
           </Card>
         </motion.div>
       </div>
