@@ -76,8 +76,9 @@ function BentoActivity({ kind }: { kind: string }) {
   }
 }
 
-// One bento tile: optional public/bento/<key>.png background (faded, tone-washed), icon
-// chip above the title, blurb, then a small example of the activity.
+// One bento tile: icon chip above the title, blurb, then a preview of the activity.
+// If a cropped screenshot exists at public/bento/<key>.png it shows that exactly;
+// otherwise a small hand-built mock of the activity.
 function BentoTile({ f, delay }: { f: (typeof FRAMEWORKS)[number]; delay: number }) {
   const t = TONE[f.tone]
   const src = `${import.meta.env.BASE_URL}bento/${f.key}.png`
@@ -90,16 +91,9 @@ function BentoTile({ f, delay }: { f: (typeof FRAMEWORKS)[number]; delay: number
   return (
     <motion.div {...rise(delay)}>
       <Card tone={f.tone} className="relative flex h-full flex-col gap-3 overflow-hidden p-5">
-        {hasImg ? (
-          <>
-            <img src={src} alt="" aria-hidden className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
-            <div className={`pointer-events-none absolute inset-0 ${f.tone === 'blue' ? 'bg-blue/55' : 'bg-paper/40'}`} />
-          </>
-        ) : (
-          <span aria-hidden className="pointer-events-none absolute -bottom-7 -right-3 select-none text-[6rem] leading-none opacity-[0.12]">
-            {f.icon}
-          </span>
-        )}
+        <span aria-hidden className="pointer-events-none absolute -bottom-7 -right-3 select-none text-[6rem] leading-none opacity-[0.1]">
+          {f.icon}
+        </span>
         <p className={`kicker relative ${t.kicker}`}>{f.framework}</p>
         <div className="relative">
           <span className="mb-3 inline-grid h-11 w-11 place-items-center rounded-xl border-2 border-ink bg-paper-hi text-2xl shadow-chunky-sm">
@@ -109,10 +103,98 @@ function BentoTile({ f, delay }: { f: (typeof FRAMEWORKS)[number]; delay: number
           <p className={`mt-1.5 text-sm leading-relaxed ${t.blurb}`}>{f.blurb}</p>
         </div>
         <div className="relative mt-1">
-          <BentoActivity kind={f.key} />
+          {hasImg ? (
+            <img src={src} alt={f.title} className="w-full rounded-lg border-2 border-ink object-cover" />
+          ) : (
+            <BentoActivity kind={f.key} />
+          )}
         </div>
       </Card>
     </motion.div>
+  )
+}
+
+// A little carousel that flips through sample report slides so visitors can see how
+// the Wrapped-style report looks before making a link.
+function ReportPreview() {
+  const [i, setI] = useState(0)
+  // Prefer real cropped report screenshots from public/report-preview/<n>.png; fall
+  // back to the styled mock slides below when none are present.
+  const [imgs, setImgs] = useState<string[]>([])
+  useEffect(() => {
+    const base = import.meta.env.BASE_URL
+    let cancelled = false
+    Promise.all(
+      Array.from({ length: 8 }, (_, k) =>
+        new Promise<string | null>((res) => {
+          const src = `${base}report-preview/${k + 1}.png`
+          const img = new Image()
+          img.onload = () => res(src)
+          img.onerror = () => res(null)
+          img.src = src
+        })
+      )
+    ).then((r) => {
+      if (!cancelled) setImgs(r.filter((x): x is string => x !== null))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+  const mock = [
+    <div key="a" className="card-3d flex min-h-[19rem] flex-col justify-center bg-pink p-7 text-ink sc-pink">
+      <p className="kicker text-ink/65">your fishbowl</p>
+      <p className="display mt-3 text-3xl leading-tight">A force who ships everything. Now bring people with you.</p>
+      <p className="mt-4 text-sm font-semibold text-ink/70">10 colleagues · one honest mirror.</p>
+    </div>,
+    <div key="b" className="card-3d flex min-h-[19rem] flex-col justify-center bg-blue p-7 text-paper-hi sc-navy">
+      <p className="kicker text-paper-hi/65">how they rate you</p>
+      <p className="display mt-2 text-7xl">top 8%</p>
+      <p className="serif text-2xl">on follow-through</p>
+      <p className="mt-4 text-sm text-paper-hi/70">Ranked against everyone who's been Fishbowled.</p>
+    </div>,
+    <div key="c" className="card-3d flex min-h-[19rem] flex-col justify-center bg-paper-hi p-7 text-ink">
+      <p className="kicker text-blue-deep">the ten virtues</p>
+      <p className="serif mt-1 text-xl font-semibold">Candor</p>
+      <div className="relative mt-5 h-3 rounded-full border-2 border-ink bg-sand">
+        <div className="absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-blue" style={{ left: '58%' }} />
+        <div className="absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-pink sc-pink" style={{ left: '40%' }} />
+      </div>
+      <div className="mt-2 flex justify-between text-xs font-bold text-ink-soft"><span>evasive</span><span>the virtue</span><span>blunt</span></div>
+      <div className="mt-5 flex gap-4 text-xs font-semibold text-ink-soft">
+        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full border-2 border-ink bg-blue" />team</span>
+        <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full border-2 border-ink bg-pink" />you</span>
+      </div>
+    </div>,
+    <div key="d" className="card-3d flex min-h-[19rem] flex-col justify-center bg-sand p-7 text-ink">
+      <p className="kicker text-pink-deep">what they appreciate</p>
+      <ul className="mt-4 space-y-3 text-base">
+        <li className="flex gap-2.5"><span className="text-pink-deep">❤</span> A brilliant, generous mind.</li>
+        <li className="flex gap-2.5"><span className="text-pink-deep">❤</span> Dependable under pressure.</li>
+        <li className="flex gap-2.5"><span className="text-pink-deep">❤</span> Sets a quietly high standard.</li>
+      </ul>
+    </div>,
+  ]
+  const slides = imgs.length
+    ? imgs.map((src, k) => <img key={k} src={src} alt={`Report slide ${k + 1}`} className="w-full rounded-[28px] border-[2.5px] border-ink shadow-chunky" />)
+    : mock
+  const idx = Math.min(i, slides.length - 1)
+  const go = (d: number) => setI((c) => (Math.min(c, slides.length - 1) + d + slides.length) % slides.length)
+  return (
+    <div className="mx-auto max-w-md">
+      <motion.div key={idx} initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] as const }}>
+        {slides[idx]}
+      </motion.div>
+      <div className="mt-5 flex items-center justify-center gap-4">
+        <button onClick={() => go(-1)} aria-label="Previous" className="press grid h-11 w-11 cursor-pointer place-items-center rounded-full border-[2.5px] border-ink bg-paper-hi text-xl font-black text-ink shadow-chunky-sm">←</button>
+        <div className="flex gap-2">
+          {slides.map((_, k) => (
+            <button key={k} onClick={() => setI(k)} aria-label={`Slide ${k + 1}`} className={`h-2.5 w-2.5 cursor-pointer rounded-full border-2 border-ink ${k === idx ? 'bg-ink' : 'bg-paper-hi'}`} />
+          ))}
+        </div>
+        <button onClick={() => go(1)} aria-label="Next" className="press grid h-11 w-11 cursor-pointer place-items-center rounded-full border-[2.5px] border-ink bg-pink text-xl font-black text-ink shadow-chunky-sm sc-pink">→</button>
+      </div>
+    </div>
   )
 }
 
@@ -224,35 +306,10 @@ export default function Landing() {
         <motion.h2 {...rise(0.05)} className="display mb-8 text-4xl sm:text-5xl">
           Spotify-Wrapped Style Report
         </motion.h2>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          <motion.div {...rise(0.1)} className="lg:row-span-2">
-            <Card tone="blue" className="flex h-full flex-col justify-between p-6">
-              <p className="kicker text-paper-hi/70">your percentile</p>
-              <div>
-                <p className="display text-7xl text-paper-hi">8%</p>
-                <p className="serif text-2xl text-paper-hi">top, on follow-through</p>
-              </div>
-              <p className="text-sm text-paper-hi/70">Ranked against everyone who has been Fishbowled.</p>
-            </Card>
-          </motion.div>
-          <motion.div {...rise(0.16)} className="sm:col-span-1 lg:col-span-3">
-            <Card tone="paper" className="p-6">
-              <p className="kicker mb-3 text-pink-deep">stuff they secretly love about you</p>
-              <ul className="space-y-2.5 text-lg">
-                <li className="flex gap-3"><span className="text-pink-deep">❤</span> A <span className="font-semibold">brilliant, generous mind</span> who lifts the team.</li>
-                <li className="flex gap-3"><span className="text-pink-deep">❤</span> <span className="font-semibold">Dependable under pressure</span>, the steady one in chaos.</li>
-                <li className="flex gap-3"><span className="text-pink-deep">❤</span> Quietly sets a <span className="font-semibold">high standard</span> for everyone.</li>
-              </ul>
-            </Card>
-          </motion.div>
-          <motion.div {...rise(0.22)} className="lg:col-span-3">
-            <Card tone="sand" className="p-6">
-              <p className="kicker mb-3 text-ink">one thing to work on</p>
-              <p className="serif text-2xl">Slow down before deciding.</p>
-              <p className="mt-1 text-ink-soft">Two tiny moves your team is quietly rooting for.</p>
-            </Card>
-          </motion.div>
-        </div>
+        <motion.p {...rise(0.1)} className="mb-7 max-w-xl text-ink-soft">
+          An interactive deck you actually want to swipe through. Flip through a taste.
+        </motion.p>
+        <ReportPreview />
       </section>
 
       {/* Footer CTA */}

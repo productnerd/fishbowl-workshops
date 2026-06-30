@@ -1,12 +1,13 @@
-# Bento card backgrounds
+# Bento card activity previews
 
-Drop a background image here for any landing-page bento card, named by its `key`
-(see `FRAMEWORKS` in `apps/fishbowl/src/pages/Landing.tsx`). The app probe-loads
-each file; if it's missing, the card falls back to a faded emoji watermark.
+Drop a **cropped screenshot of the real activity** here, named by its `key` (see
+`FRAMEWORKS` in `apps/fishbowl/src/pages/Landing.tsx`). The app probe-loads each file
+and shows it clearly under the card's title; if it's missing, the card falls back to a
+small hand-built mock of the activity.
 
-- Format: `.png` (transparent ok) or `.jpg`. Use `<key>.png`.
-- They render as a faded, tone-washed cover behind the card content, so busy images
-  still keep the title readable.
+- Format: `<key>.png`. Crop to just the activity UI (e.g. open the self-assessment,
+  screenshot the step, crop to the slider / chips / scale).
+- It renders full-width inside the card with a border, so keep the crop tidy.
 
 Keys:
 
