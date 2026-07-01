@@ -23,6 +23,13 @@ export default function ClaimToken() {
         return
       }
       setSubjectAuth({ bearer: r.bearer, person_id: r.person_id, slug: r.slug })
+      // Point "my session" at the claimed slug too, so any stale pointer (e.g. an old
+      // seeded session) can't keep bouncing the landing/create flows elsewhere.
+      try {
+        localStorage.setItem('fishbowl_my_session', JSON.stringify({ slug: r.slug }))
+      } catch {
+        /* storage unavailable */
+      }
       // If they took the self-read before signing in, it's stashed — save it now that
       // we have a key, so their work carries straight into the report.
       let hasSelf = r.has_self
