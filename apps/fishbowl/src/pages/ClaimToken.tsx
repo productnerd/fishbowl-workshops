@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { claimToken } from '../lib/self'
+import { claimToken, saveSelf } from '../lib/self'
 import { setSubjectAuth } from '../lib/subjectAuth'
 import Card from '../components/Card'
 
@@ -16,14 +16,29 @@ export default function ClaimToken() {
       return
     }
     let done = false
-    claimToken(token).then((r) => {
+    claimToken(token).then(async (r) => {
       if (done) return
       if (!r || !r.slug) {
         setError(true)
         return
       }
       setSubjectAuth({ bearer: r.bearer, person_id: r.person_id, slug: r.slug })
-      navigate(r.has_self ? `/r/${r.slug}` : `/self/${r.slug}`, { replace: true })
+      // If they took the self-read before signing in, it's stashed — save it now that
+      // we have a key, so their work carries straight into the report.
+      let hasSelf = r.has_self
+      try {
+        const raw = localStorage.getItem('fishbowl_pending_self')
+        const pending = raw ? JSON.parse(raw) : null
+        if (pending?.slug === r.slug && pending.payload) {
+          const res = await saveSelf(r.slug, pending.payload)
+          if (res.ok) hasSelf = true
+          localStorage.removeItem('fishbowl_pending_self')
+        }
+      } catch {
+        /* ignore */
+      }
+      if (done) return
+      navigate(hasSelf ? `/r/${r.slug}` : `/self/${r.slug}`, { replace: true })
     })
     return () => {
       done = true

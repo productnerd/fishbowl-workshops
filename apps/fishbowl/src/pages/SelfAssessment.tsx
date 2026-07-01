@@ -60,7 +60,7 @@ const DEPTHS: SelfDepth[] = [
   { id: 'extended', name: 'Extended', perTrait: 8, time: '~10 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
 ]
 
-type Phase = 'checking' | 'already' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks'
+type Phase = 'checking' | 'already' | 'needauth' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks'
 
 // The 10 virtue scales, reused from the colleague survey so the vice/virtue behaviours
 // (deficientTraits / virtueTraits / excessiveTraits) are a single source of truth.
@@ -282,11 +282,21 @@ export default function SelfAssessment() {
       if (res.ok && res.bearer && res.person_id) {
         setSubjectAuth({ bearer: res.bearer, person_id: res.person_id, slug })
         void requestMagicLink(known, slug)
+        await routeAfter(known)
+        return
       }
+      // couldn't save against the stored email; fall through to the sign-in screen
     }
-    // This is the subject's own self-read. Whether or not we could persist it, head to
-    // the report if the team has enough answers, otherwise home. Never the email box.
-    await routeAfter(known)
+    // No usable identity (no device key, no email on record). We CANNOT save the read,
+    // so never pretend it worked by dumping them on a locked report. Stash the finished
+    // read and send them to sign in via their link — the claim will then apply it.
+    try {
+      localStorage.setItem('fishbowl_pending_self', JSON.stringify({ slug, payload: buildPayload(true, 'done') }))
+    } catch {
+      /* storage unavailable */
+    }
+    setSaving(false)
+    setPhase('needauth')
   }
 
   // "Are you sure" confirmation before skipping the remaining deeper activities.
@@ -328,6 +338,27 @@ export default function SelfAssessment() {
       <div className="grid min-h-dvh place-items-center px-5">
         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.1 }} className="text-5xl">
           🐟
+        </motion.div>
+      </div>
+    )
+  }
+
+  if (phase === 'needauth') {
+    return (
+      <div className="grid min-h-dvh place-items-center px-5">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm text-center">
+          <Card tone="paper" className="p-7">
+            <div className="text-5xl">🔑</div>
+            <h1 className="display mt-3 text-4xl">One sign-in first</h1>
+            <p className="mt-2 text-ink-soft">
+              This browser isn't signed in, so we can't save your read here. Your answers are held. Open your Fishbowl from your link and it'll drop straight in, no need to redo it.
+            </p>
+            <div className="mt-6">
+              <Button variant="pink" onClick={() => navigate('/')} className="!text-lg">
+                Back to home
+              </Button>
+            </div>
+          </Card>
         </motion.div>
       </div>
     )
