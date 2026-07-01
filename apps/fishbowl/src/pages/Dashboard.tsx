@@ -24,6 +24,14 @@ export default function Dashboard() {
     getSession(slug).then((s) => {
       if (!s) {
         setNotFound(true)
+        // Drop a stale "my session" pointer to this dead slug so /create doesn't bounce
+        // right back here in a loop.
+        try {
+          const m = JSON.parse(localStorage.getItem('fishbowl_my_session') || 'null')
+          if (m?.slug === slug) localStorage.removeItem('fishbowl_my_session')
+        } catch {
+          /* ignore */
+        }
       } else {
         setCreator(s.creator_name)
         setSelfDone(Boolean(s.self_completed_at))
@@ -38,6 +46,19 @@ export default function Dashboard() {
     await navigator.clipboard.writeText(buildShareLink(slug))
     setCopied(true)
     setTimeout(() => setCopied(false), 1800)
+  }
+
+  // Escape hatch: forget this browser's session so /create shows the name form again
+  // (create a different Fishbowl, or start clean if this one isn't really yours).
+  const startNew = () => {
+    try {
+      localStorage.removeItem('fishbowl_my_session')
+      localStorage.removeItem('fishbowl_subject_auth')
+      localStorage.removeItem('fishbowl_pending_self')
+    } catch {
+      /* storage unavailable */
+    }
+    navigate('/create')
   }
 
   if (loading) return null
@@ -139,6 +160,12 @@ export default function Dashboard() {
             </Button>
           </div>
         )}
+
+        <div className="mt-10 text-center">
+          <button onClick={startNew} className="cursor-pointer text-sm font-semibold text-ink-soft underline underline-offset-2 hover:text-ink">
+            Not you, or want a fresh Fishbowl? Start over →
+          </button>
+        </div>
       </motion.div>
     </div>
   )
