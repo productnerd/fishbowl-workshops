@@ -165,9 +165,19 @@ ACT · Forward Motion
 
 ## Phase C — DONE (all 8 built, additive). Remaining: archetype-hero synthesis (optional), then cleanup pass.
 
-## Also queued
-- [ ] Resync Landing preview to new visuals (radar/podium/role+fuel/todo) — currently drifted.
-- [ ] Appreciation cloud — build after Maria approves the mockup look.
+## CURRENT PENDING (authoritative, 2026-07-01 end of session)
+Big:
+- [ ] **Cleanup pass** — report is ~34 slides (old + synthetic superset). Lay them all out in order, decide keep/cut together, trim redundant old-vs-new pairs.
+Medium:
+- [ ] **Appreciation cloud** — mockup shown; build it once Maria okays the look (needs AI to emit short phrases + weights).
+- [ ] **Energy map rework** — the old self-only energy slide is still unchanged; either cross-reference it or cut it in the cleanup ("Where you'd rather be" already covers energy×role).
+- [ ] **Resync Landing preview** — landing example report still shows OLD visuals (hats sliders, separate SDT/Belbin, strengths list); update to radar/podium/role+fuel/to-do.
+- [ ] **Captions for wave-2 slides** — Kindness Trap / parallax / constellation / heat / role+fuel have no AI caption yet (add keys to synthesis + regen).
+Small / optional:
+- [ ] **Archetype-hero** synthetic slide — optional; overlaps the through-line.
+- [ ] Confirm the magic-link email actually lands in Maria's inbox (Resend).
+
+DONE this session: Phase A (captions, radar, dumbbell/quadrant), Phase B (podium, role+fuel, 3+3 to-do action plan), Phase C (all 8 compound slides), reassurance slide, restored removed slides, killed flowtest, email re-auth + self-serve relink.
 
 ## Impl notes
 - topStrengths: fishbowl-ai-insights `goodness.slice(0,3)` → bump to 5.
