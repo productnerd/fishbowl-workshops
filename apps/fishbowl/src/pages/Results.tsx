@@ -21,7 +21,7 @@ import {
 } from '@fishbowl/feedback-core'
 import { getSession } from '../lib/data'
 import { questions } from '../data/questions'
-import { getSelfReport, getSynthesis, type SelfData, type SelfSynthesis } from '../lib/self'
+import { getSelfReport, getSelfInsight, getSynthesis, type SelfData, type SelfInsight, type SelfSynthesis } from '../lib/self'
 import { useAiInsights } from '../lib/aiInsights'
 import { topPercent } from '../lib/percentile'
 import Card from '../components/Card'
@@ -40,6 +40,8 @@ import VirtueViceDial from '../components/VirtueViceDial'
 import FourRooms from '../components/FourRooms'
 import LockedDoor from '../components/LockedDoor'
 import CandorPlot from '../components/CandorPlot'
+import SdtProfile from '../components/SdtProfile'
+import BelbinReport from '../components/BelbinReport'
 import RoleFuel from '../components/RoleFuel'
 import StrengthsPodium from '../components/StrengthsPodium'
 import TodoList from '../components/TodoList'
@@ -78,6 +80,8 @@ export default function Results() {
   const [modalDismissed, setModalDismissed] = useState(false)
   const [synthesis, setSynthesis] = useState<SelfSynthesis | null>(null)
   const [synthesisLoading, setSynthesisLoading] = useState(false)
+  const [selfInsight, setSelfInsight] = useState<SelfInsight | null>(null)
+  const [selfInsightLoading, setSelfInsightLoading] = useState(false)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -134,6 +138,22 @@ export default function Results() {
       cancelled = true
     }
   }, [slug, hasSelf, insights, self])
+
+  // The private "you vs them" narrative (bearer-gated) — kept alongside the new visual
+  // self-vs-team slides until we decide which to retire.
+  useEffect(() => {
+    if (!slug || !hasSelf || !insights) return
+    let cancelled = false
+    setSelfInsightLoading(true)
+    getSelfInsight(slug).then((r) => {
+      if (cancelled) return
+      setSelfInsight(r)
+      setSelfInsightLoading(false)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [slug, hasSelf, insights])
 
   if (loading) {
     return (
@@ -570,6 +590,44 @@ export default function Results() {
     })
   }
 
+  // Original SDT + Belbin detail slides — kept alongside the combined role+fuel card.
+  if (insights.sdt?.some((s) => s.n > 0)) {
+    const sdtTeam = insights.sdt.map((s) => ({ key: s.key, label: SDT_NEEDS.find((x) => x.key === s.key)?.label ?? s.key, meanPoints: s.meanPoints, n: s.n }))
+    fwCards.push({
+      tone: 'sand',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-blue-deep">
+            what you fuel
+            <InfoTip text="Self-Determination Theory (Deci & Ryan): the needs people feel met — autonomy, competence, relatedness, plus purpose, safety and vitality. What do you leave in your colleagues' tanks?" />
+          </p>
+          <h2 className="display mb-5 text-3xl">What you fuel in others</h2>
+          <SdtProfile team={sdtTeam} />
+        </div>
+      ),
+    })
+  }
+  const selfBelbin = hasSelf ? ((sp.belbin as Record<string, number>) ?? null) : null
+  if (insights.belbin?.some((b) => b.n > 0) || (selfBelbin && Object.keys(selfBelbin).length > 0)) {
+    const belbinTeam = (insights.belbin ?? []).map((b) => {
+      const r = BELBIN_ROLES.find((x) => x.key === b.key)
+      return { key: b.key, name: r?.name ?? b.key, cluster: r?.cluster ?? 'Thinking', teamShare: b.teamShare, n: b.n }
+    })
+    fwCards.push({
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">
+            team role
+            <InfoTip text="Belbin's nine team roles — the distinct ways people contribute, grouped Thinking / Action / People." />
+          </p>
+          <h2 className="display mb-5 text-3xl">The roles you play</h2>
+          <BelbinReport team={belbinTeam} self={selfBelbin} />
+        </div>
+      ),
+    })
+  }
+
   // Treat an empty array as "not done" (a depth that skipped this framework saves []),
   // so the card shows the graceful team-only view instead of an empty self overlay.
   const selfArr = (v: unknown): string[] | null =>
@@ -693,6 +751,40 @@ export default function Results() {
     })
   }
 
+  // The original private "you vs them" narrative card (kept alongside the visual
+  // dumbbell + quadrant; we'll decide together which to retire).
+  if (hasSelf && (selfInsight || selfInsightLoading)) {
+    cards.splice(cards.length - 1, 0, {
+      tone: 'sand',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">
+            you vs them · in words
+            <InfoTip text="A private read comparing your self-assessment against how your team sees you. Only you can see this." />
+          </p>
+          <h2 className="display mb-4 text-3xl">Your read, meet theirs</h2>
+          {selfInsight ? (
+            <>
+              <p className="serif mb-4 text-xl leading-snug text-ink">{selfInsight.headline}</p>
+              <ul className="flex flex-col gap-3">
+                {selfInsight.insights.map((t, i) => (
+                  <li key={i} className="flex gap-2 leading-relaxed text-ink">
+                    <span className="text-pink-deep">•</span>
+                    <span>
+                      <Rich text={t} />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p className="text-ink-soft">Reading the gaps between how you see yourself and how your team does…</p>
+          )}
+        </div>
+      ),
+    })
+  }
+
   // ── Phase C: compound slides — synthetic sections fusing several frameworks into
   // one picture (bearer-gated; each shows only when its data supports it). ──
 
@@ -776,6 +868,26 @@ export default function Results() {
           <h2 className="display mb-5 text-3xl">The locked door</h2>
           {cap('lockedDoor')}
           <LockedDoor confidence={confSelf} receptiveness={{ self: recSelf, team: recVirtue.mu }} blindWords={johariBlind} />
+        </div>
+      ),
+    })
+  }
+
+  // A breather about three-quarters through: reassure the reader they don't have to
+  // hold all of this, because the end pulls it together into a usable summary.
+  if (hasSelf) {
+    cards.splice(cards.length - 1, 0, {
+      tone: 'blue',
+      node: (
+        <div className="flex min-h-[52vh] flex-col justify-center text-paper-hi">
+          <div className="text-5xl">🫧</div>
+          <p className="kicker mt-4 text-paper-hi/80">take a breath</p>
+          <h2 className="display mt-2 text-4xl leading-tight">Feeling like a lot? That's normal.</h2>
+          <p className="mt-4 text-lg leading-relaxed text-paper-hi/90">
+            You don't have to hold all of this. In a moment we pull the whole picture together into{' '}
+            <span className="font-black">one clear read</span>, a <span className="font-black">practical action plan</span>, and a
+            short summary you can actually keep. Just keep swiping.
+          </p>
         </div>
       ),
     })
