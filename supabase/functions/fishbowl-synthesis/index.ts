@@ -204,7 +204,7 @@ Wrap the few most important phrases per paragraph in **bold** (the claims someon
   "practice": ["6 to 8 concrete, specific practices. Each 1 to 2 sentences, **bold** the action verb or move."],
   "captions": {
     "strengths": "ONE punchy sentence (<= 18 words) on the through-line of their strengths",
-    "virtues": "ONE sentence on their overall virtue balance (where they land vs the golden mean of 5)",
+    "virtues": "name BOTH in one line (~22 words ok): (a) which virtues they push PAST the golden mean (run too hot or too cold), AND (b) the single virtue where their OWN rating and the TEAM's differ the most (the biggest self-vs-team gap), said explicitly as a gap.",
     "hats": "ONE sentence on the SHAPE of how they think (which modes run hot, which run cold)",
     "energy": "ONE sentence on what energises vs drains them",
     "youVsTeam": "ONE sentence naming the single biggest self-vs-team gap and what it means",
