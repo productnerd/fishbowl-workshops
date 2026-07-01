@@ -70,8 +70,16 @@ export default function Create() {
     const unlocked = count >= REQUIRED_RESPONSES
     const pct = Math.min(100, (count / REQUIRED_RESPONSES) * 100)
     return (
-      <div className="mx-auto grid min-h-dvh max-w-lg place-items-center px-5 py-12">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full">
+      <div className="mx-auto flex min-h-dvh max-w-lg flex-col px-5 py-8">
+        <button
+          onClick={() => navigate('/')}
+          aria-label="Back to home"
+          className="press mb-8 inline-flex w-fit cursor-pointer items-center gap-2"
+        >
+          <span className="text-3xl">🐟</span>
+          <span className="font-display text-2xl font-black text-ink">Fishbowl</span>
+        </button>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="my-auto w-full">
           <p className="kicker mb-4 text-pink-deep">your link is live</p>
           <h1 className="display text-5xl">Hey {creator}.</h1>
           <p className="mt-3 text-lg text-ink-soft">

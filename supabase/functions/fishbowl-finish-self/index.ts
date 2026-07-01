@@ -77,6 +77,9 @@ Deno.serve(async (req) => {
         responsibilities,
         completed,
         updated_at: now,
+        // Finishing the self-read invalidates the cached AI that depends on it, so the
+        // report always regenerates a fresh read of THIS self.
+        ...(completed ? { ai_synthesis: null, ai_self_insight: null } : {}),
       },
       { onConflict: 'session_id' }
     )
