@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { REQUIRED_RESPONSES, buildShareLink } from '@fishbowl/feedback-core'
 import { createSession, getResponseCount, getSession } from '../lib/data'
+import { setSubjectAuth } from '../lib/subjectAuth'
 import Card from '../components/Card'
 import Button from '../components/Button'
 
@@ -45,7 +46,10 @@ export default function Create() {
     if (!name.trim()) return
     setLoading(true)
     try {
-      const s = await createSession(name.trim(), context.trim() || undefined, email.trim() || undefined)
+      const { slug: s, bearer, person_id } = await createSession(name.trim(), context.trim() || undefined, email.trim() || undefined)
+      // This browser now owns the session: store the device key so the self-read saves
+      // and the report unlocks here with no magic link.
+      setSubjectAuth({ bearer, person_id, slug: s })
       localStorage.setItem(KEY, JSON.stringify({ slug: s, creator_name: name.trim(), email: email.trim() || null }))
       setSlug(s)
       setCreator(name.trim())

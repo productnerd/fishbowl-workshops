@@ -76,7 +76,7 @@ export default function Results() {
     })
   }, [slug])
 
-  const { insights, regenerate, regenerating, isStale } = useAiInsights(
+  const { insights, regenerate, regenerating, isStale, error: insightsError } = useAiInsights(
     session?.id,
     session?.response_count,
     Boolean(session)
@@ -168,13 +168,30 @@ export default function Results() {
     return (
       <Screen>
         <Card tone="paper" className="w-full p-9">
-          <motion.div animate={{ scale: [1, 1.12, 1] }} transition={{ repeat: Infinity, duration: 1.4, ease: 'easeInOut' }} className="text-6xl">
-            ✍️
-          </motion.div>
-          <h1 className="display mt-4 text-4xl">Writing your report…</h1>
-          <p className="mt-3 text-lg text-ink-soft">
-            We're generating a fresh read right now. This takes up to a minute, and it'll appear here on its own, no need to refresh.
-          </p>
+          {insightsError ? (
+            <>
+              <div className="text-6xl">😵‍💫</div>
+              <h1 className="display mt-4 text-4xl">That didn't go through.</h1>
+              <p className="mt-3 text-lg text-ink-soft">We hit a snag writing your report. Give it another go.</p>
+              <button
+                onClick={regenerate}
+                disabled={regenerating}
+                className="press mt-6 cursor-pointer rounded-2xl border-[2.5px] border-ink bg-pink sc-pink px-6 py-3 font-display font-black text-ink shadow-chunky-sm"
+              >
+                {regenerating ? 'Trying…' : 'Try again'}
+              </button>
+            </>
+          ) : (
+            <>
+              <motion.div animate={{ scale: [1, 1.12, 1] }} transition={{ repeat: Infinity, duration: 1.4, ease: 'easeInOut' }} className="text-6xl">
+                ✍️
+              </motion.div>
+              <h1 className="display mt-4 text-4xl">Writing your report…</h1>
+              <p className="mt-3 text-lg text-ink-soft">
+                We're generating a fresh read right now. This takes up to a minute, and it'll appear here on its own, no need to refresh.
+              </p>
+            </>
+          )}
         </Card>
       </Screen>
     )

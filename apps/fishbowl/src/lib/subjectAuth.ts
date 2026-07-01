@@ -22,3 +22,9 @@ export function getSubjectAuth(): SubjectAuth | null {
 export function setSubjectAuth(a: SubjectAuth) {
   localStorage.setItem(KEY, JSON.stringify(a))
 }
+
+// Drop a dead/invalid device key so the app can re-establish identity instead of
+// looping on a bearer whose server-side session was deleted or expired.
+export function clearSubjectAuth() {
+  localStorage.removeItem(KEY)
+}

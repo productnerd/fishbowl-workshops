@@ -44,7 +44,9 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}))
     const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
     const v = await verifyOwner(sb, String(body.bearer || ''), String(body.slug || ''))
-    if ('error' in v) return ok({ error: v.error }, v.status)
+    // Return 200 with the reason so the client can read it (and drop a dead key on
+    // 'unauthorized') instead of a bare non-2xx it can't introspect.
+    if ('error' in v) return ok({ error: v.error })
     const { session } = v
 
     let teamReport: any = null

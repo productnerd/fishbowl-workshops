@@ -79,6 +79,7 @@ export function createUseAiInsights<T>(opts: UseAiInsightsOptions) {
         // Generate-on-view: when the cache is missing or stale, ask the edge fn to
         // produce it (non-force: returns cache when unchanged, regenerates on new
         // answers, generates the first time).
+        let genErrMsg: string | null = null
         if (generateOnView && !fresh) {
           const { data, error: genErr } = await client.functions.invoke(fn, {
             body: { session_id: sessionId, force: false },
@@ -94,7 +95,8 @@ export function createUseAiInsights<T>(opts: UseAiInsightsOptions) {
             })
             return
           }
-          // On failure, fall back to whatever cache we have (if any).
+          // Generation failed; fall back to whatever cache we have (if any).
+          genErrMsg = genErr?.message || (data?.error ? String(data.error) : 'Report generation failed')
         }
 
         if (cached?.insights) {
@@ -108,13 +110,14 @@ export function createUseAiInsights<T>(opts: UseAiInsightsOptions) {
           return
         }
 
-        // No cache and nothing generated. Surface a static "not ready" state.
+        // No cache and generation failed (or none attempted). Surface the error so the
+        // UI can show a retry instead of an indefinite spinner.
         setState({
           insights: null,
           cachedAt: null,
           loading: false,
           regenerating: false,
-          error: null,
+          error: genErrMsg,
         })
       }
 

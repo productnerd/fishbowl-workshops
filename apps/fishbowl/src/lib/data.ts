@@ -1,19 +1,20 @@
 import { generateSlug, type Session, type AnswerValue } from '@fishbowl/feedback-core'
 import { supabase } from './supabase'
 
-// Fishbowl runs Supabase-only (the backend is live; no localStorage fallback).
-// Ownership is set server-side from the email inside this SECURITY DEFINER RPC —
-// the client never asserts creator_person_id (hardened; see fishbowl_session_ownership.sql).
-export async function createSession(name: string, context?: string, email?: string): Promise<string> {
+// Creates the session AND mints a device key so the creating browser owns it — the
+// self-read then saves and the report unlocks with no magic link. Ownership + the
+// bearer are minted server-side (service-role) in fishbowl-create-session.
+export async function createSession(
+  name: string,
+  context?: string,
+  email?: string
+): Promise<{ slug: string; bearer: string; person_id: string }> {
   const slug = generateSlug()
-  const { error } = await supabase.rpc('fishbowl_create_session', {
-    p_name: name,
-    p_slug: slug,
-    p_context: context ?? null,
-    p_email: email?.trim() || null,
+  const { data, error } = await supabase.functions.invoke('fishbowl-create-session', {
+    body: { name, slug, context: context ?? '', email: email?.trim() || '' },
   })
-  if (error) throw error
-  return slug
+  if (error || !data || data.error || !data.bearer) throw new Error(data?.error || 'could not create session')
+  return { slug: data.slug ?? slug, bearer: data.bearer, person_id: data.person_id }
 }
 
 export async function getSession(slug: string): Promise<Session | null> {

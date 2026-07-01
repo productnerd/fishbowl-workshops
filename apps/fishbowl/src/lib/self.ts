@@ -1,6 +1,6 @@
 import type { BigFiveScores, MbtiType } from '@fishbowl/feedback-core'
 import { supabase } from './supabase'
-import { getSubjectAuth } from './subjectAuth'
+import { getSubjectAuth, clearSubjectAuth } from './subjectAuth'
 
 export interface SelfData {
   ocean_answers: Record<string, number>
@@ -35,7 +35,12 @@ export async function getSelfReport(
   const auth = getSubjectAuth()
   if (!auth) return { authed: false, hasSelf: false, self: null }
   const { data, error } = await supabase.functions.invoke('fishbowl-self-report', { body: { bearer: auth.bearer, slug } })
-  if (error || !data || data.error) return { authed: false, hasSelf: false, self: null }
+  if (error || !data || data.error) {
+    // Dead/expired device key: drop it so the app can re-establish identity instead of
+    // looping on a locked report. (Not on 'forbidden'/'not found' — the key is fine there.)
+    if (data?.error === 'unauthorized') clearSubjectAuth()
+    return { authed: false, hasSelf: false, self: null }
+  }
   return { authed: true, hasSelf: Boolean(data.hasSelf), self: (data.self as SelfData) ?? null }
 }
 
