@@ -20,7 +20,7 @@ import {
   type VirtueScores,
 } from '@fishbowl/feedback-core'
 import { getSession } from '../lib/data'
-import { getSelfReport, getSelfInsight, getSynthesis, type SelfData, type SelfInsight, type SelfSynthesis } from '../lib/self'
+import { getSelfReport, getSynthesis, type SelfData, type SelfSynthesis } from '../lib/self'
 import { useAiInsights } from '../lib/aiInsights'
 import { topPercent } from '../lib/percentile'
 import Card from '../components/Card'
@@ -31,7 +31,9 @@ import LockedCard from '../components/LockedCard'
 import EntryModal from '../components/EntryModal'
 import EnergyOverlay from '../components/EnergyOverlay'
 import ResponsibilitiesLadder from '../components/ResponsibilitiesLadder'
-import HatsProfile from '../components/HatsProfile'
+import HatsRadar from '../components/HatsRadar'
+import SelfTeamDumbbell from '../components/SelfTeamDumbbell'
+import BlindSpotQuadrant from '../components/BlindSpotQuadrant'
 import CandorPlot from '../components/CandorPlot'
 import SdtProfile from '../components/SdtProfile'
 import BelbinReport from '../components/BelbinReport'
@@ -60,8 +62,6 @@ export default function Results() {
   const [hasSelf, setHasSelf] = useState(false)
   const [selfLoaded, setSelfLoaded] = useState(false)
   const [modalDismissed, setModalDismissed] = useState(false)
-  const [selfInsight, setSelfInsight] = useState<SelfInsight | null>(null)
-  const [selfInsightLoading, setSelfInsightLoading] = useState(false)
   const [synthesis, setSynthesis] = useState<SelfSynthesis | null>(null)
   const [synthesisLoading, setSynthesisLoading] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -101,22 +101,6 @@ export default function Results() {
       cancelled = true
     }
   }, [insights])
-
-  // The private self-vs-team narrative: only once the subject has self-assessed AND a
-  // team report exists. Bearer-gated; generated/cached server-side.
-  useEffect(() => {
-    if (!slug || !hasSelf || !insights) return
-    let cancelled = false
-    setSelfInsightLoading(true)
-    getSelfInsight(slug).then((r) => {
-      if (cancelled) return
-      setSelfInsight(r)
-      setSelfInsightLoading(false)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [slug, hasSelf, insights])
 
   // The deep cross-referenced "full read" — bearer-gated, generated with extended
   // thinking. Pass the derived archetype so the synthesis can weave it through.
@@ -496,10 +480,10 @@ export default function Results() {
         <div>
           <p className="kicker mb-1 text-blue-deep">
             thinking style
-            <InfoTip text="Edward de Bono's Six Thinking Hats — six modes of thought (facts, feelings, optimism, caution, creativity, process). We adapt them as a balance: too little / just right / too much." />
+            <InfoTip text="Edward de Bono's Six Thinking Hats — six modes of thought (facts, feelings, optimism, caution, creativity, process). The radar shows the shape of how you think: how strongly each mode shows up." />
           </p>
           <h2 className="display mb-5 text-3xl">Six thinking hats</h2>
-          <HatsProfile team={team} self={selfHats} />
+          <HatsRadar team={team} self={selfHats} />
         </div>
       ),
     })
@@ -650,34 +634,39 @@ export default function Results() {
   // The Jungian archetype sits late, just before the closing.
   if (archCard) cards.splice(cards.length - 1, 0, archCard)
 
-  // Private "you vs them" narrative (bearer-gated). Only when self-assessed.
-  if (hasSelf && (selfInsight || selfInsightLoading)) {
+  // Self-vs-team, as pictures (bearer-gated). Two fixed, data-driven slides that
+  // replace the old text "you vs them" card: a dumbbell of every gap, then a blind
+  // spot / hidden strength quadrant. Needs both self virtue picks and team means.
+  const gapRows = hasSelf && selfVirtues
+    ? insights.virtues
+        .map((v) => ({ label: v.name, self: selfVirtues[v.dimension] as number, team: v.mu }))
+        .filter((r) => typeof r.self === 'number' && !Number.isNaN(r.self))
+        .sort((a, b) => Math.abs(b.self - b.team) - Math.abs(a.self - a.team))
+    : []
+  if (gapRows.length > 0) {
     cards.splice(cards.length - 1, 0, {
       tone: 'sand',
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
             you vs them
-            <InfoTip text="A private read, just for you, comparing your self-assessment against how your team sees you. Only you can see this." />
+            <InfoTip text="Your self-assessment next to how your team reads you, trait by trait. The wider the bar, the bigger the disagreement. Only you can see this." />
           </p>
-          <h2 className="display mb-4 text-3xl">Your read, meet theirs</h2>
-          {selfInsight ? (
-            <>
-              <p className="serif mb-4 text-xl leading-snug text-ink">{selfInsight.headline}</p>
-              <ul className="flex flex-col gap-3">
-                {selfInsight.insights.map((t, i) => (
-                  <li key={i} className="flex gap-2 leading-relaxed text-ink">
-                    <span className="text-pink-deep">•</span>
-                    <span>
-                      <Rich text={t} />
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <p className="text-ink-soft">Reading the gaps between how you see yourself and how your team does…</p>
-          )}
+          <h2 className="display mb-5 text-3xl">You vs. the team</h2>
+          <SelfTeamDumbbell rows={gapRows} />
+        </div>
+      ),
+    })
+    cards.splice(cards.length - 1, 0, {
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">
+            the map
+            <InfoTip text="Every trait plotted: across = how the team rates you, up = how you rate yourself. Off the diagonal is where you and the team disagree — blind spots above it, hidden strengths below." />
+          </p>
+          <h2 className="display mb-5 text-3xl">Blind spots &amp; hidden strengths</h2>
+          <BlindSpotQuadrant points={gapRows} />
         </div>
       ),
     })
