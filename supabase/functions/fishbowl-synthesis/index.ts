@@ -222,8 +222,10 @@ Wrap the few most important phrases per paragraph in **bold** (the claims someon
   },
   "constellation": [ { "label": "a 1 to 3 word name for the shared root theme", "words": ["EXACT blind-spot words from the Johari BLIND / Nohari BLIND / watch-out lists above that share this root", "another"] } ],
   "oneOnOne": ["4 to 6 concrete things to raise in a routine 1:1 with their manager so the report's weaknesses/gaps/watch-outs actually get actioned. EACH is a QUESTION to ask or something to SHARE, grounded in the data, <= 20 words, starting with 'Ask: ' or 'Share: '. Practical, specific, the kind of thing a manager can actually help with."],
-  "biases": ["4 to 6 SHORT punchy notes-to-self (<= 9 words each) of the tendencies, blind spots and biases to keep at the back of their mind. No 'Ask/Share' prefix, no bold, just the pattern in plain words (e.g. 'I decide before I loop people in')."]
+  "biases": ["4 to 6 SHORT punchy notes-to-self (<= 9 words each) of the tendencies, blind spots and biases to keep at the back of their mind. No 'Ask/Share' prefix, no bold, just the pattern in plain words (e.g. 'I decide before I loop people in')."],
+  "greatAt": [ { "label": "a specific ROLE, RESPONSIBILITY or type of TASK this person would be great at and love (<= 6 words)", "why": "one short clause grounding it in a real STRENGTH + what ENERGIZES them, <= 16 words" } ]
 }
+For "greatAt": propose 3 to 4, best first. Combine what the team rates them STRONGEST at (top strengths, high virtues, VIA) with what ENERGIZES them (their energizers) and the role they play, to name concrete things they'd thrive doing. Specific and real (e.g. "Own key client relationships", "Run the launch war-room"), never vague ("be a leader").
 For "constellation": look ONLY at the words the team flagged that the person did NOT own (Johari blind spot, Nohari blind spot, watch-outs). If two or more of them trace to ONE underlying theme, group them into a named constellation (1, at most 2 groups). Use the words VERBATIM as given. If nothing coheres, return an empty array.
 === CAPTIONS + THROUGH-LINE (as important as the prose) ===
 Each caption is the single one-line takeaway shown on that visual slide, so it must be SHARP and SPECIFIC to this person, never generic, never just restate the slide's title. Second person, one sentence, <= 18 words, **bold** the key phrase, no dashes.
@@ -360,6 +362,10 @@ Return the JSON now.`
       .slice(0, 2)
     const oneOnOne = (Array.isArray(prose.oneOnOne) ? prose.oneOnOne : []).map((s: any) => oneLine(s)).filter(Boolean).slice(0, 6)
     const biases = (Array.isArray(prose.biases) ? prose.biases : []).map((s: any) => oneLine(s)).filter(Boolean).slice(0, 6)
+    const greatAt = (Array.isArray(prose.greatAt) ? prose.greatAt : [])
+      .filter((g: any) => g && g.label)
+      .map((g: any) => ({ label: oneLine(g.label).slice(0, 48), why: oneLine(g.why).slice(0, 120) }))
+      .slice(0, 4)
 
     const synthesis = {
       title: stripDashes(String(prose.title || 'Your full read')),
@@ -374,6 +380,7 @@ Return the JSON now.`
       ...(constellation.length ? { constellation } : {}),
       ...(oneOnOne.length ? { oneOnOne } : {}),
       ...(biases.length ? { biases } : {}),
+      ...(greatAt.length ? { greatAt } : {}),
       n,
     }
 

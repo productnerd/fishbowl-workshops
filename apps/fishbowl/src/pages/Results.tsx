@@ -34,7 +34,6 @@ import EntryModal from '../components/EntryModal'
 import EnergyOverlay from '../components/EnergyOverlay'
 import ResponsibilitiesLadder from '../components/ResponsibilitiesLadder'
 import HatsRadar from '../components/HatsRadar'
-import SelfTeamDumbbell from '../components/SelfTeamDumbbell'
 import BlindSpotQuadrant from '../components/BlindSpotQuadrant'
 import ThroughLine from '../components/ThroughLine'
 import VirtueViceDial from '../components/VirtueViceDial'
@@ -730,20 +729,6 @@ export default function Results() {
     : []
   if (gapRows.length > 0) {
     cards.splice(cards.length - 1, 0, {
-      tone: 'sand',
-      node: (
-        <div>
-          <p className="kicker mb-1 text-pink-deep">
-            you vs them
-            <InfoTip text="Your self-assessment next to how your team reads you, trait by trait. The wider the bar, the bigger the disagreement. Only you can see this." />
-          </p>
-          <h2 className="display mb-4 text-3xl">You vs. the team</h2>
-          {cap('youVsTeam')}
-          <SelfTeamDumbbell rows={gapRows} />
-        </div>
-      ),
-    })
-    cards.splice(cards.length - 1, 0, {
       tone: 'paper',
       node: (
         <div>
@@ -987,10 +972,23 @@ export default function Results() {
         <div>
           <p className="kicker mb-1 text-pink-deep">
             forward motion
-            <InfoTip text="The team casts you into a Belbin cluster; your top energizers point at another. The arrow is the drift between where they keep you and where your energy wants to be." />
+            <InfoTip text="Your energy vs the role the team casts you in (the triangle), crossed with what you're strongest at, to name roles and tasks you'd genuinely thrive in." />
           </p>
-          <h2 className="display mb-4 text-3xl">Where you'd rather be</h2>
+          <h2 className="display mb-4 text-3xl">Where you'd thrive</h2>
           <RoleTriangle teamW={teamW} energyW={energyW} />
+          {synthesis?.greatAt && synthesis.greatAt.length > 0 && (
+            <div className="mt-6">
+              <p className="kicker mb-3 text-blue-deep">roles &amp; tasks you'd be great at</p>
+              <ul className="flex flex-col gap-2.5">
+                {synthesis.greatAt.map((g, i) => (
+                  <li key={i} className="rounded-2xl border-[2.5px] border-ink bg-sand p-3.5 shadow-chunky-sm">
+                    <p className="serif font-black text-ink">★ {g.label}</p>
+                    {g.why && <p className="mt-0.5 text-sm leading-snug text-ink-soft">{g.why}</p>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       ),
     })

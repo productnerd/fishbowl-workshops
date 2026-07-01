@@ -60,6 +60,7 @@ export interface SelfSynthesis {
   constellation?: { label: string; words: string[] }[]
   oneOnOne?: string[]
   biases?: string[]
+  greatAt?: { label: string; why: string }[]
   n: number
 }
 
