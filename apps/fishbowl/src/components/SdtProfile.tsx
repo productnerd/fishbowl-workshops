@@ -15,7 +15,6 @@ export default function SdtProfile({ team }: { team: TeamNeed[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="kicker text-ink-soft">What you leave in their tank</p>
       <p className="serif text-lg text-ink">
         After working with you, your team most feels{' '}
         <span className="font-semibold text-pink-deep">{top.label.toLowerCase()}</span> — {stem(top.key)}.

@@ -47,7 +47,7 @@ import Constellation from '../components/Constellation'
 import CandorPlot from '../components/CandorPlot'
 import SdtProfile from '../components/SdtProfile'
 import BelbinReport from '../components/BelbinReport'
-import RoleFuel from '../components/RoleFuel'
+import BelbinComposition from '../components/BelbinComposition'
 import StrengthsPodium from '../components/StrengthsPodium'
 import TodoList from '../components/TodoList'
 import ViaDeck from '../components/ViaDeck'
@@ -63,6 +63,14 @@ const OPTION_TENDENCY: Record<string, string> = {}
 for (const q of questions) {
   const ot = (q as { optionTendencies?: Record<string, string> }).optionTendencies
   if (ot) Object.assign(OPTION_TENDENCY, ot)
+}
+
+// Per-Belbin-role colour, grouped by cluster hue (Thinking = blues, Action = pinks,
+// People = greens/gold) — for the composite role-composition bar.
+const BELBIN_COLOR: Record<string, string> = {
+  plant: '#1366ac', monitor_evaluator: '#4a90c2', specialist: '#86b8d8',
+  shaper: '#a83f6f', implementer: '#d0668f', completer_finisher: '#e6a6c1',
+  coordinator: '#3f9d5a', teamworker: '#79b98a', resource_investigator: '#c9a24a',
 }
 
 // Which Belbin cluster each energizer activity pulls toward — for the "where you'd
@@ -570,41 +578,7 @@ export default function Results() {
     })
   }
 
-  // Role + fuel: one combined slide — the Belbin role the team most casts you in, and
-  // the top SDT needs you leave others feeling. (Replaces the two separate slides.)
-  const topRole = (insights.belbin ?? [])
-    .filter((b) => b.n > 0)
-    .sort((a, b) => b.teamShare - a.teamShare)
-    .map((b) => {
-      const r = BELBIN_ROLES.find((x) => x.key === b.key)
-      return { name: r?.name ?? b.key, short: r?.short ?? '', cluster: r?.cluster ?? 'Thinking' }
-    })[0] ?? null
-  const topFuels = (insights.sdt ?? [])
-    .filter((s) => s.n > 0)
-    .sort((a, b) => b.meanPoints - a.meanPoints)
-    .slice(0, 2)
-    .map((s) => {
-      const need = SDT_NEEDS.find((x) => x.key === s.key)
-      return { label: need?.label ?? s.key, feelStem: need?.feelStem ?? '' }
-    })
-  if (topRole || topFuels.length) {
-    fwCards.push({
-      tone: 'sand',
-      node: (
-        <div>
-          <p className="kicker mb-1 text-blue-deep">
-            role + fuel
-            <InfoTip text="Belbin's team roles (how you contribute) meet Self-Determination Theory (the needs — autonomy, competence, relatedness, purpose, safety, vitality — you leave others feeling)." />
-          </p>
-          <h2 className="display mb-4 text-3xl">Your role, and what you fuel</h2>
-          {cap('roleFuel')}
-          <RoleFuel role={topRole} fuels={topFuels} />
-        </div>
-      ),
-    })
-  }
-
-  // Original SDT + Belbin detail slides — kept alongside the combined role+fuel card.
+  // SDT + Belbin detail slides.
   if (insights.sdt?.some((s) => s.n > 0)) {
     const sdtTeam = insights.sdt.map((s) => ({ key: s.key, label: SDT_NEEDS.find((x) => x.key === s.key)?.label ?? s.key, meanPoints: s.meanPoints, n: s.n }))
     fwCards.push({
@@ -627,16 +601,34 @@ export default function Results() {
       const r = BELBIN_ROLES.find((x) => x.key === b.key)
       return { key: b.key, name: r?.name ?? b.key, cluster: r?.cluster ?? 'Thinking', teamShare: b.teamShare, n: b.n }
     })
+    // Composite composition: each role = 50% self allocation + 50% team share.
+    const teamShareMap = new Map((insights.belbin ?? []).map((b) => [b.key, b.teamShare]))
+    const selfTot = selfBelbin ? Object.values(selfBelbin).reduce((a, b) => a + (b || 0), 0) : 0
+    const rawComposite = BELBIN_ROLES.map((r) => {
+      const team = teamShareMap.get(r.key) ?? 0
+      const self = selfBelbin && selfTot > 0 ? (selfBelbin[r.key] ?? 0) / selfTot : 0
+      const composite = selfTot > 0 ? 0.5 * self + 0.5 * team : team
+      return { key: r.key, name: r.name, composite }
+    })
+    const compTot = rawComposite.reduce((a, r) => a + r.composite, 0) || 1
+    const belbinComposite = rawComposite
+      .map((r) => ({ name: r.name, pct: (r.composite / compTot) * 100, color: BELBIN_COLOR[r.key] ?? '#b8ab97' }))
+      .filter((s) => s.pct > 0)
+      .sort((a, b) => b.pct - a.pct)
     fwCards.push({
       tone: 'paper',
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
             team role
-            <InfoTip text="Belbin's nine team roles — the distinct ways people contribute, grouped Thinking / Action / People." />
+            <InfoTip text="Belbin's nine team roles — the distinct ways people contribute, grouped Thinking / Action / People. The bar blends your own read (50%) with the team's (50%)." />
           </p>
-          <h2 className="display mb-5 text-3xl">The roles you play</h2>
-          <BelbinReport team={belbinTeam} self={selfBelbin} />
+          <h2 className="display mb-4 text-3xl">The roles you play</h2>
+          <p className="mb-2 text-sm text-ink-soft">Your role mix — your read and the team's, weighted equally.</p>
+          <BelbinComposition segments={belbinComposite} />
+          <div className="mt-6">
+            <BelbinReport team={belbinTeam} self={selfBelbin} />
+          </div>
         </div>
       ),
     })
@@ -1002,25 +994,25 @@ export default function Results() {
     })
   }
 
-  // A breather about three-quarters through: reassure the reader they don't have to
-  // hold all of this, because the end pulls it together into a usable summary.
-  if (hasSelf) {
-    cards.splice(cards.length - 1, 0, {
-      tone: 'blue',
-      node: (
-        <div className="flex min-h-[52vh] flex-col justify-center text-paper-hi">
-          <div className="text-5xl">🫧</div>
-          <p className="kicker mt-4 text-paper-hi/80">take a breath</p>
-          <h2 className="display mt-2 text-4xl leading-tight">Feeling like a lot? That's normal.</h2>
-          <p className="mt-4 text-lg leading-relaxed text-paper-hi/90">
-            You don't have to hold all of this. In a moment we pull the whole picture together into{' '}
-            <span className="font-black">one clear read</span>, a <span className="font-black">practical action plan</span>, and a
-            short summary you can actually keep. Just keep swiping.
-          </p>
-        </div>
-      ),
-    })
-  }
+  // A breather, dropped in at the halfway point below: reassure the reader they don't
+  // have to hold all of this, because the end pulls it together into a usable summary.
+  const reassuranceCard = hasSelf
+    ? {
+        tone: 'blue' as const,
+        node: (
+          <div className="flex min-h-[52vh] flex-col justify-center text-paper-hi">
+            <div className="text-5xl">🫧</div>
+            <p className="kicker mt-4 text-paper-hi/80">take a breath</p>
+            <h2 className="display mt-2 text-4xl leading-tight">Feeling like a lot? That's normal.</h2>
+            <p className="mt-4 text-lg leading-relaxed text-paper-hi/90">
+              You don't have to hold all of this. By the end we pull the whole picture together into{' '}
+              <span className="font-black">one clear read</span>, a <span className="font-black">practical action plan</span>, and a
+              short summary you can actually keep. Just keep swiping.
+            </p>
+          </div>
+        ),
+      }
+    : null
 
   // The through-line: archetype + two driving signals -> the one core tension, as a
   // compact flow. The spine of the report, right before the deep read.
@@ -1252,6 +1244,9 @@ export default function Results() {
     setModalDismissed(true)
     if (slug) localStorage.setItem(`fishbowl_self_nudge_seen_${slug}`, '1')
   }
+
+  // Drop the breather in at the halfway mark (not buried near the end).
+  if (reassuranceCard) cards.splice(Math.floor(cards.length / 2), 0, reassuranceCard)
 
   const total = cards.length
   // Clamp for the card we actually render: idx can briefly sit out of range while the
