@@ -29,6 +29,7 @@ import VirtueGauge from '../components/VirtueGauge'
 import StatBar from '../components/StatBar'
 import PersonalityCard, { SideCharacter } from '../components/PersonalityCard'
 import LockedCard from '../components/LockedCard'
+import RelinkPrompt from '../components/RelinkPrompt'
 import EntryModal from '../components/EntryModal'
 import EnergyOverlay from '../components/EnergyOverlay'
 import ResponsibilitiesLadder from '../components/ResponsibilitiesLadder'
@@ -266,6 +267,7 @@ export default function Results() {
               📖 Skip to your full written read →
             </button>
           )}
+          {!hasSelf && slug && <RelinkPrompt slug={slug} />}
         </div>
       ),
     },
