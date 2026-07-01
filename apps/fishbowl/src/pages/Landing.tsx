@@ -31,10 +31,10 @@ const rise = (delay: number) => ({
 
 // One beige family, light to dark across the four steps.
 const STEPS = [
-  { n: '01', bg: 'var(--color-paper-hi)', title: 'Grab your link', body: 'One tap. No account, no setup, nothing to install.' },
-  { n: '02', bg: 'var(--color-paper)', title: 'Do your own first', body: 'A quick self-read, about two minutes. Seeing yourself first makes the rest hit harder.' },
-  { n: '03', bg: 'var(--color-sand)', title: 'Your team weighs in', body: 'They answer anonymously: sliders, quick taps, a few honest words. No names. Ever.' },
-  { n: '04', bg: 'var(--color-sand-deep)', title: 'Three in, report out', body: 'The second three teammates answer, your Wrapped pops open.' },
+  { n: '01', emoji: '🔗', bg: 'var(--color-paper-hi)', title: 'Grab your link', body: 'One tap. No account, no setup, nothing to install.' },
+  { n: '02', emoji: '🪞', bg: 'var(--color-paper)', title: 'Do your own first', body: 'A quick self-read, about two minutes. Seeing yourself first makes the rest hit harder.' },
+  { n: '03', emoji: '💬', bg: 'var(--color-sand)', title: 'Your team weighs in', body: 'They answer anonymously: sliders, quick taps, a few honest words. No names. Ever.' },
+  { n: '04', emoji: '🎉', bg: 'var(--color-sand-deep)', title: 'Three in, report out', body: 'The second three teammates answer, your Wrapped pops open.' },
 ]
 
 type Tone = 'pink' | 'blue' | 'sand' | 'paper'
@@ -530,7 +530,10 @@ export default function Landing() {
           {STEPS.map((s, i) => (
             <motion.div key={s.n} {...rise(0.12 + i * 0.07)}>
               <div className="card-3d h-full p-6" style={{ background: s.bg }}>
-                <span className="display text-5xl text-ink opacity-90">{s.n}</span>
+                <div className="flex items-center justify-between">
+                  <span className="display text-5xl text-ink opacity-90">{s.n}</span>
+                  <span aria-hidden className="text-4xl leading-none">{s.emoji}</span>
+                </div>
                 <h3 className="serif mt-3 text-2xl font-semibold text-ink">{s.title}</h3>
                 <p className="mt-2 leading-relaxed text-ink/75">{s.body}</p>
               </div>
