@@ -58,6 +58,8 @@ export interface SelfSynthesis {
   captions?: Record<string, string>
   throughLine?: { from: string; via: string[]; to: string }
   constellation?: { label: string; words: string[] }[]
+  oneOnOne?: string[]
+  biases?: string[]
   n: number
 }
 

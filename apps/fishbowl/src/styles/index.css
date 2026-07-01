@@ -18,6 +18,11 @@
   --font-display: "Fraunces", Georgia, serif;
   --font-body: "Hanken Grotesk", system-ui, sans-serif;
   --font-mono: "Spline Sans Mono", ui-monospace, monospace;
+  --font-hand: "Caveat", "Bradley Hand", cursive;
+}
+
+.handwritten {
+  font-family: var(--font-hand);
 }
 
 @layer base {

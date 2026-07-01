@@ -50,6 +50,8 @@ import BelbinReport from '../components/BelbinReport'
 import BelbinComposition from '../components/BelbinComposition'
 import StrengthsPodium from '../components/StrengthsPodium'
 import TodoList from '../components/TodoList'
+import OneOnOne from '../components/OneOnOne'
+import StickyNote from '../components/StickyNote'
 import ViaDeck from '../components/ViaDeck'
 import JohariWindow from '../components/JohariWindow'
 import WatchoutsDeck from '../components/WatchoutsDeck'
@@ -1143,6 +1145,38 @@ export default function Results() {
           >
             Email this plan to me
           </a>
+        </div>
+      ),
+    })
+  }
+
+  // Take this to your 1:1: manager talking points so the report gets actioned.
+  if (hasSelf && synthesis?.oneOnOne && synthesis.oneOnOne.length > 0) {
+    cards.push({
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-blue-deep">
+            take it to your 1:1
+            <InfoTip text="Bring these to a routine 1:1 with your manager so the gaps this report surfaced actually get worked on, together." />
+          </p>
+          <h2 className="display mb-1 text-3xl">For your next 1:1</h2>
+          <p className="mb-5 text-sm text-ink-soft">Questions to ask, and things to share, so this doesn't just sit in a report.</p>
+          <OneOnOne items={synthesis.oneOnOne} />
+        </div>
+      ),
+    })
+  }
+
+  // A Post-it of tendencies, blind spots and biases to keep at the back of your mind.
+  if (hasSelf && synthesis?.biases && synthesis.biases.length > 0) {
+    cards.push({
+      tone: 'sand',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">stick it on your monitor</p>
+          <h2 className="display mb-4 text-3xl">Keep these in mind</h2>
+          <StickyNote bullets={synthesis.biases} />
         </div>
       ),
     })
