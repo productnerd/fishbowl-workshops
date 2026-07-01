@@ -1056,19 +1056,6 @@ export default function Results() {
               </div>
             ))}
           </div>
-          {synthesis.practice.length > 0 && (
-            <div className="mt-4 rounded-2xl border-[2.5px] border-ink bg-blue p-4 text-paper-hi shadow-chunky-sm sc-navy">
-              <p className="kicker text-paper-hi/80">put it into practice</p>
-              <ul className="mt-2.5 flex flex-col gap-2.5">
-                {synthesis.practice.map((p, i) => (
-                  <li key={i} className="flex gap-2.5 leading-relaxed">
-                    <span className="shrink-0 text-paper-hi/60">→</span>
-                    <span><Rich text={p} /></span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
           <button
             onClick={() => copySummary()}
             className="press mt-5 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-ink px-5 py-3 font-display font-black text-paper-hi shadow-chunky-sm"

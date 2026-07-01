@@ -334,7 +334,7 @@ In every blurb/interpretation/appreciation and advice bullet, wrap 2 to 3 key ph
 The growthEdges are ${name}'s BIGGEST VICES: the virtues furthest from the balanced middle. For each, give a short title and TWO concrete tips for what to DO to move back toward the mean. "actions" MUST be a JSON array of EXACTLY 2 bullets, each its own sentence, MAX 16 words, each with one **bold** segment, from two DIFFERENT angles (one behavioural, one mindset).${workContext ? ` Make the tips SPECIFIC and practical for their role and company (see the work context above).` : ''}
 
 === ACTION PLAN (actionPlan) ===
-The most practical part of the whole report. Draw on the growth edges, scenarios and free text. "stopNow" and "startNow" are EACH exactly 3 concrete behaviours to change THIS WEEK (short imperative, max 14 words, one **bold** phrase each). "stopNext" and "startNext" are EACH exactly 2 MORE, to add only once the first set is a habit (a level-up). Specific and doable, never platitudes.
+The most practical part of the whole report and the single most useful screen, so make it EXCELLENT. Every item must be CONCRETE and GROUNDED in a specific signal from the data above (a virtue running hot or cold and its pole, a thinking hat that runs cold, a watch-out colleagues named, a low competency, a scenario tendency), and pair the behaviour with a small, doable HOW, never a platitude. Cross-reference like a sharp coach: name the exact thing and the move. Short imperative, one **bold** phrase each. "stopNow" and "startNow" are EACH exactly 3 to change THIS WEEK. "stopNext" and "startNext" are EACH exactly 3 MORE, to add only once the first set is a habit (a level-up).
 
 === OUTPUT (JSON only, no code fences) ===
 {
@@ -345,7 +345,7 @@ The most practical part of the whole report. Draw on the growth edges, scenarios
   "growthEdges": [ ${growthDims.map((d) => `{ "dimension": "${d}", "title": "<=5 words imperative, no bold", "actions": ["concrete tip 1", "concrete tip 2"] }`).join(', ')} ],
   "appreciations": ["3 distinct themes synthesized from the appreciation free-text, each 1 sentence with **bold**", "...", "..."],
   "closing": "2 warm sentences sending them off.",
-  "actionPlan": { "stopNow": ["a behaviour to stop this week, **bold** 1 phrase", "a second one", "a third one"], "startNow": ["a behaviour to start this week, **bold** 1 phrase", "a second one", "a third one"], "stopNext": ["a stop to add once the first are habit", "a second one"], "startNext": ["a start to add once the first are habit", "a second one"] }${sessionResp.length ? `,
+  "actionPlan": { "stopNow": ["a behaviour to stop this week, **bold** 1 phrase", "a second one", "a third one"], "startNow": ["a behaviour to start this week, **bold** 1 phrase", "a second one", "a third one"], "stopNext": ["a stop to add once the first are habit", "a second one", "a third one"], "startNext": ["a start to add once the first are habit", "a second one", "a third one"] }${sessionResp.length ? `,
   "responsibilities": { ${responsibilityStats.map((r) => `"${r.index}": ["2 to 3 short bullet points on HOW the team reads you on this responsibility — concrete behaviours showing where you ${r.teamTier === 1 ? 'fall short' : r.teamTier === 3 ? 'exceed and delight' : 'meet expectations'}, drawn from the colleague notes; synthesize, never quote anyone, **bold** one phrase in each"]`).join(', ')} }` : ''}
 }
 Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} competency keys. Never reveal or quote any individual respondent verbatim; synthesize themes only (the team is small and quotes could identify people).`
@@ -416,8 +416,8 @@ Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} 
         ? {
             stopNow: toN(prose.actionPlan.stopNow, 3),
             startNow: toN(prose.actionPlan.startNow, 3),
-            stopNext: toN(prose.actionPlan.stopNext, 2),
-            startNext: toN(prose.actionPlan.startNext, 2),
+            stopNext: toN(prose.actionPlan.stopNext, 3),
+            startNext: toN(prose.actionPlan.startNext, 3),
           }
         : null,
       energizers: energizerStats,
