@@ -1,6 +1,7 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Landing from './pages/Landing'
 import Create from './pages/Create'
+import Dashboard from './pages/Dashboard'
 import Questionnaire from './pages/Questionnaire'
 import Done from './pages/Done'
 import Results from './pages/Results'
@@ -17,6 +18,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/create" element={<Create />} />
+        <Route path="/dashboard/:slug" element={<Dashboard />} />
         <Route path="/s/:slug" element={<Questionnaire />} />
         <Route path="/s/:slug/done" element={<Done />} />
         <Route path="/r/:slug" element={<Results />} />

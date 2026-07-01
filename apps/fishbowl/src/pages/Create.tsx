@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { REQUIRED_RESPONSES, buildShareLink } from '@fishbowl/feedback-core'
-import { createSession, getResponseCount, getSession } from '../lib/data'
+import { createSession } from '../lib/data'
 import { setSubjectAuth } from '../lib/subjectAuth'
-import Card from '../components/Card'
 import Button from '../components/Button'
 
 const KEY = 'fishbowl_my_session'
@@ -14,149 +12,46 @@ export default function Create() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [context, setContext] = useState('')
-  const [slug, setSlug] = useState<string | null>(null)
-  const [creator, setCreator] = useState('')
-  const [count, setCount] = useState(0)
   const [loading, setLoading] = useState(false)
-  const [copied, setCopied] = useState(false)
   const [checking, setChecking] = useState(true)
-  const [selfDone, setSelfDone] = useState(false)
 
+  // If this browser already owns a session, its dashboard lives at a stable slug URL —
+  // send them there instead of showing the name-entry form again.
   useEffect(() => {
-    const stored = localStorage.getItem(KEY)
-    if (stored) {
-      try {
-        const { slug: s, creator_name } = JSON.parse(stored)
-        setSlug(s)
-        setCreator(creator_name)
-      } catch {
-        localStorage.removeItem(KEY)
+    try {
+      const stored = localStorage.getItem(KEY)
+      if (stored) {
+        const { slug } = JSON.parse(stored)
+        if (slug) {
+          navigate(`/dashboard/${slug}`, { replace: true })
+          return
+        }
       }
+    } catch {
+      localStorage.removeItem(KEY)
     }
     setChecking(false)
-  }, [])
-
-  useEffect(() => {
-    if (!slug) return
-    getResponseCount(slug).then(setCount)
-    getSession(slug).then((s) => setSelfDone(Boolean(s?.self_completed_at)))
-  }, [slug])
+  }, [navigate])
 
   const create = async () => {
     if (!name.trim()) return
     setLoading(true)
     try {
-      const { slug: s, bearer, person_id } = await createSession(name.trim(), context.trim() || undefined, email.trim() || undefined)
+      const { slug, bearer, person_id } = await createSession(name.trim(), context.trim() || undefined, email.trim() || undefined)
       // This browser now owns the session: store the device key so the self-read saves
       // and the report unlocks here with no magic link.
-      setSubjectAuth({ bearer, person_id, slug: s })
-      localStorage.setItem(KEY, JSON.stringify({ slug: s, creator_name: name.trim(), email: email.trim() || null }))
-      setSlug(s)
-      setCreator(name.trim())
+      setSubjectAuth({ bearer, person_id, slug })
+      localStorage.setItem(KEY, JSON.stringify({ slug, creator_name: name.trim(), email: email.trim() || null }))
+      navigate(`/dashboard/${slug}`)
+      return
     } catch {
       /* surface later */
     }
     setLoading(false)
   }
 
-  const copy = async () => {
-    if (!slug) return
-    await navigator.clipboard.writeText(buildShareLink(slug))
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1800)
-  }
-
   if (checking) return null
 
-  // ── Share / status screen ──
-  if (slug) {
-    const remaining = Math.max(0, REQUIRED_RESPONSES - count)
-    const unlocked = count >= REQUIRED_RESPONSES
-    const pct = Math.min(100, (count / REQUIRED_RESPONSES) * 100)
-    return (
-      <div className="mx-auto flex min-h-dvh max-w-lg flex-col px-5 py-8">
-        <button
-          onClick={() => navigate('/')}
-          aria-label="Back to home"
-          className="press mb-8 inline-flex w-fit cursor-pointer items-center gap-2"
-        >
-          <span className="text-3xl">🐟</span>
-          <span className="font-display text-2xl font-black text-ink">Fishbowl</span>
-        </button>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="my-auto w-full">
-          <p className="kicker mb-4 text-pink-deep">your link is live</p>
-          <h1 className="display text-5xl">Hey {creator}.</h1>
-          <p className="mt-3 text-lg text-ink-soft">
-            Fire your link at a few coworkers. Three answers and your report pops open.
-          </p>
-
-          {/* Step 1 — label outside the card */}
-          <p className="kicker mt-8 mb-2 text-pink-deep">step 1 · take yours first</p>
-          <Card tone={selfDone ? 'sand' : 'blue'} className="p-6">
-            <div className="flex items-center justify-between gap-3">
-              <p className={`serif text-xl font-semibold ${selfDone ? 'text-ink' : 'text-paper-hi'}`}>
-                {selfDone ? 'Self-assessment done ✓' : 'Your self-assessment'}
-              </p>
-              {!selfDone && (
-                <button
-                  onClick={() => navigate(`/self/${slug}`)}
-                  className="press shrink-0 cursor-pointer rounded-full border-[2.5px] border-ink bg-pink sc-pink px-5 py-2.5 font-display font-black text-ink shadow-chunky-sm"
-                >
-                  Take it →
-                </button>
-              )}
-            </div>
-            <p className={`mt-2 text-sm ${selfDone ? 'text-ink-soft' : 'text-paper-hi/85'}`}>
-              {selfDone
-                ? "Your report will show your self-view next to your team's."
-                : 'Do your own first (~2 min). It makes the whole thing sharper. Share in parallel.'}
-            </p>
-          </Card>
-
-          {/* Step 2 — label outside, everything in one card */}
-          <p className="kicker mt-8 mb-2 text-pink-deep">step 2 · share with colleagues</p>
-          <Card tone="sand" className="p-6">
-            <div className="flex items-center gap-3 rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3">
-              <input
-                readOnly
-                value={buildShareLink(slug)}
-                className="min-w-0 flex-1 truncate bg-transparent px-2 font-mono text-sm text-ink outline-none"
-              />
-              <button
-                onClick={copy}
-                className="press shrink-0 cursor-pointer rounded-xl border-[2.5px] border-ink bg-pink sc-pink px-4 py-2 font-display font-black text-ink shadow-chunky-sm"
-              >
-                {copied ? 'Copied!' : 'Copy'}
-              </button>
-            </div>
-
-            <div className="mt-6 mb-3 flex items-baseline justify-between">
-              <span className="kicker text-ink">responses</span>
-              <span className="display text-2xl">
-                {count} / {REQUIRED_RESPONSES}
-              </span>
-            </div>
-            <div className="h-4 overflow-hidden rounded-full border-2 border-ink bg-paper-hi">
-              <motion.div className="h-full bg-blue" animate={{ width: `${pct}%` }} transition={{ ease: 'easeOut', duration: 0.7 }} />
-            </div>
-            <p className="mt-3 text-sm font-semibold text-ink-soft">
-              {unlocked ? '✨ Your report is ready.' : `${remaining} more and it's yours.`}
-            </p>
-          </Card>
-
-          {unlocked && (
-            <div className="mt-7">
-              <Button variant="pink" onClick={() => navigate(`/r/${slug}`)} className="!text-xl">
-                See your report →
-              </Button>
-            </div>
-          )}
-        </motion.div>
-      </div>
-    )
-  }
-
-  // ── Name entry ──
   return (
     <div className="mx-auto grid min-h-dvh max-w-lg place-items-center px-5">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full text-center">

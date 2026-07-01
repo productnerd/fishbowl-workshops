@@ -459,7 +459,7 @@ export default function Landing() {
   // Returning creators always land on their dashboard (/create), where they see their
   // link, the response count, and the button through to their report once it's ready.
   const ctaLabel = mySlug ? 'Go to my dashboard →' : 'Create your link →'
-  const onCta = () => navigate('/create')
+  const onCta = () => navigate(mySlug ? `/dashboard/${mySlug}` : '/create')
 
   return (
     <div className="mx-auto min-h-dvh w-full max-w-6xl px-5 pb-24 sm:px-8">

@@ -175,7 +175,7 @@ export default function SelfAssessment() {
       MY_KEY,
       JSON.stringify({ slug, creator_name: session?.creator_name ?? mine?.creator_name ?? '', email: knownEmail ?? mine?.email ?? null })
     )
-    navigate((session?.response_count ?? 0) >= REQUIRED_RESPONSES ? `/r/${slug}` : '/')
+    navigate((session?.response_count ?? 0) >= REQUIRED_RESPONSES ? `/r/${slug}` : `/dashboard/${slug}`)
   }
 
   // Send them to their dashboard (the share/status screen), making sure it can render
@@ -188,7 +188,7 @@ export default function SelfAssessment() {
       MY_KEY,
       JSON.stringify({ slug, creator_name: session?.creator_name ?? mine?.creator_name ?? '', email: mine?.email ?? null })
     )
-    navigate('/create')
+    navigate(`/dashboard/${slug}`)
   }
 
   // ── depth ──
