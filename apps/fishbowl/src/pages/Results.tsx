@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -53,6 +53,9 @@ export default function Results() {
   const [loading, setLoading] = useState(true)
   const [pct, setPct] = useState<Record<string, number>>({})
   const [idx, setIdx] = useState(0)
+  // Index of the deep "full read" card, set while building the deck below so the intro
+  // card can jump straight to it (people were stopping short and missing the centerpiece).
+  const fullReadIdxRef = useRef(-1)
   const [self, setSelf] = useState<SelfData | null>(null)
   const [hasSelf, setHasSelf] = useState(false)
   const [selfLoaded, setSelfLoaded] = useState(false)
@@ -213,6 +216,14 @@ export default function Results() {
             <Rich text={insights.headline} />
           </h1>
           <p className="mt-6 text-ink/70">{session.response_count} colleagues. One honest mirror.</p>
+          {hasSelf && (synthesis || synthesisLoading) && (
+            <button
+              onClick={() => fullReadIdxRef.current >= 0 && setIdx(fullReadIdxRef.current)}
+              className="press mt-8 w-fit cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-5 py-3 font-display font-black text-ink shadow-chunky-sm"
+            >
+              📖 Skip to your full written read →
+            </button>
+          )}
         </div>
       ),
     },
@@ -682,6 +693,7 @@ export default function Results() {
           <Rich text={p} />
         </p>
       ))
+    fullReadIdxRef.current = cards.length
     cards.push({
       tone: 'paper',
       node: synthesis ? (

@@ -171,10 +171,13 @@ CROSS-REFERENCE constantly and explicitly. Whenever two activities point the sam
 
 === COVER (woven into flowing prose, NOT a bare checklist) ===
 1. WHO THEY ARE at the core (lead with this): a synthetic read grounded in personality + archetype + the strongest cross-activity themes.
-2. STRENGTHS, summarized and cross-referenced, and the WAYS THEY LIKE TO WORK (energy, thinking style, team role, what fuels them).
-3. The biggest GAPS between how they see themselves and how the team sees them. Blind spots first (the team sees something they don't, including Johari/VIA blind spots and watch-outs they didn't own), then hidden strengths (they are harder on themselves than the team is). Use the pre-sorted gaps.
-4. WEAKNESSES and WATCH-OUTS, named kindly but honestly: recurring vices (virtues pushed to an extreme), the watch-outs colleagues flagged, and the TENDENCIES and BIASES that likely flow from their profile (an archetype's shadow, a trait taken too far). Frame these as things to keep in the back of their mind.
-5. PRACTICE: concrete, specific ways to put all of this to work day to day.
+2. STRENGTHS, summarized and cross-referenced.
+3. The WAYS THEY LIKE TO WORK: energy, thinking style (hats), team role (Belbin), what fuels them (SDT), feedback style.
+4. The biggest GAPS between how they see themselves and how the team sees them. Blind spots first (the team sees something they don't, including Johari/VIA blind spots and watch-outs they didn't own), then hidden strengths (they are harder on themselves than the team is). Use the pre-sorted gaps.
+5. WEAKNESSES and WATCH-OUTS, named kindly but honestly: recurring vices (virtues pushed to an extreme) and the watch-outs colleagues flagged.
+6. TENDENCIES and BIASES that likely flow from their profile: an archetype's shadow, a trait taken too far, the decision and social biases their exact mix predicts. Frame these as things to keep in the back of their mind.
+7. HOW THEY SHOW UP day to day, in concrete situations (meetings, conflict, slipping deadlines, receiving feedback), drawing on the scenarios, hats and candor.
+8. PRACTICE: concrete, specific ways to put all of this to work.
 
 === VOICE ===
 Second person ("you", "your"). Warm, sharp, honest, a little playful, like a perceptive friend who has read everything about you and is leveling with you. Not a consultant, zero corporate-speak, zero horoscope vagueness. Every claim grounded in the data given; specific over generic. It can sting a little where the data is strong, never cruel, never a roast.
@@ -189,16 +192,18 @@ Wrap the few most important phrases per paragraph in **bold** (the claims someon
 === OUTPUT (JSON only, no code fences, no prose outside the JSON) ===
 {
   "title": "a short, evocative title for this person's read (<= 6 words, no bold, no dashes)",
-  "portrait": "2 to 3 SHORT paragraphs (2 to 4 sentences each) on who they are at their core. MUST separate every paragraph with a blank line \\n\\n. With **bold** and *italic*.",
+  "portrait": "3 to 4 SHORT paragraphs (2 to 4 sentences each), ~250 to 350 words, on who they are at their core, grounded in personality + archetype + the strongest cross-activity themes. MUST separate every paragraph with a blank line \\n\\n. With **bold** and *italic*.",
   "sections": [
-    { "heading": "Where you shine", "body": "2 to 3 SHORT paragraphs, cross-referenced, with **bold** and *italic*. MUST put \\n\\n between every paragraph." },
-    { "heading": "How you like to work", "body": "..." },
-    { "heading": "You vs. how they see you", "body": "the biggest gaps; blind spots first, then hidden strengths." },
-    { "heading": "Watch-outs, tendencies and biases", "body": "weaknesses named kindly; the biases and tendencies to keep in mind." }
+    { "heading": "Where you shine", "body": "3 to 4 SHORT paragraphs, ~220 to 300 words, cross-referenced across strengths/virtues/appreciations. **bold** and *italic*. MUST put \\n\\n between every paragraph." },
+    { "heading": "How you like to work", "body": "energy, thinking style (hats), team role (Belbin), what you fuel in others (SDT), feedback style. 3 to 4 SHORT paragraphs, ~220 to 300 words." },
+    { "heading": "You vs. how they see you", "body": "the biggest self-vs-team gaps; blind spots first (Johari/VIA/watch-outs/virtues the team sees and you don't), then hidden strengths where you are harder on yourself than the team is. 3 to 4 SHORT paragraphs, ~220 to 300 words." },
+    { "heading": "Watch-outs and vices", "body": "weaknesses named kindly: virtues pushed to an extreme, the watch-outs colleagues flagged. 3 to 4 SHORT paragraphs, ~200 to 280 words." },
+    { "heading": "Tendencies and biases to keep in mind", "body": "what the profile predicts: the archetype's shadow, traits taken too far, the decision and social biases your exact mix tends toward. 3 to 4 SHORT paragraphs, ~200 to 280 words." },
+    { "heading": "How you show up day to day", "body": "the concrete situational read: how you land in meetings, conflict, slipping deadlines and receiving feedback, drawing on scenarios, hats and candor. 3 to 4 SHORT paragraphs, ~200 to 280 words." }
   ],
-  "practice": ["4 to 6 concrete, specific practices. Each 1 to 2 sentences, **bold** the action verb or move."]
+  "practice": ["6 to 8 concrete, specific practices. Each 1 to 2 sentences, **bold** the action verb or move."]
 }
-Aim for roughly 2 to 4 A4 pages of reading total. Rich and specific, never padded.`
+This is a LONG read: aim for roughly 1800 to 2600 words total across portrait + sections + practice (2 to 4 full A4 pages). Rich and specific, cross-referenced, never padded, and never repeat a point already made in another section. Do not stop short.`
 
     const userPrompt = `SUBJECT: ${name}. Speak TO them in second person; never use their name.
 
@@ -264,7 +269,7 @@ Return the JSON now.`
       headers: { 'content-type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 16000,
+        max_tokens: 26000,
         thinking: { type: 'adaptive' },
         output_config: { effort: 'high' },
         system: systemPrompt,
