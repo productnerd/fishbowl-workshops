@@ -60,7 +60,7 @@ const DEPTHS: SelfDepth[] = [
   { id: 'extended', name: 'Extended', perTrait: 8, time: '~10 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
 ]
 
-type Phase = 'checking' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks'
+type Phase = 'checking' | 'already' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks'
 
 // The 10 virtue scales, reused from the colleague survey so the vice/virtue behaviours
 // (deficientTraits / virtueTraits / excessiveTraits) are a single source of truth.
@@ -107,6 +107,11 @@ export default function SelfAssessment() {
       }
       const s = r.self
       const sp = (s?.self_payload ?? {}) as Record<string, any>
+      // Already finished it? Don't let them redo it; send them to their dashboard.
+      if (s && s.completed) {
+        setPhase('already')
+        return
+      }
       // Resume an in-progress (not yet completed) self-assessment where they left off.
       if (s && s.big_five && s.mbti && !s.completed && typeof sp.progress === 'string') {
         setAnswers(s.ocean_answers ?? {})
@@ -171,6 +176,19 @@ export default function SelfAssessment() {
       JSON.stringify({ slug, creator_name: session?.creator_name ?? mine?.creator_name ?? '', email: knownEmail ?? mine?.email ?? null })
     )
     navigate((session?.response_count ?? 0) >= REQUIRED_RESPONSES ? `/r/${slug}` : '/')
+  }
+
+  // Send them to their dashboard (the share/status screen), making sure it can render
+  // this session even if they arrived on a device that never created it locally.
+  const goDashboard = async () => {
+    if (!slug) return
+    const session = await getSession(slug)
+    const mine = readMine()
+    localStorage.setItem(
+      MY_KEY,
+      JSON.stringify({ slug, creator_name: session?.creator_name ?? mine?.creator_name ?? '', email: mine?.email ?? null })
+    )
+    navigate('/create')
   }
 
   // ── depth ──
@@ -310,6 +328,27 @@ export default function SelfAssessment() {
       <div className="grid min-h-dvh place-items-center px-5">
         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.1 }} className="text-5xl">
           🐟
+        </motion.div>
+      </div>
+    )
+  }
+
+  if (phase === 'already') {
+    return (
+      <div className="grid min-h-dvh place-items-center px-5">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm text-center">
+          <Card tone="paper" className="p-7">
+            <div className="text-5xl">✅</div>
+            <h1 className="display mt-3 text-4xl">Already done</h1>
+            <p className="mt-2 text-ink-soft">
+              You've already taken your self-read, no need to redo it. Head to your dashboard to share your link and watch the answers roll in.
+            </p>
+            <div className="mt-6">
+              <Button variant="pink" onClick={goDashboard} className="!text-lg">
+                Go to my dashboard →
+              </Button>
+            </div>
+          </Card>
         </motion.div>
       </div>
     )
