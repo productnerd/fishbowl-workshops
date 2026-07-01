@@ -20,6 +20,7 @@ import {
   type VirtueScores,
 } from '@fishbowl/feedback-core'
 import { getSession } from '../lib/data'
+import { questions } from '../data/questions'
 import { getSelfReport, getSynthesis, type SelfData, type SelfSynthesis } from '../lib/self'
 import { useAiInsights } from '../lib/aiInsights'
 import { topPercent } from '../lib/percentile'
@@ -35,6 +36,9 @@ import HatsRadar from '../components/HatsRadar'
 import SelfTeamDumbbell from '../components/SelfTeamDumbbell'
 import BlindSpotQuadrant from '../components/BlindSpotQuadrant'
 import ThroughLine from '../components/ThroughLine'
+import VirtueViceDial from '../components/VirtueViceDial'
+import FourRooms from '../components/FourRooms'
+import LockedDoor from '../components/LockedDoor'
 import CandorPlot from '../components/CandorPlot'
 import RoleFuel from '../components/RoleFuel'
 import StrengthsPodium from '../components/StrengthsPodium'
@@ -45,6 +49,14 @@ import WatchoutsDeck from '../components/WatchoutsDeck'
 import { WEAKNESSES } from '@fishbowl/feedback-core'
 import InfoTip from '../components/InfoTip'
 import Rich from '../components/Rich'
+
+// Map every scenario option to its tendency (deficient / balanced / excessive) so a
+// room's verdict matches the exact behaviour the team picked.
+const OPTION_TENDENCY: Record<string, string> = {}
+for (const q of questions) {
+  const ot = (q as { optionTendencies?: Record<string, string> }).optionTendencies
+  if (ot) Object.assign(OPTION_TENDENCY, ot)
+}
 
 function Screen({ children }: { children: ReactNode }) {
   return <div className="mx-auto grid min-h-dvh max-w-lg place-items-center px-5 text-center">{children}</div>
@@ -681,6 +693,94 @@ export default function Results() {
     })
   }
 
+  // ── Phase C: compound slides — synthetic sections fusing several frameworks into
+  // one picture (bearer-gated; each shows only when its data supports it). ──
+
+  // Strength & shadow: virtues the team pushes toward an extreme, as redline dials.
+  const viceDials = insights.virtues
+    .filter((v) => v.mu > 6 || v.mu < 4)
+    .sort((a, b) => Math.abs(b.mu - 5) - Math.abs(a.mu - 5))
+    .slice(0, 4)
+    .map((v) => ({ def: v.deficientPole, exc: v.excessivePole, score: v.mu }))
+  const hotHat = [...(insights.hats ?? [])].filter((h) => h.n > 0).sort((a, b) => b.mu - a.mu)[0]
+  const hotHatName = hotHat ? HATS.find((h) => h.key === hotHat.key)?.name ?? '' : ''
+  if (hasSelf && viceDials.length > 0 && archetype) {
+    cards.splice(cards.length - 1, 0, {
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">
+            strength &amp; shadow
+            <InfoTip text="Aristotle's golden mean: every virtue becomes a vice at the extreme. These are the virtues the team pushes you past centre, and the archetype shadow + thinking hat driving all of them." />
+          </p>
+          <h2 className="display mb-4 text-3xl">Where your strengths tip over</h2>
+          {cap('vice')}
+          <VirtueViceDial dials={viceDials} engine={{ shadow: archetype.shadow, hat: hotHatName }} />
+        </div>
+      ),
+    })
+  }
+
+  // Behaviour in motion: the 3 scenarios (+ default gear) as four situation rooms.
+  const ROOM_META: Record<string, { label: string; hatLabel: string; hatColor: string }> = {
+    conflict_style: { label: 'In conflict', hatLabel: 'Red', hatColor: '#e0607d' },
+    deadline_style: { label: 'Deadline slips', hatLabel: 'Black', hatColor: '#333333' },
+    feedback_style: { label: 'Getting feedback', hatLabel: 'Red', hatColor: '#e0607d' },
+  }
+  const HAT_COLOR: Record<string, string> = {
+    hat_white: '#e6e0d2', hat_red: '#e0607d', hat_yellow: '#f0c419', hat_black: '#333333', hat_green: '#5aa469', hat_blue: '#1366ac',
+  }
+  const scenarioRooms = (insights.scenarios ?? [])
+    .map((s) => {
+      const meta = ROOM_META[s.dimension]
+      if (!meta) return null
+      const balanced = OPTION_TENDENCY[s.winner] === 'balanced'
+      return { label: meta.label, behavior: s.winner, verdict: (balanced ? 'balanced' : 'off') as 'balanced' | 'off', hatLabel: meta.hatLabel, hatColor: meta.hatColor }
+    })
+    .filter((r): r is { label: string; behavior: string; verdict: 'balanced' | 'off'; hatLabel: string; hatColor: string } => r !== null)
+  if (hasSelf && scenarioRooms.length >= 3) {
+    const fourth = hotHat
+      ? { label: 'Your default gear', behavior: `You lead with the ${hotHatName} hat`, verdict: 'balanced' as const, hatLabel: hotHatName, hatColor: HAT_COLOR[hotHat.key] ?? '#b8ab97' }
+      : null
+    const rooms = fourth ? [...scenarioRooms.slice(0, 3), fourth] : scenarioRooms.slice(0, 4)
+    cards.splice(cards.length - 1, 0, {
+      tone: 'sand',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-blue-deep">
+            behaviour in motion
+            <InfoTip text="You are not one style — you shift by situation. Each room is a scenario your team rated; the border lights amber where your balance breaks." />
+          </p>
+          <h2 className="display mb-4 text-3xl">A day in four rooms</h2>
+          {cap('rooms')}
+          <FourRooms rooms={rooms} />
+        </div>
+      ),
+    })
+  }
+
+  // Why it persists: high confidence + low receptiveness = a blind spot only they can open.
+  const confSelf = selfVirtues?.confidence
+  const recVirtue = insights.virtues.find((v) => v.dimension === 'receptiveness')
+  const recSelf = selfVirtues?.receptiveness
+  const johariBlind = (insights.johari?.counts ?? []).map((c) => c.word).filter((w) => !(selfJohari ?? []).includes(w)).slice(0, 4)
+  if (hasSelf && typeof confSelf === 'number' && recVirtue && typeof recSelf === 'number' && confSelf >= 5.5 && recSelf <= recVirtue.mu) {
+    cards.splice(cards.length - 1, 0, {
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">
+            why it persists
+            <InfoTip text="The trait that would let you see a blind spot (receptiveness) is the one running low, while confidence runs high — so the door only opens from the outside." />
+          </p>
+          <h2 className="display mb-5 text-3xl">The locked door</h2>
+          {cap('lockedDoor')}
+          <LockedDoor confidence={confSelf} receptiveness={{ self: recSelf, team: recVirtue.mu }} blindWords={johariBlind} />
+        </div>
+      ),
+    })
+  }
+
   // The through-line: archetype + two driving signals -> the one core tension, as a
   // compact flow. The spine of the report, right before the deep read.
   if (hasSelf && synthesis?.throughLine) {
@@ -954,7 +1054,7 @@ export default function Results() {
       <div className="flex flex-1 items-center">
         <AnimatePresence mode="wait">
           <motion.div
-            key={cur}
+            key={idx}
             initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -24 }}

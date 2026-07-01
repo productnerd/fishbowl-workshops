@@ -210,7 +210,10 @@ Wrap the few most important phrases per paragraph in **bold** (the claims someon
     "youVsTeam": "ONE sentence naming the single biggest self-vs-team gap and what it means",
     "blindspots": "ONE sentence contrasting their biggest blind spot with their biggest hidden strength",
     "watchouts": "ONE sentence on the main watch-out to keep in the back of their mind",
-    "responsibilities": "ONE sentence on how the team reads their delivery on what they own"
+    "responsibilities": "ONE sentence on how the team reads their delivery on what they own",
+    "vice": "ONE sentence: which strength, pushed too far, becomes the vice the team feels",
+    "rooms": "ONE sentence naming the one situation (conflict / deadline / feedback) where their balance most breaks",
+    "lockedDoor": "ONE sentence on how high confidence + low receptiveness keeps a blind spot shut"
   },
   "throughLine": {
     "from": "their archetype in 1 to 3 words (e.g. The Hero)",
@@ -330,7 +333,7 @@ Return the JSON now.`
 
     // One-line, per-slide takeaways: keep them tidy (no newlines, dashes cleaned).
     const oneLine = (v: any) => stripDashes(String(v ?? '')).replace(/\s+/g, ' ').trim()
-    const CAP_KEYS = ['strengths', 'virtues', 'hats', 'energy', 'youVsTeam', 'blindspots', 'watchouts', 'responsibilities']
+    const CAP_KEYS = ['strengths', 'virtues', 'hats', 'energy', 'youVsTeam', 'blindspots', 'watchouts', 'responsibilities', 'vice', 'rooms', 'lockedDoor']
     const rawCaps = prose.captions && typeof prose.captions === 'object' ? prose.captions : {}
     const captions: Record<string, string> = {}
     for (const k of CAP_KEYS) {

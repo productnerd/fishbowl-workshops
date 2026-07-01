@@ -147,12 +147,25 @@ slide = one visual + one sentence. Deep prose lives only in the opt-in Full Read
 - [ ] Archetype hero — only as a *synthesised* "who you are given everything". Overlaps
       with through-line. → Phase C.
 
-## Phase C — COMPOUND SLIDES (Maria's real ask; AFTER Phase B)
-> "compound slides that creatively combine these into brand-new sections. e.g. the
-> Full Read sections should become brand-new synthetic slides."
-- [ ] Full Read sections → synthetic visual slides (cross-referenced, not 1 activity : 1 slide)
-- [ ] Energy × role/responsibilities cross-ref
-- [ ] Archetype-hero synthesis
+## Phase C — COMPOUND SLIDES (designed via 6-lens panel 2026-07-01)
+8 synthetic slides, 5 acts. 7 data-only, 1 needs-AI.
+ACT · The Gap Opens
+- [ ] The Kindness Trap (data) — Radical Candor 2x2 + Candor virtue + Agreeableness + feedback scenario. Team dot vs self-view dot, dashed arrow = gap.
+- [ ] The Blind-Spot Parallax (data) — vertical spine; self-dot left / team-dot right across Johari+VIA+Nohari+virtue gaps. Lopsided tilt = directional distortion.
+- [ ] The Blind-Spot Constellation (needs-AI) — night sky; blind items as stars clustering into one constellation = shared root of blind spots.
+ACT · Why It Persists
+- [ ] The Locked Door (data) — door + high Confidence dial + rusted Receptiveness dial (jammed lock); keyhole shows Johari-blind words. Only openable from outside.
+ACT · Strength & Shadow
+- [ ] Virtue Into Vice Dial (data) — golden-mean redline gauges; needle in excess redline lights the vice, tied to archetype shadow + hot hat + Nohari word.
+ACT · Behavior In Motion
+- [ ] A Day In Four Rooms (data) — 2x2 floor-plan (meeting/conflict/deadline/feedback); per room dominant hat + care×challenge mini-plot; one dot jumps = the tell.
+- [ ] Heat Of The Moment (data) — pressure×composure curve; team's line bends to snap/cave while self stays flat; Red/Black hats diagnose why.
+ACT · Forward Motion
+- [ ] Where You'd Rather Be (data) — Belbin ternary triangle; team-cast dot vs energy-preferred star; arrow length = role/energy misfit.
+
+## Also queued
+- [ ] Resync Landing preview to new visuals (radar/podium/role+fuel/todo) — currently drifted.
+- [ ] Appreciation cloud — build after Maria approves the mockup look.
 
 ## Impl notes
 - topStrengths: fishbowl-ai-insights `goodness.slice(0,3)` → bump to 5.
