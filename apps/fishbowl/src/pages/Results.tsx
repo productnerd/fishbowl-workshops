@@ -168,10 +168,12 @@ export default function Results() {
     return (
       <Screen>
         <Card tone="paper" className="w-full p-9">
-          <div className="text-6xl">✍️</div>
+          <motion.div animate={{ scale: [1, 1.12, 1] }} transition={{ repeat: Infinity, duration: 1.4, ease: 'easeInOut' }} className="text-6xl">
+            ✍️
+          </motion.div>
           <h1 className="display mt-4 text-4xl">Writing your report…</h1>
           <p className="mt-3 text-lg text-ink-soft">
-            It's generated the moment the {REQUIRED_RESPONSES}th answer lands. Refresh in a minute and it'll be here.
+            We're generating a fresh read right now. This takes up to a minute, and it'll appear here on its own, no need to refresh.
           </p>
         </Card>
       </Screen>

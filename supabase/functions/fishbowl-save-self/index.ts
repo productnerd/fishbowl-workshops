@@ -75,6 +75,11 @@ Deno.serve(async (req) => {
       .from('fishbowl_sessions')
       .update({ responsibilities, ...(completed ? { self_completed_at: now } : {}) })
       .eq('id', session.id)
+
+    // A finished self-read forces the WHOLE report to regenerate from scratch: drop the
+    // cached team insights too (not just the self-dependent synthesis/self-insight),
+    // so the report never serves a stale read after the self-assessment.
+    if (completed) await sb.from('fishbowl_ai_insights').delete().eq('session_id', session.id)
     return ok({ ok: true })
   } catch (_e) {
     return ok({ error: 'internal' }, 500)
