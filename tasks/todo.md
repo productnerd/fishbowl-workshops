@@ -119,3 +119,41 @@ Decision: **self-data is bearer-gated** (never slug-readable). Email delivery wa
 ## Verify + review
 - [ ] Build green; self-flow works via dev claim-url; gating renders; deploy
 - [ ] Adversarial review of token/bearer/RLS + anonymity invariant
+
+---
+
+# Report → visual slides (2026-07-01)
+
+Principle: **visuals carry the insight, the AI writes captions.** One insight = one
+slide = one visual + one sentence. Deep prose lives only in the opt-in Full Read.
+
+## Phase A — done
+- [x] Hats slide → radar (team vs you)
+- [x] Text "you vs them" → dumbbell + blind-spot quadrant
+- [x] Skip-to-full-read button; Full Read expanded to ~3pp
+- [x] Caption system: 8 per-slide AI captions + through-line slide
+
+## Phase B — this batch (Maria's decisions)
+- [ ] Role + fuel slide — top Belbin role + top SDT needs (pure data)
+- [ ] Strengths podium — rank strengths, show TOP 5 (needs topStrengths 3→5)
+- [ ] Action plan → 3 to start + 3 to stop (was 2+2), as to-do cards
+- [x] Through-line slide — done in Phase A
+- [ ] Appreciation cloud — show Maria a MOCKUP first, then build
+- Leave as-is: weaknesses/watch-outs. Do NOT build watch-out dials.
+
+## Held (not simple 1:1 maps → compound)
+- [ ] Energy map — useless as-is (mirrors her own answers). Rework to CROSS-REFERENCE
+      energy vs role/responsibilities (drain risk, alignment). → Phase C.
+- [ ] Archetype hero — only as a *synthesised* "who you are given everything". Overlaps
+      with through-line. → Phase C.
+
+## Phase C — COMPOUND SLIDES (Maria's real ask; AFTER Phase B)
+> "compound slides that creatively combine these into brand-new sections. e.g. the
+> Full Read sections should become brand-new synthetic slides."
+- [ ] Full Read sections → synthetic visual slides (cross-referenced, not 1 activity : 1 slide)
+- [ ] Energy × role/responsibilities cross-ref
+- [ ] Archetype-hero synthesis
+
+## Impl notes
+- topStrengths: fishbowl-ai-insights `goodness.slice(0,3)` → bump to 5.
+- actionPlan stopNow/startNow: `toTwo(...)` → 3 items. One edit, one deploy, one regen.

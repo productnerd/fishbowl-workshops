@@ -36,8 +36,9 @@ import SelfTeamDumbbell from '../components/SelfTeamDumbbell'
 import BlindSpotQuadrant from '../components/BlindSpotQuadrant'
 import ThroughLine from '../components/ThroughLine'
 import CandorPlot from '../components/CandorPlot'
-import SdtProfile from '../components/SdtProfile'
-import BelbinReport from '../components/BelbinReport'
+import RoleFuel from '../components/RoleFuel'
+import StrengthsPodium from '../components/StrengthsPodium'
+import TodoList from '../components/TodoList'
 import ViaDeck from '../components/ViaDeck'
 import JohariWindow from '../components/JohariWindow'
 import WatchoutsDeck from '../components/WatchoutsDeck'
@@ -228,18 +229,9 @@ export default function Results() {
       tone: 'paper',
       node: (
         <div>
-          <p className="kicker mb-2 text-pink-deep">where you shine</p>
+          <p className="kicker mb-2 text-pink-deep">where you shine · your top 5</p>
           {cap('strengths')}
-          <div className="flex flex-col gap-4">
-            {insights.topStrengths.map((s) => (
-              <div key={s.dimension} className="rounded-2xl border-[2.5px] border-ink bg-sand p-4 shadow-chunky-sm">
-                <p className="serif text-xl font-semibold">{s.label}</p>
-                <p className="mt-1 leading-relaxed text-ink-soft">
-                  <Rich text={s.blurb} />
-                </p>
-              </div>
-            ))}
-          </div>
+          <StrengthsPodium strengths={insights.topStrengths} />
         </div>
       ),
     },
@@ -532,39 +524,35 @@ export default function Results() {
     })
   }
 
-  if (insights.sdt?.some((s) => s.n > 0)) {
-    const team = insights.sdt.map((s) => ({ key: s.key, label: SDT_NEEDS.find((x) => x.key === s.key)?.label ?? s.key, meanPoints: s.meanPoints, n: s.n }))
+  // Role + fuel: one combined slide — the Belbin role the team most casts you in, and
+  // the top SDT needs you leave others feeling. (Replaces the two separate slides.)
+  const topRole = (insights.belbin ?? [])
+    .filter((b) => b.n > 0)
+    .sort((a, b) => b.teamShare - a.teamShare)
+    .map((b) => {
+      const r = BELBIN_ROLES.find((x) => x.key === b.key)
+      return { name: r?.name ?? b.key, short: r?.short ?? '', cluster: r?.cluster ?? 'Thinking' }
+    })[0] ?? null
+  const topFuels = (insights.sdt ?? [])
+    .filter((s) => s.n > 0)
+    .sort((a, b) => b.meanPoints - a.meanPoints)
+    .slice(0, 2)
+    .map((s) => {
+      const need = SDT_NEEDS.find((x) => x.key === s.key)
+      return { label: need?.label ?? s.key, feelStem: need?.feelStem ?? '' }
+    })
+  if (topRole || topFuels.length) {
     fwCards.push({
       tone: 'sand',
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">
-            what you fuel
-            <InfoTip text="Self-Determination Theory (Deci & Ryan): the needs people feel met — autonomy, competence, relatedness, plus purpose, safety and vitality. The lens flips: what do you leave in your colleagues' tanks?" />
+            role + fuel
+            <InfoTip text="Belbin's team roles (how you contribute) meet Self-Determination Theory (the needs — autonomy, competence, relatedness, purpose, safety, vitality — you leave others feeling)." />
           </p>
-          <h2 className="display mb-5 text-3xl">What you fuel in others</h2>
-          <SdtProfile team={team} />
-        </div>
-      ),
-    })
-  }
-
-  const selfBelbin = hasSelf ? ((sp.belbin as Record<string, number>) ?? null) : null
-  if (insights.belbin?.some((b) => b.n > 0) || (selfBelbin && Object.keys(selfBelbin).length > 0)) {
-    const team = (insights.belbin ?? []).map((b) => {
-      const r = BELBIN_ROLES.find((x) => x.key === b.key)
-      return { key: b.key, name: r?.name ?? b.key, cluster: r?.cluster ?? 'Thinking', teamShare: b.teamShare, n: b.n }
-    })
-    fwCards.push({
-      tone: 'paper',
-      node: (
-        <div>
-          <p className="kicker mb-1 text-pink-deep">
-            team role
-            <InfoTip text="Belbin's nine team roles — the distinct ways people contribute, grouped Thinking / Action / People. A lens for team composition, not a clinical test." />
-          </p>
-          <h2 className="display mb-5 text-3xl">The roles you play</h2>
-          <BelbinReport team={team} self={selfBelbin} />
+          <h2 className="display mb-4 text-3xl">Your role, and what you fuel</h2>
+          {cap('roleFuel')}
+          <RoleFuel role={topRole} fuels={topFuels} />
         </div>
       ),
     })
@@ -801,13 +789,12 @@ export default function Results() {
       node: (
         <div>
           <p className="kicker mb-1 text-ink/70">your move</p>
-          <h2 className="display mb-4 text-3xl text-ink">Start here</h2>
-          <div className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-4 shadow-chunky-sm">
-            <p className="kicker text-pink-deep">stop doing now</p>
-            {bullets(ap.stopNow)}
-            <p className="kicker mt-4 text-blue-deep">start doing now</p>
-            {bullets(ap.startNow)}
-          </div>
+          <h2 className="display mb-1 text-3xl text-ink">Start here</h2>
+          <p className="mb-5 text-sm text-ink-soft">Tick them off as you go.</p>
+          <p className="kicker mb-2 text-pink-deep">3 to stop this week</p>
+          <TodoList items={ap.stopNow} tone="stop" />
+          <p className="kicker mb-2 mt-5 text-blue-deep">3 to start this week</p>
+          <TodoList items={ap.startNow} tone="start" />
           {hasNext && (
             <div className="mt-3 rounded-2xl border-2 border-ink/40 bg-paper-hi/60 p-4">
               <p className="kicker text-ink-soft">then, once those stick</p>
@@ -926,6 +913,9 @@ export default function Results() {
   }
 
   const total = cards.length
+  // Clamp for the card we actually render: idx can briefly sit out of range while the
+  // deck is still assembling (self/synthesis load in), which would otherwise crash.
+  const cur = Math.min(Math.max(idx, 0), total - 1)
   const go = (d: number) => setIdx((i) => Math.min(Math.max(i + d, 0), total - 1))
 
   return (
@@ -964,15 +954,15 @@ export default function Results() {
       <div className="flex flex-1 items-center">
         <AnimatePresence mode="wait">
           <motion.div
-            key={idx}
+            key={cur}
             initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -24 }}
             transition={{ duration: 0.32, ease: [0.2, 0.8, 0.2, 1] as const }}
             className="w-full"
           >
-            <Card tone={cards[idx].tone} className="max-h-[88vh] overflow-y-auto p-7 sm:p-9">
-              {cards[idx].node}
+            <Card tone={cards[cur].tone} className="max-h-[88vh] overflow-y-auto p-7 sm:p-9">
+              {cards[cur].node}
             </Card>
           </motion.div>
         </AnimatePresence>
@@ -980,8 +970,8 @@ export default function Results() {
 
       {/* Disney character standing on the bottom-right of the screen (wide screens only).
           Rendered here, outside the animating card wrapper, so `position: fixed` holds. */}
-      {cards[idx].character && (
-        <SideCharacter type={cards[idx].character.type} name={cards[idx].character.name} />
+      {cards[cur].character && (
+        <SideCharacter type={cards[cur].character.type} name={cards[cur].character.name} />
       )}
 
       {/* edge nav — arrows on the screen edges, vertically centered (dots show progress) */}
