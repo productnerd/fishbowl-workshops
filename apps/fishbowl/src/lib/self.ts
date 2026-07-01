@@ -55,6 +55,8 @@ export interface SelfSynthesis {
   portrait: string
   sections: { heading: string; body: string }[]
   practice: string[]
+  captions?: Record<string, string>
+  throughLine?: { from: string; via: string[]; to: string }
   n: number
 }
 

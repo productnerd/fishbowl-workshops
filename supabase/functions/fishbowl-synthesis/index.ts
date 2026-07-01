@@ -201,8 +201,25 @@ Wrap the few most important phrases per paragraph in **bold** (the claims someon
     { "heading": "Tendencies and biases to keep in mind", "body": "what the profile predicts: the archetype's shadow, traits taken too far, the decision and social biases your exact mix tends toward. 3 to 4 SHORT paragraphs, ~200 to 280 words." },
     { "heading": "How you show up day to day", "body": "the concrete situational read: how you land in meetings, conflict, slipping deadlines and receiving feedback, drawing on scenarios, hats and candor. 3 to 4 SHORT paragraphs, ~200 to 280 words." }
   ],
-  "practice": ["6 to 8 concrete, specific practices. Each 1 to 2 sentences, **bold** the action verb or move."]
+  "practice": ["6 to 8 concrete, specific practices. Each 1 to 2 sentences, **bold** the action verb or move."],
+  "captions": {
+    "strengths": "ONE punchy sentence (<= 18 words) on the through-line of their strengths",
+    "virtues": "ONE sentence on their overall virtue balance (where they land vs the golden mean of 5)",
+    "hats": "ONE sentence on the SHAPE of how they think (which modes run hot, which run cold)",
+    "energy": "ONE sentence on what energises vs drains them",
+    "youVsTeam": "ONE sentence naming the single biggest self-vs-team gap and what it means",
+    "blindspots": "ONE sentence contrasting their biggest blind spot with their biggest hidden strength",
+    "watchouts": "ONE sentence on the main watch-out to keep in the back of their mind",
+    "responsibilities": "ONE sentence on how the team reads their delivery on what they own"
+  },
+  "throughLine": {
+    "from": "their archetype in 1 to 3 words (e.g. The Hero)",
+    "via": ["one driving trait or signal, <= 4 words", "a second driving trait or signal, <= 4 words"],
+    "to": "the ONE core tension this combination creates, second person, <= 14 words"
+  }
 }
+=== CAPTIONS + THROUGH-LINE (as important as the prose) ===
+Each caption is the single one-line takeaway shown on that visual slide, so it must be SHARP and SPECIFIC to this person, never generic, never just restate the slide's title. Second person, one sentence, <= 18 words, **bold** the key phrase, no dashes. The through-line is the spine of the whole report: archetype -> two driving signals -> the one tension they create; make "to" sting a little and ring true.
 This is a LONG read: aim for roughly 1800 to 2600 words total across portrait + sections + practice (2 to 4 full A4 pages). Rich and specific, cross-referenced, never padded, and never repeat a point already made in another section. Do not stop short.`
 
     const userPrompt = `SUBJECT: ${name}. Speak TO them in second person; never use their name.
@@ -311,6 +328,24 @@ Return the JSON now.`
       }
     }
 
+    // One-line, per-slide takeaways: keep them tidy (no newlines, dashes cleaned).
+    const oneLine = (v: any) => stripDashes(String(v ?? '')).replace(/\s+/g, ' ').trim()
+    const CAP_KEYS = ['strengths', 'virtues', 'hats', 'energy', 'youVsTeam', 'blindspots', 'watchouts', 'responsibilities']
+    const rawCaps = prose.captions && typeof prose.captions === 'object' ? prose.captions : {}
+    const captions: Record<string, string> = {}
+    for (const k of CAP_KEYS) {
+      const c = oneLine(rawCaps[k])
+      if (c) captions[k] = c
+    }
+    const tl = prose.throughLine && typeof prose.throughLine === 'object' ? prose.throughLine : null
+    const throughLine = tl
+      ? {
+          from: oneLine(tl.from).slice(0, 40),
+          via: (Array.isArray(tl.via) ? tl.via : []).map((s: any) => oneLine(s).slice(0, 44)).filter(Boolean).slice(0, 2),
+          to: oneLine(tl.to),
+        }
+      : null
+
     const synthesis = {
       title: stripDashes(String(prose.title || 'Your full read')),
       portrait: stripDashes(String(prose.portrait || '')),
@@ -319,6 +354,8 @@ Return the JSON now.`
         .map((s: any) => ({ heading: stripDashes(String(s.heading)), body: stripDashes(String(s.body)) }))
         .slice(0, 6),
       practice: (Array.isArray(prose.practice) ? prose.practice : []).map((s: any) => stripDashes(String(s))).slice(0, 8),
+      captions,
+      ...(throughLine && throughLine.to && throughLine.via.length ? { throughLine } : {}),
       n,
     }
 

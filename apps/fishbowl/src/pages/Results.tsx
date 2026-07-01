@@ -34,6 +34,7 @@ import ResponsibilitiesLadder from '../components/ResponsibilitiesLadder'
 import HatsRadar from '../components/HatsRadar'
 import SelfTeamDumbbell from '../components/SelfTeamDumbbell'
 import BlindSpotQuadrant from '../components/BlindSpotQuadrant'
+import ThroughLine from '../components/ThroughLine'
 import CandorPlot from '../components/CandorPlot'
 import SdtProfile from '../components/SdtProfile'
 import BelbinReport from '../components/BelbinReport'
@@ -190,6 +191,18 @@ export default function Results() {
     ? ((self?.self_payload as Record<string, unknown> | undefined)?.virtues as VirtueScores | undefined)
     : undefined
 
+  // The AI's one-line takeaway for a given slide (from the synthesis). Rendered under
+  // the slide title so each visual carries a single sharp sentence, not a paragraph.
+  const cap = (key: string) => {
+    const t = synthesis?.captions?.[key]
+    if (!t) return null
+    return (
+      <p className="serif mb-5 -mt-1 text-lg italic leading-snug text-pink-deep">
+        <Rich text={t} />
+      </p>
+    )
+  }
+
   const cards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode; character?: { type: string; name: string } }[] = [
     {
       tone: 'pink',
@@ -215,7 +228,8 @@ export default function Results() {
       tone: 'paper',
       node: (
         <div>
-          <p className="kicker mb-5 text-pink-deep">where you shine</p>
+          <p className="kicker mb-2 text-pink-deep">where you shine</p>
+          {cap('strengths')}
           <div className="flex flex-col gap-4">
             {insights.topStrengths.map((s) => (
               <div key={s.dimension} className="rounded-2xl border-[2.5px] border-ink bg-sand p-4 shadow-chunky-sm">
@@ -237,7 +251,8 @@ export default function Results() {
             your balance
             <InfoTip text="Aristotle's golden mean: every strength is the midpoint between two vices. The middle — not the extreme — is the virtue." />
           </p>
-          <h2 className="display mb-5 text-3xl">The ten virtues</h2>
+          <h2 className="display mb-4 text-3xl">The ten virtues</h2>
+          {cap('virtues')}
           <div className="flex flex-col gap-4">
             {insights.virtues.map((v) => (
               <VirtueGauge
@@ -422,7 +437,8 @@ export default function Results() {
             <InfoTip text="Marcus Buckingham's strengths idea: a strength is an activity that energizes you, not merely one you're good at. This one's yours alone — only you can know what lifts or drains you." />
           </p>
           <h2 className="display mb-1 text-3xl">What lifts you, what drains you</h2>
-          <p className="mb-5 text-sm text-ink-soft">Your own read — only you can call this one.</p>
+          <p className="mb-3 text-sm text-ink-soft">Your own read — only you can call this one.</p>
+          {cap('energy')}
           <EnergyOverlay team={energyRows} self={selfEnergizers} />
         </div>
       ),
@@ -452,6 +468,7 @@ export default function Results() {
               ? `Where your team puts you on what you own${hasSelf ? ', next to your own read' : ''}.`
               : 'Your own read on what you own.'}
           </p>
+          {cap('responsibilities')}
           <ResponsibilitiesLadder team={respRows} self={selfTiers} />
           {!hasSelf && (
             <button
@@ -482,7 +499,8 @@ export default function Results() {
             thinking style
             <InfoTip text="Edward de Bono's Six Thinking Hats — six modes of thought (facts, feelings, optimism, caution, creativity, process). The radar shows the shape of how you think: how strongly each mode shows up." />
           </p>
-          <h2 className="display mb-5 text-3xl">Six thinking hats</h2>
+          <h2 className="display mb-4 text-3xl">Six thinking hats</h2>
+          {cap('hats')}
           <HatsRadar team={team} self={selfHats} />
         </div>
       ),
@@ -609,7 +627,8 @@ export default function Results() {
             watch-outs
             <InfoTip text="The flip side of your strengths — the behaviours colleagues flagged as things to watch. A word only shows here when at least two people named it, so a single off-day or one harsh read doesn't define you. Meant kindly: these are edges to soften, not verdicts." />
           </p>
-          <h2 className="display mb-5 text-3xl">Your top watch-outs</h2>
+          <h2 className="display mb-4 text-3xl">Your top watch-outs</h2>
+          {cap('watchouts')}
           <WatchoutsDeck team={teamNohari} self={selfNohari} total={insights.nohari?.n ?? 0} />
         </div>
       ),
@@ -652,7 +671,8 @@ export default function Results() {
             you vs them
             <InfoTip text="Your self-assessment next to how your team reads you, trait by trait. The wider the bar, the bigger the disagreement. Only you can see this." />
           </p>
-          <h2 className="display mb-5 text-3xl">You vs. the team</h2>
+          <h2 className="display mb-4 text-3xl">You vs. the team</h2>
+          {cap('youVsTeam')}
           <SelfTeamDumbbell rows={gapRows} />
         </div>
       ),
@@ -665,8 +685,25 @@ export default function Results() {
             the map
             <InfoTip text="Every trait plotted: across = how the team rates you, up = how you rate yourself. Off the diagonal is where you and the team disagree — blind spots above it, hidden strengths below." />
           </p>
-          <h2 className="display mb-5 text-3xl">Blind spots &amp; hidden strengths</h2>
+          <h2 className="display mb-4 text-3xl">Blind spots &amp; hidden strengths</h2>
+          {cap('blindspots')}
           <BlindSpotQuadrant points={gapRows} />
+        </div>
+      ),
+    })
+  }
+
+  // The through-line: archetype + two driving signals -> the one core tension, as a
+  // compact flow. The spine of the report, right before the deep read.
+  if (hasSelf && synthesis?.throughLine) {
+    const tl = synthesis.throughLine
+    cards.push({
+      tone: 'sand',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">the through-line</p>
+          <h2 className="display mb-6 text-3xl">The one pattern underneath</h2>
+          <ThroughLine from={tl.from} via={tl.via} to={tl.to} />
         </div>
       ),
     })
