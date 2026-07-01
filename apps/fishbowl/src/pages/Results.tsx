@@ -39,6 +39,10 @@ import ThroughLine from '../components/ThroughLine'
 import VirtueViceDial from '../components/VirtueViceDial'
 import FourRooms from '../components/FourRooms'
 import LockedDoor from '../components/LockedDoor'
+import SpineParallax from '../components/SpineParallax'
+import HeatCurve from '../components/HeatCurve'
+import RoleTriangle from '../components/RoleTriangle'
+import Constellation from '../components/Constellation'
 import CandorPlot from '../components/CandorPlot'
 import SdtProfile from '../components/SdtProfile'
 import BelbinReport from '../components/BelbinReport'
@@ -58,6 +62,14 @@ const OPTION_TENDENCY: Record<string, string> = {}
 for (const q of questions) {
   const ot = (q as { optionTendencies?: Record<string, string> }).optionTendencies
   if (ot) Object.assign(OPTION_TENDENCY, ot)
+}
+
+// Which Belbin cluster each energizer activity pulls toward — for the "where you'd
+// rather be" role triangle.
+const ENERGIZER_CLUSTER: Record<string, 'thinking' | 'action' | 'people'> = {
+  connect: 'people', present: 'people', deepwork: 'thinking', plan: 'action', firefight: 'action',
+  mentor: 'people', analyze: 'thinking', negotiate: 'people', ideate: 'thinking', execute: 'action',
+  lead: 'action', reflect: 'people',
 }
 
 function Screen({ children }: { children: ReactNode }) {
@@ -868,6 +880,121 @@ export default function Results() {
           <h2 className="display mb-5 text-3xl">The locked door</h2>
           {cap('lockedDoor')}
           <LockedDoor confidence={confSelf} receptiveness={{ self: recSelf, team: recVirtue.mu }} blindWords={johariBlind} />
+        </div>
+      ),
+    })
+  }
+
+  // Phase C wave 2 — five more compound slides.
+
+  // The kindness trap: team care/challenge vs a self-view from Agreeableness + Candor virtue.
+  const kAgree = self?.big_five?.agreeableness
+  const kCandor = selfVirtues?.candor
+  if (hasSelf && insights.radicalCandor && insights.radicalCandor.n > 0 && typeof kAgree === 'number' && typeof kCandor === 'number') {
+    const rc = insights.radicalCandor
+    cards.splice(cards.length - 1, 0, {
+      tone: 'sand',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">
+            the gap · candor
+            <InfoTip text="Radical Candor (care × challenge). The hollow point is where your warmth (Agreeableness) and self-rated Candor would put you; the solid point is where the team actually lands. The distance is the trap." />
+          </p>
+          <h2 className="display mb-4 text-3xl">The kindness trap</h2>
+          <CandorPlot teamCare={rc.teamCare} teamChallenge={rc.teamChallenge} selfCare={(kAgree / 100) * 8 + 1} selfChallenge={kCandor} />
+        </div>
+      ),
+    })
+  }
+
+  // The blind-spot parallax: pool every self-vs-team item onto one spine to show the tilt.
+  const parItems: { label: string; self: number; team: number; kind: 'blind' | 'hidden' }[] = []
+  insights.virtues.forEach((v) => {
+    const s = selfVirtues?.[v.dimension]
+    if (typeof s === 'number' && Math.abs(s - v.mu) >= 1.3) parItems.push({ label: v.name, self: (s - 1) / 8, team: (v.mu - 1) / 8, kind: v.mu > s ? 'blind' : 'hidden' })
+  })
+  johariBlind.slice(0, 2).forEach((w) => parItems.push({ label: w, self: 0.12, team: 0.86, kind: 'blind' }))
+  const johariHiddenWords = (selfJohari ?? []).filter((w) => !(insights.johari?.counts ?? []).some((c) => c.word === w)).slice(0, 2)
+  johariHiddenWords.forEach((w) => parItems.push({ label: w, self: 0.86, team: 0.12, kind: 'hidden' }))
+  const parSorted = [...parItems].sort((a, b) => Math.abs(b.team - b.self) - Math.abs(a.team - a.self)).slice(0, 8)
+  if (hasSelf && parSorted.length >= 3) {
+    cards.splice(cards.length - 1, 0, {
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">
+            the whole-self mirror
+            <InfoTip text="Every self-vs-team gap on one spine (virtues, Johari, watch-outs). When most gaps lean the same way, your self-image is skewed one consistent direction." />
+          </p>
+          <h2 className="display mb-4 text-3xl">Which way you tilt</h2>
+          <SpineParallax items={parSorted} />
+        </div>
+      ),
+    })
+  }
+
+  // The blind-spot constellation: the team's blind flags, clustered by the AI into a root theme.
+  const nohariBlindWords = (insights.nohari?.counts ?? []).filter((c) => c.count >= 2).map((c) => c.word).filter((w) => !((sp.nohari as string[] | undefined) ?? []).includes(w))
+  const blindStars = Array.from(new Set([...johariBlind, ...nohariBlindWords])).slice(0, 8)
+  if (hasSelf && blindStars.length >= 3) {
+    cards.splice(cards.length - 1, 0, {
+      tone: 'ink',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-blue">
+            the blind side
+            <InfoTip text="Only the words the team flagged that you didn't own. When several trace to one root, they join into a named constellation — separate blind spots with a single hidden theme." />
+          </p>
+          <h2 className="display mb-4 text-3xl text-paper-hi">The blind-spot constellation</h2>
+          <Constellation words={blindStars} clusters={synthesis?.constellation} />
+        </div>
+      ),
+    })
+  }
+
+  // Heat of the moment: composure against rising pressure.
+  const compVirtue = insights.virtues.find((v) => v.dimension === 'composure')
+  const compSelf = selfVirtues?.composure
+  const conflictScen = (insights.scenarios ?? []).find((s) => s.dimension === 'conflict_style')
+  const conflictTend = conflictScen ? OPTION_TENDENCY[conflictScen.winner] : undefined
+  const heatDir: 'snap' | 'cave' | 'steady' =
+    conflictTend === 'excessive' ? 'snap' : conflictTend === 'deficient' ? 'cave' : compVirtue && compVirtue.mu > 5.5 ? 'snap' : compVirtue && compVirtue.mu < 4.5 ? 'cave' : 'steady'
+  if (hasSelf && compVirtue && typeof compSelf === 'number' && heatDir !== 'steady') {
+    cards.splice(cards.length - 1, 0, {
+      tone: 'sand',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-blue-deep">
+            behaviour in motion
+            <InfoTip text="Composure drawn against rising pressure: the team's line bends toward snapping or caving while your own read stays flat. The two hat chips (Red, Black) name why." />
+          </p>
+          <h2 className="display mb-4 text-3xl">Heat of the moment</h2>
+          <HeatCurve teamComposure={compVirtue.mu} selfComposure={compSelf} direction={heatDir} />
+        </div>
+      ),
+    })
+  }
+
+  // Where you'd rather be: team-cast role vs where your energy points.
+  const teamW = { thinking: 0, action: 0, people: 0 }
+  ;(insights.belbin ?? []).forEach((b) => {
+    const cl = BELBIN_ROLES.find((r) => r.key === b.key)?.cluster?.toLowerCase()
+    if (cl === 'thinking' || cl === 'action' || cl === 'people') teamW[cl] += b.teamShare
+  })
+  const energyW = { thinking: 0, action: 0, people: 0 }
+  const enTags = sp.energizers as Record<string, number> | undefined
+  if (enTags) for (const [id, v] of Object.entries(enTags)) { const cl = ENERGIZER_CLUSTER[id]; if (cl && v > 0) energyW[cl] += v }
+  if (hasSelf && teamW.thinking + teamW.action + teamW.people > 0 && energyW.thinking + energyW.action + energyW.people > 0) {
+    cards.splice(cards.length - 1, 0, {
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">
+            forward motion
+            <InfoTip text="The team casts you into a Belbin cluster; your top energizers point at another. The arrow is the drift between where they keep you and where your energy wants to be." />
+          </p>
+          <h2 className="display mb-4 text-3xl">Where you'd rather be</h2>
+          <RoleTriangle teamW={teamW} energyW={energyW} />
         </div>
       ),
     })

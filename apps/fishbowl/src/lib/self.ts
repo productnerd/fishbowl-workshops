@@ -57,6 +57,7 @@ export interface SelfSynthesis {
   practice: string[]
   captions?: Record<string, string>
   throughLine?: { from: string; via: string[]; to: string }
+  constellation?: { label: string; words: string[] }[]
   n: number
 }
 

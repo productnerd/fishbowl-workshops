@@ -219,8 +219,10 @@ Wrap the few most important phrases per paragraph in **bold** (the claims someon
     "from": "their archetype in 1 to 3 words (e.g. The Hero)",
     "via": ["one driving trait or signal, <= 4 words", "a second driving trait or signal, <= 4 words"],
     "to": "the ONE core tension this combination creates, second person, <= 14 words"
-  }
+  },
+  "constellation": [ { "label": "a 1 to 3 word name for the shared root theme", "words": ["EXACT blind-spot words from the Johari BLIND / Nohari BLIND / watch-out lists above that share this root", "another"] } ]
 }
+For "constellation": look ONLY at the words the team flagged that the person did NOT own (Johari blind spot, Nohari blind spot, watch-outs). If two or more of them trace to ONE underlying theme, group them into a named constellation (1, at most 2 groups). Use the words VERBATIM as given. If nothing coheres, return an empty array.
 === CAPTIONS + THROUGH-LINE (as important as the prose) ===
 Each caption is the single one-line takeaway shown on that visual slide, so it must be SHARP and SPECIFIC to this person, never generic, never just restate the slide's title. Second person, one sentence, <= 18 words, **bold** the key phrase, no dashes. The through-line is the spine of the whole report: archetype -> two driving signals -> the one tension they create; make "to" sting a little and ring true.
 This is a LONG read: aim for roughly 1800 to 2600 words total across portrait + sections + practice (2 to 4 full A4 pages). Rich and specific, cross-referenced, never padded, and never repeat a point already made in another section. Do not stop short.`
@@ -348,6 +350,11 @@ Return the JSON now.`
           to: oneLine(tl.to),
         }
       : null
+    const constellation = (Array.isArray(prose.constellation) ? prose.constellation : [])
+      .filter((c: any) => c && c.label && Array.isArray(c.words))
+      .map((c: any) => ({ label: oneLine(c.label).slice(0, 30), words: c.words.map((w: any) => oneLine(w)).filter(Boolean).slice(0, 5) }))
+      .filter((c: any) => c.words.length >= 2)
+      .slice(0, 2)
 
     const synthesis = {
       title: stripDashes(String(prose.title || 'Your full read')),
@@ -359,6 +366,7 @@ Return the JSON now.`
       practice: (Array.isArray(prose.practice) ? prose.practice : []).map((s: any) => stripDashes(String(s))).slice(0, 8),
       captions,
       ...(throughLine && throughLine.to && throughLine.via.length ? { throughLine } : {}),
+      ...(constellation.length ? { constellation } : {}),
       n,
     }
 

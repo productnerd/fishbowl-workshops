@@ -150,18 +150,20 @@ slide = one visual + one sentence. Deep prose lives only in the opt-in Full Read
 ## Phase C — COMPOUND SLIDES (designed via 6-lens panel 2026-07-01)
 8 synthetic slides, 5 acts. 7 data-only, 1 needs-AI.
 ACT · The Gap Opens
-- [ ] The Kindness Trap (data) — Radical Candor 2x2 + Candor virtue + Agreeableness + feedback scenario. Team dot vs self-view dot, dashed arrow = gap.
-- [ ] The Blind-Spot Parallax (data) — vertical spine; self-dot left / team-dot right across Johari+VIA+Nohari+virtue gaps. Lopsided tilt = directional distortion.
-- [ ] The Blind-Spot Constellation (needs-AI) — night sky; blind items as stars clustering into one constellation = shared root of blind spots.
+- [x] The Kindness Trap (data) — WAVE 2. Radical Candor 2x2; self-view (Agreeableness+Candor) vs team dot, arrow = gap.
+- [x] The Blind-Spot Parallax "Which way you tilt" (data) — WAVE 2. spine of every self-vs-team gap; blue=blind, pink=hidden.
+- [x] The Blind-Spot Constellation (needs-AI) — WAVE 2. blind words as stars; AI clusters them into named constellations.
 ACT · Why It Persists
-- [ ] The Locked Door (data) — door + high Confidence dial + rusted Receptiveness dial (jammed lock); keyhole shows Johari-blind words. Only openable from outside.
+- [x] The Locked Door (data) — WAVE 1. door + Confidence dial + low Receptiveness (lock); Johari-blind words behind the door.
 ACT · Strength & Shadow
-- [ ] Virtue Into Vice Dial (data) — golden-mean redline gauges; needle in excess redline lights the vice, tied to archetype shadow + hot hat + Nohari word.
+- [x] Virtue Into Vice Dial (data) — WAVE 1. redline gauges + engine chip (archetype shadow + hot hat).
 ACT · Behavior In Motion
-- [ ] A Day In Four Rooms (data) — 2x2 floor-plan (meeting/conflict/deadline/feedback); per room dominant hat + care×challenge mini-plot; one dot jumps = the tell.
-- [ ] Heat Of The Moment (data) — pressure×composure curve; team's line bends to snap/cave while self stays flat; Red/Black hats diagnose why.
+- [x] A Day In Four Rooms (data) — WAVE 1. 2x2 situation cards; verdict = winner's real tendency; amber = balance breaks.
+- [x] Heat Of The Moment (data) — WAVE 2. pressure×composure curve; ONLY shows when there's a real break (gated out for balanced composure).
 ACT · Forward Motion
-- [ ] Where You'd Rather Be (data) — Belbin ternary triangle; team-cast dot vs energy-preferred star; arrow length = role/energy misfit.
+- [x] Where You'd Rather Be (data) — WAVE 2. Belbin triangle; team-cast dot vs energy-preferred star; arrow = drift. (This also covers the held energy×role cross-ref.)
+
+## Phase C — DONE (all 8 built, additive). Remaining: archetype-hero synthesis (optional), then cleanup pass.
 
 ## Also queued
 - [ ] Resync Landing preview to new visuals (radar/podium/role+fuel/todo) — currently drifted.
