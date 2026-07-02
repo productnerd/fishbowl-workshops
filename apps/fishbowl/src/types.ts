@@ -20,6 +20,8 @@ export interface FishbowlReport {
   growthEdges: { dimension: string; title: string; actions: string[] }[]
   appreciations: string[]
   closing: string
+  // A warm, purely-positive team love-note (the "good vibes" slide). Team-only.
+  goodVibes?: string
   // A practical action plan: 2 each to stop/start now, then 2 each to add later.
   actionPlan?: {
     stopNow: string[]

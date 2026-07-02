@@ -336,6 +336,9 @@ The growthEdges are ${name}'s BIGGEST VICES: the virtues furthest from the balan
 === ACTION PLAN (actionPlan) ===
 The most practical part of the whole report and the single most useful screen, so make it EXCELLENT. Every item must be CONCRETE and GROUNDED in a specific signal from the data above (a virtue running hot or cold and its pole, a thinking hat that runs cold, a watch-out colleagues named, a low competency, a scenario tendency), and pair the behaviour with a small, doable HOW, never a platitude. Cross-reference like a sharp coach: name the exact thing and the move. Short imperative, one **bold** phrase each. "stopNow" and "startNow" are EACH exactly 3 to change THIS WEEK. "stopNext" and "startNext" are EACH exactly 3 MORE, to add only once the first set is a habit (a level-up).
 
+=== GOOD VIBES (goodVibes) ===
+A warm, heartfelt note of 3 to 4 sentences: pure good feeling and gratitude, zero growth or criticism, no "but". Draw ONLY on the positives the team gave you (what they appreciate, the strengths, the warm words they picked, how you lift people). Celebrate how you make the team FEEL and how you show up WITH them, more than what you produce. A little tender, still in the voice. Warm strengths (being sharp, reliable, funny, steady) are welcome when they land as fuzzy feelings, not a performance review. This is the one screen that should make them feel genuinely liked.
+
 === OUTPUT (JSON only, no code fences) ===
 {
   "headline": "<=12 words, the meta-finding across everything. No bold, no dashes.",
@@ -345,6 +348,7 @@ The most practical part of the whole report and the single most useful screen, s
   "growthEdges": [ ${growthDims.map((d) => `{ "dimension": "${d}", "title": "<=5 words imperative, no bold", "actions": ["concrete tip 1", "concrete tip 2"] }`).join(', ')} ],
   "appreciations": ["3 distinct themes synthesized from the appreciation free-text, each 1 sentence with **bold**", "...", "..."],
   "closing": "2 warm sentences sending them off.",
+  "goodVibes": "a warm 3 to 4 sentence note, pure gratitude and good feeling, **bold** 2 to 3 phrases (see GOOD VIBES rule)",
   "actionPlan": { "stopNow": ["a behaviour to stop this week, **bold** 1 phrase", "a second one", "a third one"], "startNow": ["a behaviour to start this week, **bold** 1 phrase", "a second one", "a third one"], "stopNext": ["a stop to add once the first are habit", "a second one", "a third one"], "startNext": ["a start to add once the first are habit", "a second one", "a third one"] }${sessionResp.length ? `,
   "responsibilities": { ${responsibilityStats.map((r) => `"${r.index}": ["2 to 3 short bullet points on HOW the team reads you on this responsibility — concrete behaviours showing where you ${r.teamTier === 1 ? 'fall short' : r.teamTier === 3 ? 'exceed and delight' : 'meet expectations'}, drawn from the colleague notes; synthesize, never quote anyone, **bold** one phrase in each"]`).join(', ')} }` : ''}
 }

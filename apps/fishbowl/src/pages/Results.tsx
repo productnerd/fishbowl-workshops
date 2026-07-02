@@ -1016,6 +1016,43 @@ export default function Results() {
       }
     : null
 
+  // Good vibes: a purely-positive, team-only love-note plus the warm words the team
+  // actually picked for you. The emotional payoff after all the analysis. Team-only, so
+  // it shows for everyone (no self-assessment required).
+  const vibeWords = (insights.johari?.counts ?? []).slice(0, 6).map((c) => c.word)
+  if (insights.goodVibes || vibeWords.length >= 3) {
+    cards.push({
+      tone: 'pink',
+      node: (
+        <div className="text-center">
+          <div className="text-5xl">💛</div>
+          <p className="kicker mt-3 text-pink-shadow">good vibes only</p>
+          <h2 className="display mt-1 text-4xl leading-tight">Why they're glad it's you</h2>
+          {insights.goodVibes && (
+            <p className="serif mx-auto mt-4 max-w-md text-xl leading-relaxed text-ink">
+              <Rich text={insights.goodVibes} />
+            </p>
+          )}
+          {vibeWords.length >= 3 && (
+            <div className="mt-6">
+              <p className="kicker mb-2 text-pink-shadow/80">the words they reached for</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {vibeWords.map((w) => (
+                  <span
+                    key={w}
+                    className="rounded-full border-2 border-ink bg-paper-hi px-3.5 py-1 text-sm font-semibold text-ink shadow-chunky-sm"
+                  >
+                    {w}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ),
+    })
+  }
+
   // The Golden Score: one holistic "virtuous coworker" number — how close you sit, on
   // average, to the golden mean across all ten virtues and six hats (self + team blended).
   // A zoom-out to a single figure, right before the narrative wrap-up.
