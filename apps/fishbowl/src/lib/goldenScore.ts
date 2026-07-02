@@ -6,12 +6,13 @@ import { normalCdf } from './percentile'
 // way (too little / ideal / too much), so one formula covers all sixteen dimensions.
 const good = (mu: number) => Math.max(0, Math.min(1, 1 - Math.abs(mu - 5) / 4))
 
-// Blend the team read with the self read 50/50 when both exist (matching the Belbin
-// composite); fall back to whichever side is present.
+// Blend the team read with the self read, weighted 60/40 toward the team: the score is
+// about how you show up to others, so the room's external view outweighs your own
+// (biased) self-rating. Fall back to whichever side is present.
 const blend = (team: number | undefined, self: number | undefined): number | null => {
   const t = typeof team === 'number' ? team : null
   const s = typeof self === 'number' ? self : null
-  if (t != null && s != null) return (t + s) / 2
+  if (t != null && s != null) return t * 0.6 + s * 0.4
   return t ?? s
 }
 
