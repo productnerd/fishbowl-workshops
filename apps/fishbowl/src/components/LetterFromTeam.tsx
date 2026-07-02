@@ -19,34 +19,34 @@ export default function LetterFromTeam({ name, body, words }: { name: string; bo
       <div className="relative mx-auto max-w-md">
         {/* The letter paper */}
         <div
-          className="relative rounded-[3px] px-6 pb-14 pt-7 text-left shadow-[6px_10px_0_rgba(42,36,32,0.22)] [rotate:-1.2deg]"
+          className="relative rounded-[3px] px-5 pb-11 pt-5 text-left shadow-[6px_10px_0_rgba(42,36,32,0.22)] [rotate:-1.2deg]"
           style={{ ...ruled, backgroundColor: '#fbf7ec' }}
         >
-          {/* Postage stamp + postmark */}
-          <div className="absolute right-4 top-4 [rotate:4deg]">
-            <div className="grid h-12 w-10 place-items-center rounded-[2px] border-2 border-dashed border-pink-deep/60 bg-paper-hi text-lg">
+          {/* Postage stamp */}
+          <div className="absolute right-3.5 top-3.5 [rotate:4deg]">
+            <div className="grid h-9 w-8 place-items-center rounded-[2px] border-2 border-dashed border-pink-deep/60 bg-paper-hi text-sm">
               💌
             </div>
           </div>
 
-          <p className="handwritten text-2xl leading-none text-ink-soft">Dear {name},</p>
+          <p className="handwritten text-xl leading-none text-ink-soft">Dear {name},</p>
 
-          <div className="mt-3 space-y-3">
+          <div className="mt-2 space-y-1.5">
             {paras.map((p, i) => (
-              <p key={i} className="handwritten text-[1.35rem] leading-[1.5] text-ink">
+              <p key={i} className="handwritten text-[1.02rem] leading-[1.38] text-ink">
                 <Rich text={p} />
               </p>
             ))}
           </div>
 
-          <p className="handwritten mt-4 text-xl leading-tight text-ink">
+          <p className="handwritten mt-3 text-lg leading-tight text-ink">
             With love,
             <br />
             <span className="text-ink-soft">— the people you work with</span> 🫶
           </p>
 
           {ps.length >= 3 && (
-            <p className="handwritten mt-3 text-lg leading-snug text-pink-deep">
+            <p className="handwritten mt-2 text-[0.95rem] leading-snug text-pink-deep">
               P.S. the words we keep coming back to for you: {ps.join(', ')}.
             </p>
           )}
