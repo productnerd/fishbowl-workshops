@@ -177,7 +177,7 @@ CROSS-REFERENCE constantly and explicitly. Whenever two activities point the sam
 5. WEAKNESSES and WATCH-OUTS, named kindly but honestly: recurring vices (virtues pushed to an extreme) and the watch-outs colleagues flagged.
 6. TENDENCIES and BIASES that likely flow from their profile: an archetype's shadow, a trait taken too far, the decision and social biases their exact mix predicts. Frame these as things to keep in the back of their mind.
 7. HOW THEY SHOW UP day to day, in concrete situations (meetings, conflict, slipping deadlines, receiving feedback), drawing on the scenarios, hats and candor.
-8. PRACTICE: concrete, specific ways to put all of this to work.
+8. ACTION PLAN: the single most useful screen. Concrete stop/start behaviours, each GROUNDED in this person's specific data — above all where their SELF-read and the TEAM diverge (the gaps), plus thinking-hat holes, the archetype shadow, and blind spots. Name the exact thing + the move; this is self-aware ("you rate your candor a 2 but the team feels 6, so warm the opener").
 
 === VOICE ===
 Second person ("you", "your"). Warm, sharp, honest, a little playful, like a perceptive friend who has read everything about you and is leveling with you. Not a consultant, zero corporate-speak, zero horoscope vagueness. Every claim grounded in the data given; specific over generic. It can sting a little where the data is strong, never cruel, never a roast.
@@ -201,7 +201,12 @@ Wrap the few most important phrases per paragraph in **bold** (the claims someon
     { "heading": "Tendencies and biases to keep in mind", "body": "what the profile predicts: the archetype's shadow, traits taken too far, the decision and social biases your exact mix tends toward. 3 to 4 SHORT paragraphs, ~200 to 280 words." },
     { "heading": "How you show up day to day", "body": "the concrete situational read: how you land in meetings, conflict, slipping deadlines and receiving feedback, drawing on scenarios, hats and candor. 3 to 4 SHORT paragraphs, ~200 to 280 words." }
   ],
-  "practice": ["6 to 8 concrete, specific practices. Each 1 to 2 sentences, **bold** the action verb or move."],
+  "actionPlan": {
+    "stopNow": ["exactly 3 behaviours to STOP this week", "each grounded in THIS person's specific data (a self-vs-team gap, a blind spot, a virtue past the mean, a thinking hat that runs cold, the archetype's shadow) + a concrete how, <= 16 words, **bold** one phrase", "a third"],
+    "startNow": ["exactly 3 to START this week, same grounding", "second", "third"],
+    "stopNext": ["exactly 3 MORE to stop once the first are habit (a level-up)", "second", "third"],
+    "startNext": ["exactly 3 MORE to start once the first are habit", "second", "third"]
+  },
   "captions": {
     "strengths": "ONE punchy sentence (<= 18 words) on the through-line of their strengths",
     "virtues": "name BOTH in one line (~22 words ok): (a) which virtues they push PAST the golden mean (run too hot or too cold), AND (b) the single virtue where their OWN rating and the TEAM's differ the most (the biggest self-vs-team gap), said explicitly as a gap.",
@@ -221,7 +226,7 @@ Wrap the few most important phrases per paragraph in **bold** (the claims someon
     "to": "the ONE core tension this combination creates, second person, <= 14 words"
   },
   "constellation": [ { "label": "a 1 to 3 word name for the shared root theme", "words": ["EXACT blind-spot words from the Johari BLIND / Nohari BLIND / watch-out lists above that share this root", "another"] } ],
-  "oneOnOne": ["4 to 6 concrete things to raise in a routine 1:1 with their manager so the report's weaknesses/gaps/watch-outs actually get actioned. EACH is a QUESTION to ask or something to SHARE, grounded in the data, <= 20 words, starting with 'Ask: ' or 'Share: '. Practical, specific, the kind of thing a manager can actually help with."],
+  "oneOnOne": ["4 to 6 concrete things to raise in a routine 1:1 with their manager. EACH must be SELF-AWARE: anchored in where THEIR OWN read diverges from the TEAM's (a specific gap, blind spot, or watch-out), naming how they see it vs how the team does. A QUESTION to ask or something to SHARE, <= 22 words, starting with 'Ask: ' or 'Share: ' (e.g. 'Share: I rate my candor a 2 but the team reads 6, help me calibrate')."],
   "biases": ["4 to 6 SHORT punchy notes-to-self (<= 9 words each) of the tendencies, blind spots and biases to keep at the back of their mind. No 'Ask/Share' prefix, no bold, just the pattern in plain words (e.g. 'I decide before I loop people in')."],
   "greatAt": [ { "label": "a specific ROLE, RESPONSIBILITY or type of TASK this person would be great at and love (<= 6 words)", "why": "one short clause grounding it in a real STRENGTH + what ENERGIZES them, <= 16 words" } ]
 }
@@ -230,7 +235,7 @@ For "constellation": look ONLY at the words the team flagged that the person did
 === CAPTIONS + THROUGH-LINE (as important as the prose) ===
 Each caption is the single one-line takeaway shown on that visual slide, so it must be SHARP and SPECIFIC to this person, never generic, never just restate the slide's title. Second person, one sentence, <= 18 words, **bold** the key phrase, no dashes.
 CRUCIAL: read the ABSOLUTE result AND the self-vs-team gap. Whenever the person and their team meaningfully DISAGREE on that slide's topic (a gap of ~2+ on a 1-9 scale, or a clear blind spot / hidden strength), the caption MUST name that gap, not just the raw number. Where they agree, say what the number means. The through-line is the spine of the whole report: archetype -> two driving signals -> the one tension they create; make "to" sting a little and ring true.
-This is a LONG read: aim for roughly 1800 to 2600 words total across portrait + sections + practice (2 to 4 full A4 pages). Rich and specific, cross-referenced, never padded, and never repeat a point already made in another section. Do not stop short.`
+This is a LONG read: aim for roughly 1800 to 2600 words across portrait + sections (2 to 4 full A4 pages). Rich and specific, cross-referenced, never padded, never repeat a point across sections. The captions, action plan, 1:1 points and biases are separate short outputs — keep them tight. Do not stop short; return the COMPLETE JSON.`
 
     const userPrompt = `SUBJECT: ${name}. Speak TO them in second person; never use their name.
 
@@ -296,7 +301,7 @@ Return the JSON now.`
       headers: { 'content-type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 26000,
+        max_tokens: 32000,
         thinking: { type: 'adaptive' },
         output_config: { effort: 'high' },
         system: systemPrompt,
@@ -366,6 +371,11 @@ Return the JSON now.`
       .filter((g: any) => g && g.label)
       .map((g: any) => ({ label: oneLine(g.label).slice(0, 48), why: oneLine(g.why).slice(0, 120) }))
       .slice(0, 4)
+    const three = (v: any) => (Array.isArray(v) ? v : []).map((s: any) => oneLine(s)).filter(Boolean).slice(0, 3)
+    const ap = prose.actionPlan && typeof prose.actionPlan === 'object' ? prose.actionPlan : null
+    const actionPlan = ap && (Array.isArray(ap.stopNow) || Array.isArray(ap.startNow))
+      ? { stopNow: three(ap.stopNow), startNow: three(ap.startNow), stopNext: three(ap.stopNext), startNext: three(ap.startNext) }
+      : null
 
     const synthesis = {
       title: stripDashes(String(prose.title || 'Your full read')),
@@ -374,13 +384,13 @@ Return the JSON now.`
         .filter((s: any) => s && s.heading && s.body)
         .map((s: any) => ({ heading: stripDashes(String(s.heading)), body: stripDashes(String(s.body)) }))
         .slice(0, 6),
-      practice: (Array.isArray(prose.practice) ? prose.practice : []).map((s: any) => stripDashes(String(s))).slice(0, 8),
       captions,
       ...(throughLine && throughLine.to && throughLine.via.length ? { throughLine } : {}),
       ...(constellation.length ? { constellation } : {}),
       ...(oneOnOne.length ? { oneOnOne } : {}),
       ...(biases.length ? { biases } : {}),
       ...(greatAt.length ? { greatAt } : {}),
+      ...(actionPlan && actionPlan.stopNow.length ? { actionPlan } : {}),
       n,
     }
 

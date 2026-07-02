@@ -1078,8 +1078,10 @@ export default function Results() {
 
   // Action plan: the practical payoff. 2 to stop / 2 to start now, then 2 more each
   // once those are habit, plus an email-to-self.
-  if (insights.actionPlan) {
-    const ap = insights.actionPlan
+  // Prefer the self-aware action plan from the synthesis (it can cite self-vs-team
+  // gaps, hats, blind spots); fall back to the team-only one when there's no self-read.
+  const ap = (hasSelf && synthesis?.actionPlan) || insights.actionPlan
+  if (ap) {
     const bullets = (items: string[]) => (
       <ul className="mt-1 flex flex-col gap-1.5">
         {items.filter(Boolean).map((t, i) => (
@@ -1191,8 +1193,7 @@ export default function Results() {
       teamNohari.forEach((c) => L.push(`- ${c.word} (${c.count} of ${insights.nohari?.n ?? 0})`))
       if (selfNohari && selfNohari.length) L.push(`You own: ${selfNohari.join(', ')}`)
     }
-    if (insights.actionPlan) {
-      const ap = insights.actionPlan
+    if (ap) {
       L.push('\nACTION PLAN')
       L.push('Stop now:')
       ap.stopNow.filter(Boolean).forEach((x) => L.push(`- ${plain(x)}`))
@@ -1213,10 +1214,6 @@ export default function Results() {
     const plain = (s: string) => (s || '').replace(/\*\*/g, '').replace(/\*/g, '')
     const L: string[] = [`THE FULL READ — ${synthesis.title}`, '', plain(synthesis.portrait)]
     synthesis.sections.forEach((s) => L.push('', s.heading.toUpperCase(), plain(s.body)))
-    if (synthesis.practice.length) {
-      L.push('', 'PUT IT INTO PRACTICE')
-      synthesis.practice.forEach((p) => L.push(`- ${plain(p)}`))
-    }
     return L.join('\n')
   }
   // Copy the deep read (when present) plus the structured facts, so the AI agent gets

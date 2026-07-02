@@ -54,7 +54,8 @@ export interface SelfSynthesis {
   title: string
   portrait: string
   sections: { heading: string; body: string }[]
-  practice: string[]
+  practice?: string[]
+  actionPlan?: { stopNow: string[]; startNow: string[]; stopNext: string[]; startNext: string[] }
   captions?: Record<string, string>
   throughLine?: { from: string; via: string[]; to: string }
   constellation?: { label: string; words: string[] }[]
