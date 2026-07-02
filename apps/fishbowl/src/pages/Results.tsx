@@ -24,7 +24,9 @@ import { questions } from '../data/questions'
 import { getSelfReport, getSelfInsight, getSynthesis, type SelfData, type SelfInsight, type SelfSynthesis } from '../lib/self'
 import { useAiInsights } from '../lib/aiInsights'
 import { topPercent } from '../lib/percentile'
+import { computeGolden } from '../lib/goldenScore'
 import Card from '../components/Card'
+import GoldenScore from '../components/GoldenScore'
 import VirtueGauge from '../components/VirtueGauge'
 import StatBar from '../components/StatBar'
 import PersonalityCard, { SideCharacter } from '../components/PersonalityCard'
@@ -1013,6 +1015,28 @@ export default function Results() {
         ),
       }
     : null
+
+  // The Golden Score: one holistic "virtuous coworker" number — how close you sit, on
+  // average, to the golden mean across all ten virtues and six hats (self + team blended).
+  // A zoom-out to a single figure, right before the narrative wrap-up.
+  const golden = computeGolden(insights.virtues, insights.hats ?? [], selfVirtues, selfHats)
+  if (golden) {
+    cards.push({
+      tone: 'paper',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">the golden mean</p>
+          <h2 className="display mb-2 text-3xl">The Golden Score</h2>
+          <p className="mb-4 text-sm leading-relaxed text-ink-soft">
+            One number for the whole picture, from Aristotle's <span className="font-semibold text-ink">golden mean</span>: every
+            virtue is the midpoint between too little and too much. The closer you sit to that centre — across all ten virtues and
+            six hats, your read blended with your team's — the higher you score.
+          </p>
+          <GoldenScore golden={golden} />
+        </div>
+      ),
+    })
+  }
 
   // The through-line: archetype + two driving signals -> the one core tension, as a
   // compact flow. The spine of the report, right before the deep read.

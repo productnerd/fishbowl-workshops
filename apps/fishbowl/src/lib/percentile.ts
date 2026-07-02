@@ -11,7 +11,7 @@ function erf(x: number): number {
       Math.exp(-x * x)
   return x >= 0 ? y : -y
 }
-const normalCdf = (z: number) => 0.5 * (1 + erf(z / Math.SQRT2))
+export const normalCdf = (z: number) => 0.5 * (1 + erf(z / Math.SQRT2))
 
 // "Goodness" on a higher-is-better axis: raw score for competencies, balance
 // (closeness to the virtuous mean 5 on the 1-9 scale) for virtues.
