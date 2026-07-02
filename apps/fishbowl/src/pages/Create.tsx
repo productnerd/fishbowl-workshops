@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { createSession } from '../lib/data'
 import { setSubjectAuth } from '../lib/subjectAuth'
 import Button from '../components/Button'
+import CountryPicker from '../components/CountryPicker'
 
 const KEY = 'fishbowl_my_session'
 
@@ -11,7 +12,9 @@ export default function Create() {
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [context, setContext] = useState('')
+  const [role, setRole] = useState('')
+  const [vertical, setVertical] = useState('')
+  const [country, setCountry] = useState('')
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(true)
 
@@ -36,8 +39,17 @@ export default function Create() {
   const create = async () => {
     if (!name.trim()) return
     setLoading(true)
+    // Compose a labelled context the AI can parse: role + company vertical + country.
+    // Country lets the AI weigh cultural tendencies; role + vertical the work environment.
+    const context = [
+      role.trim() && `Role: ${role.trim()}`,
+      vertical.trim() && `Company / what the team does: ${vertical.trim()}`,
+      country.trim() && `Country: ${country.trim()}`,
+    ]
+      .filter(Boolean)
+      .join('. ')
     try {
-      const { slug, bearer, person_id } = await createSession(name.trim(), context.trim() || undefined, email.trim() || undefined)
+      const { slug, bearer, person_id } = await createSession(name.trim(), context || undefined, email.trim() || undefined)
       // This browser now owns the session: store the device key so the self-read saves
       // and the report unlocks here with no magic link.
       setSubjectAuth({ bearer, person_id, slug })
@@ -75,14 +87,24 @@ export default function Create() {
           maxLength={120}
           className="mt-4 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-left text-base text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/55 focus:shadow-chunky"
         />
-        <textarea
-          value={context}
-          onChange={(e) => setContext(e.target.value)}
-          placeholder="Optional: your role + what your team or company does. This sharpens the AI report and its advice."
-          rows={3}
-          maxLength={400}
-          className="mt-4 w-full resize-none rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-left text-base text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/55 focus:shadow-chunky"
+        <p className="mt-6 mb-1 text-sm font-semibold text-ink-soft">A little context sharpens the whole AI report:</p>
+        <input
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          placeholder="Your role (e.g. Product Manager)"
+          maxLength={80}
+          className="mt-2 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-left text-base text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/55 focus:shadow-chunky"
         />
+        <input
+          value={vertical}
+          onChange={(e) => setVertical(e.target.value)}
+          placeholder="What your company does (e.g. fintech, investment banking)"
+          maxLength={120}
+          className="mt-3 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-left text-base text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/55 focus:shadow-chunky"
+        />
+        <div className="mt-3">
+          <CountryPicker value={country} onChange={setCountry} />
+        </div>
         <div className="mt-7">
           <Button variant="pink" onClick={create} disabled={!name.trim() || loading} className="!text-xl">
             {loading ? 'Creating…' : 'Create my link →'}

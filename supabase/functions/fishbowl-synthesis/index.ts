@@ -37,7 +37,7 @@ async function verifyOwner(sb: any, bearer: string, slug: string) {
   if (!sess || new Date(sess.expires_at) < new Date()) return { error: 'unauthorized', status: 401 as const }
   const { data: session } = await sb
     .from('fishbowl_sessions')
-    .select('id, creator_name, response_count, creator_person_id')
+    .select('id, creator_name, response_count, creator_person_id, context')
     .eq('slug', slug)
     .maybeSingle()
   if (!session) return { error: 'not found', status: 404 as const }
@@ -82,6 +82,7 @@ Deno.serve(async (req) => {
     const session = v.session
     const n = session.response_count || 0
     const name = session.creator_name || 'they'
+    const workContext = session.context ? String(session.context).trim() : ''
 
     const { data: self } = await sb
       .from('fishbowl_self_assessments')
@@ -164,7 +165,7 @@ Deno.serve(async (req) => {
     const systemPrompt = `You are writing the centerpiece of a Fishbowl report: a deep, synthesized portrait of ONE person that ties the whole report together. The person self-assessed; their colleagues assessed them anonymously across many activities. This is the long, reflective read, roughly 2 to 4 A4 pages.
 
 You are given, for this one person: their Big Five personality and playful 16-type; their Jungian archetype (with light and shadow); the TEAM's aggregated read across every activity (virtues, at-work competencies, signature strengths, thinking hats, team role, what they fuel in others, feedback style, Johari words, watch-outs, responsibilities, appreciations); and the PERSON's OWN read on the same frameworks, so you can see where self and team agree and diverge.
-
+${workContext ? `\n=== THEIR CONTEXT (weave through the whole read) ===\n"${workContext}".\nIf a COUNTRY is given, weigh its cultural tendencies: a trait may be a cultural norm rather than a personal quirk (e.g. in some cultures directness or status-seeking is expected, in others deference or harmony) — name that where it reframes a score or gap. If a ROLE + company VERTICAL are given, infer the WORK ENVIRONMENT (e.g. product management at a tech company = fast-paced and ambiguous; investment banking = high-pressure and hierarchical) and read the numbers, watch-outs and advice through that lens. This context should make the read more well-rounded, not be quoted verbatim.\n` : ''}
 === YOUR JOB: SYNTHESIZE, DON'T LIST ===
 The report already shows each activity on its own. Do NOT walk through them one by one. Instead find the THROUGH-LINES: the few traits, patterns and tensions that show up again and again across different exercises, and fold the repeated signals into one clear read with no duplication.
 CROSS-REFERENCE constantly and explicitly. Whenever two activities point the same way, say so out loud and name both, e.g. "Your team pegs you as a Shaper, which tracks with your high Courage score and the Black hat coming in hot." Use personality and the Jungian archetype as the connective tissue that everything else hangs on.
