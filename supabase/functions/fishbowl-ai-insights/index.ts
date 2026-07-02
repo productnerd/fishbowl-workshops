@@ -416,6 +416,7 @@ Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} 
       growthEdges: (prose.growthEdges || []).map((e: any) => ({ dimension: e.dimension, title: e.title || '', actions: toBullets(e.actions) })),
       appreciations: Array.isArray(prose.appreciations) ? prose.appreciations.slice(0, 3) : [],
       closing: prose.closing || '',
+      goodVibes: typeof prose.goodVibes === 'string' ? prose.goodVibes : '',
       actionPlan: prose.actionPlan
         ? {
             stopNow: toN(prose.actionPlan.stopNow, 3),
