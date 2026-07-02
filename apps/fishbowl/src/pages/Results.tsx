@@ -27,6 +27,7 @@ import { topPercent } from '../lib/percentile'
 import { computeGolden } from '../lib/goldenScore'
 import Card from '../components/Card'
 import GoldenScore from '../components/GoldenScore'
+import LetterFromTeam from '../components/LetterFromTeam'
 import VirtueGauge from '../components/VirtueGauge'
 import StatBar from '../components/StatBar'
 import PersonalityCard, { SideCharacter } from '../components/PersonalityCard'
@@ -1016,40 +1017,14 @@ export default function Results() {
       }
     : null
 
-  // Good vibes: a purely-positive, team-only love-note plus the warm words the team
-  // actually picked for you. The emotional payoff after all the analysis. Team-only, so
-  // it shows for everyone (no self-assessment required).
+  // Good vibes, framed as a handwritten letter from the team: their purely-positive note
+  // (goodVibes) on skeuomorphic stationery, plus the warm words they picked as a P.S. The
+  // emotional payoff after all the analysis. Team-only, so it shows for everyone.
   const vibeWords = (insights.johari?.counts ?? []).slice(0, 6).map((c) => c.word)
-  if (insights.goodVibes || vibeWords.length >= 3) {
+  if (insights.goodVibes) {
     cards.push({
-      tone: 'pink',
-      node: (
-        <div className="text-center">
-          <div className="text-5xl">💛</div>
-          <p className="kicker mt-3 text-pink-shadow">good vibes only</p>
-          <h2 className="display mt-1 text-4xl leading-tight">Why they're glad it's you</h2>
-          {insights.goodVibes && (
-            <p className="serif mx-auto mt-4 max-w-md text-xl leading-relaxed text-ink">
-              <Rich text={insights.goodVibes} />
-            </p>
-          )}
-          {vibeWords.length >= 3 && (
-            <div className="mt-6">
-              <p className="kicker mb-2 text-pink-shadow/80">the words they reached for</p>
-              <div className="flex flex-wrap justify-center gap-2">
-                {vibeWords.map((w) => (
-                  <span
-                    key={w}
-                    className="rounded-full border-2 border-ink bg-paper-hi px-3.5 py-1 text-sm font-semibold text-ink shadow-chunky-sm"
-                  >
-                    {w}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      ),
+      tone: 'ink',
+      node: <LetterFromTeam name={session.creator_name} body={insights.goodVibes} words={vibeWords} />,
     })
   }
 
