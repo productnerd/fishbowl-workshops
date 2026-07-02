@@ -60,7 +60,7 @@ const DEPTHS: SelfDepth[] = [
   { id: 'extended', name: 'Extended', perTrait: 8, time: '~10 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
 ]
 
-type Phase = 'checking' | 'already' | 'needauth' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks'
+type Phase = 'checking' | 'already' | 'needauth' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks' | 'reflections'
 
 // The 10 virtue scales, reused from the colleague survey so the vice/virtue behaviours
 // (deficientTraits / virtueTraits / excessiveTraits) are a single source of truth.
@@ -127,6 +127,10 @@ export default function SelfAssessment() {
         setSelfVia((sp.via as string[]) ?? [])
         setSelfJohari((sp.johari as string[]) ?? [])
         setSelfNohari((sp.nohari as string[]) ?? [])
+        const refl = (sp.reflections as { aspiration?: string; blindspot?: string; manual?: string }) ?? {}
+        setAspireWords(refl.aspiration ?? '')
+        setSelfBlindspot(refl.blindspot ?? '')
+        setSelfManual(refl.manual ?? '')
         setPhase(sp.progress as Phase)
       } else {
         setPhase('depth')
@@ -148,6 +152,10 @@ export default function SelfAssessment() {
   const [selfVia, setSelfVia] = useState<string[]>([])
   const [selfJohari, setSelfJohari] = useState<string[]>([])
   const [selfNohari, setSelfNohari] = useState<string[]>([])
+  // Free-text reflections (optional, private to the subject) — add colour + voice.
+  const [aspireWords, setAspireWords] = useState('')
+  const [selfBlindspot, setSelfBlindspot] = useState('')
+  const [selfManual, setSelfManual] = useState('')
 
   const [authed, setAuthed] = useState(false)
 
@@ -239,6 +247,11 @@ export default function SelfAssessment() {
       via: selfVia,
       johari: selfJohari,
       nohari: selfNohari,
+      reflections: {
+        aspiration: aspireWords.trim(),
+        blindspot: selfBlindspot.trim(),
+        manual: selfManual.trim(),
+      },
       depthConfig: d,
       progress,
     },
@@ -691,8 +704,8 @@ export default function SelfAssessment() {
               </>
             ) : (
               <>
-                <Button variant="pink" onClick={save} disabled={saving} className="!text-xl">
-                  {saving ? 'Saving…' : 'Save & finish →'}
+                <Button variant="pink" onClick={() => setPhase('reflections')} disabled={saving} className="!text-xl">
+                  Next →
                 </Button>
                 <button
                   onClick={() => {
@@ -740,7 +753,8 @@ export default function SelfAssessment() {
     const last = fwIdx === steps.length - 1
     const next = () => {
       if (last) {
-        save()
+        persist('frameworks')
+        setPhase('reflections')
         return
       }
       persist('frameworks')
@@ -794,12 +808,61 @@ export default function SelfAssessment() {
           </div>
           <div className="mt-7 flex flex-col items-center gap-3">
             <Button variant="pink" onClick={next} disabled={saving} className="!text-xl">
-              {last ? (saving ? 'Saving…' : 'Save & finish →') : 'Next →'}
+              Next →
             </Button>
             <button onClick={() => setConfirmSkip(true)} disabled={saving} className="cursor-pointer text-sm font-semibold text-ink-soft hover:underline">
               Skip the rest, save now
             </button>
             <BackButton onClick={() => (fwIdx > 0 ? setFwIdx((c) => c - 1) : setPhase('responsibilities'))} />
+            {saveError && (
+              <p className="text-center text-sm font-semibold text-pink-deep">
+                Couldn't save your read. Your link may have expired, reopen it from your email and try again.
+              </p>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
+
+  if (phase === 'reflections') {
+    const back = () => {
+      if (depth.frameworks.length > 0) {
+        setFwIdx(depth.frameworks.length - 1)
+        setPhase('frameworks')
+      } else setPhase('responsibilities')
+    }
+    const ta =
+      'mt-2 w-full resize-none rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-base text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/50 focus:shadow-chunky'
+    return (
+      <div className="mx-auto min-h-dvh w-full max-w-lg px-5 py-10">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+          <p className="kicker text-pink-deep">in your own words · optional</p>
+          <h1 className="display mt-2 text-4xl">A few reflections</h1>
+          <p className="mt-2 text-ink-soft">
+            Private to you. Only you ever see these — your team never does; they just make your report sharper.
+          </p>
+
+          <label className="mt-7 block">
+            <span className="serif text-lg font-semibold text-ink">In as few words as possible, how do you wish your team described you?</span>
+            <textarea value={aspireWords} onChange={(e) => setAspireWords(e.target.value)} rows={2} maxLength={160} placeholder="e.g. calm, decisive, generous" className={ta} />
+          </label>
+
+          <label className="mt-5 block">
+            <span className="serif text-lg font-semibold text-ink">What feedback do you keep hearing, or the weakness you know you have but haven't cracked yet?</span>
+            <textarea value={selfBlindspot} onChange={(e) => setSelfBlindspot(e.target.value)} rows={3} maxLength={300} placeholder="The thing you keep meaning to work on…" className={ta} />
+          </label>
+
+          <label className="mt-5 block">
+            <span className="serif text-lg font-semibold text-ink">Your three-line user manual for a new teammate?</span>
+            <textarea value={selfManual} onChange={(e) => setSelfManual(e.target.value)} rows={3} maxLength={300} placeholder="How to work with you at your best." className={ta} />
+          </label>
+
+          <div className="mt-7 flex flex-col items-center gap-3">
+            <Button variant="pink" onClick={save} disabled={saving} className="!text-xl">
+              {saving ? 'Saving…' : 'Save & finish →'}
+            </Button>
+            <BackButton onClick={back} />
             {saveError && (
               <p className="text-center text-sm font-semibold text-pink-deep">
                 Couldn't save your read. Your link may have expired, reopen it from your email and try again.

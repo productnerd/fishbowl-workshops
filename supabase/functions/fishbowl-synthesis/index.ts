@@ -104,6 +104,7 @@ Deno.serve(async (req) => {
 
     // ── Assemble every signal, with self vs team overlaid where both exist ──
     const sp = self.self_payload || {}
+    const refl = (sp.reflections || {}) as { aspiration?: string; blindspot?: string; manual?: string }
     const bf = self.big_five || {}
     const selfV = sp.virtues || {}
     const selfEn = sp.energizers || {}
@@ -165,7 +166,7 @@ Deno.serve(async (req) => {
     const systemPrompt = `You are writing the centerpiece of a Fishbowl report: a deep, synthesized portrait of ONE person that ties the whole report together. The person self-assessed; their colleagues assessed them anonymously across many activities. This is the long, reflective read, roughly 2 to 4 A4 pages.
 
 You are given, for this one person: their Big Five personality and playful 16-type; their Jungian archetype (with light and shadow); the TEAM's aggregated read across every activity (virtues, at-work competencies, signature strengths, thinking hats, team role, what they fuel in others, feedback style, Johari words, watch-outs, responsibilities, appreciations); and the PERSON's OWN read on the same frameworks, so you can see where self and team agree and diverge.
-${workContext ? `\n=== THEIR CONTEXT (weave through the whole read) ===\n"${workContext}".\nIf a COUNTRY is given, weigh its cultural tendencies: a trait may be a cultural norm rather than a personal quirk (e.g. in some cultures directness or status-seeking is expected, in others deference or harmony) — name that where it reframes a score or gap. If a ROLE + company VERTICAL are given, infer the WORK ENVIRONMENT (e.g. product management at a tech company = fast-paced and ambiguous; investment banking = high-pressure and hierarchical) and read the numbers, watch-outs and advice through that lens. This context should make the read more well-rounded, not be quoted verbatim.\n` : ''}
+${workContext ? `\n=== THEIR CONTEXT (weave through the whole read) ===\n"${workContext}".\nIf a COUNTRY is given, DO make the cultural link at least once (do not skip it): where a trait plausibly reflects a norm of that country, name it as a gentle hypothesis, e.g. "in [country], [tendency like directness / status / deference / harmony] tends to be culturally common, so this may be partly cultural, not only personal." Keep it tasteful and tentative, never a hard stereotype, but do surface it. If a ROLE + company VERTICAL are given, infer the WORK ENVIRONMENT (e.g. product management at a tech company = fast-paced and ambiguous; investment banking = high-pressure and hierarchical) and read the numbers, watch-outs and advice through that lens. This context should make the read more well-rounded, not be quoted verbatim.\n` : ''}
 === YOUR JOB: SYNTHESIZE, DON'T LIST ===
 The report already shows each activity on its own. Do NOT walk through them one by one. Instead find the THROUGH-LINES: the few traits, patterns and tensions that show up again and again across different exercises, and fold the repeated signals into one clear read with no duplication.
 CROSS-REFERENCE constantly and explicitly. Whenever two activities point the same way, say so out loud and name both, e.g. "Your team pegs you as a Shaper, which tracks with your high Courage score and the Black hat coming in hot." Use personality and the Jungian archetype as the connective tissue that everything else hangs on.
@@ -291,6 +292,12 @@ ${energizerLines.join('\n') || '(none)'}
 
 === RESPONSIBILITIES (team tier 1=under, 2=meets, 3=exceeds) ===
 ${responsibilities.join('\n') || '(none)'}
+
+=== IN THEIR OWN WORDS (self-written, private) ===
+Wants the team to describe them as: ${refl.aspiration || '(not given)'}
+A weakness they own / feedback they keep hearing: ${refl.blindspot || '(not given)'}
+Their user manual for a new teammate: ${refl.manual || '(not given)'}
+Use these where they add colour and voice: contrast the ASPIRATION with how the team actually describes them (a real self-vs-team signal), take the OWNED weakness seriously and connect it to the data, and let the user manual sharpen the practical advice. Quote their phrasing sparingly.
 
 Return the JSON now.`
 
