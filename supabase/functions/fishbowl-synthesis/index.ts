@@ -187,6 +187,9 @@ Second person ("you", "your"). Warm, sharp, honest, a little playful, like a per
 === NO DASHES (critical) ===
 Never use an em dash, en dash, double hyphen, or spaced hyphen anywhere. Use commas, periods, or parentheses.
 
+=== NO DOUBLE QUOTES INSIDE VALUES (critical for valid JSON) ===
+Never put a double-quote character (") inside any string value. If you quote a word or phrase (e.g. what the team calls them), wrap it in single quotes ' instead. Double quotes are ONLY the JSON string delimiters.
+
 === FORMATTING FOR SCANNABILITY (important) ===
 Write in SHORT paragraphs, 2 to 4 sentences each, separated by a blank line (\\n\\n). NEVER write a wall of text; if a paragraph runs past ~4 sentences, split it. Keep sentences short and punchy.
 Wrap the few most important phrases per paragraph in **bold** (the claims someone should catch while skimming). Use *italic* for framework names, playful asides, and soft emphasis. Never bold or italicize a whole sentence. The title and section headings have no bold or italic.
