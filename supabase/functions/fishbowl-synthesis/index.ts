@@ -49,6 +49,7 @@ async function verifyOwner(sb: any, bearer: string, slug: string) {
 // client can render real paragraphs instead of one wall of text.
 const stripDashes = (s: string): string =>
   s
+    .replace(/¶+/g, '\n\n') // sentinel paragraph token -> real breaks (keeps model JSON newline-free)
     .replace(/[ \t]*[—–]+[ \t]*/g, ', ')
     .replace(/,\s*,/g, ',')
     .replace(/[ \t]{2,}/g, ' ')
@@ -191,15 +192,15 @@ Never use an em dash, en dash, double hyphen, or spaced hyphen anywhere. Use com
 Never put a double-quote character (") inside any string value. If you quote a word or phrase (e.g. what the team calls them), wrap it in single quotes ' instead. Double quotes are ONLY the JSON string delimiters.
 
 === FORMATTING FOR SCANNABILITY (important) ===
-Write in SHORT paragraphs, 2 to 4 sentences each, separated by a blank line (\\n\\n). NEVER write a wall of text; if a paragraph runs past ~4 sentences, split it. Keep sentences short and punchy.
+Write in SHORT paragraphs, 2 to 4 sentences each. Separate paragraphs with the exact token ¶¶ (two pilcrows) and put NO actual line breaks anywhere in the JSON. NEVER write a wall of text; if a paragraph runs past ~4 sentences, split it with ¶¶. Keep sentences short and punchy.
 Wrap the few most important phrases per paragraph in **bold** (the claims someone should catch while skimming). Use *italic* for framework names, playful asides, and soft emphasis. Never bold or italicize a whole sentence. The title and section headings have no bold or italic.
 
 === OUTPUT (JSON only, no code fences, no prose outside the JSON) ===
 {
   "title": "a short, evocative title for this person's read (<= 6 words, no bold, no dashes)",
-  "portrait": "3 to 4 SHORT paragraphs (2 to 4 sentences each), ~250 to 350 words, on who they are at their core, grounded in personality + archetype + the strongest cross-activity themes. MUST separate every paragraph with a blank line \\n\\n. With **bold** and *italic*.",
+  "portrait": "3 to 4 SHORT paragraphs (2 to 4 sentences each), ~250 to 350 words, on who they are at their core, grounded in personality + archetype + the strongest cross-activity themes. MUST separate every paragraph with the token ¶¶ (no line breaks). With **bold** and *italic*.",
   "sections": [
-    { "heading": "Where you shine", "body": "3 to 4 SHORT paragraphs, ~220 to 300 words, cross-referenced across strengths/virtues/appreciations. **bold** and *italic*. MUST put \\n\\n between every paragraph." },
+    { "heading": "Where you shine", "body": "3 to 4 SHORT paragraphs, ~220 to 300 words, cross-referenced across strengths/virtues/appreciations. **bold** and *italic*. MUST put ¶¶ between every paragraph (no line breaks)." },
     { "heading": "How you like to work", "body": "energy, thinking style (hats), team role (Belbin), what you fuel in others (SDT), feedback style. 3 to 4 SHORT paragraphs, ~220 to 300 words." },
     { "heading": "You vs. how they see you", "body": "the biggest self-vs-team gaps; blind spots first (Johari/VIA/watch-outs/virtues the team sees and you don't), then hidden strengths where you are harder on yourself than the team is. 3 to 4 SHORT paragraphs, ~220 to 300 words." },
     { "heading": "Watch-outs and vices", "body": "weaknesses named kindly: virtues pushed to an extreme, the watch-outs colleagues flagged. 3 to 4 SHORT paragraphs, ~200 to 280 words." },
