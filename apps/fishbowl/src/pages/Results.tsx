@@ -42,7 +42,6 @@ import ThroughLine from '../components/ThroughLine'
 import VirtueViceDial from '../components/VirtueViceDial'
 import FourRooms from '../components/FourRooms'
 import LockedDoor from '../components/LockedDoor'
-import SpineParallax from '../components/SpineParallax'
 import HeatCurve from '../components/HeatCurve'
 import RoleTriangle from '../components/RoleTriangle'
 import Constellation from '../components/Constellation'
@@ -886,32 +885,6 @@ export default function Results() {
           </p>
           <h2 className="display mb-4 text-3xl">The kindness trap</h2>
           <CandorPlot teamCare={rc.teamCare} teamChallenge={rc.teamChallenge} selfCare={(kAgree / 100) * 8 + 1} selfChallenge={kCandor} />
-        </div>
-      ),
-    })
-  }
-
-  // The blind-spot parallax: pool every self-vs-team item onto one spine to show the tilt.
-  const parItems: { label: string; self: number; team: number; kind: 'blind' | 'hidden' }[] = []
-  insights.virtues.forEach((v) => {
-    const s = selfVirtues?.[v.dimension]
-    if (typeof s === 'number' && Math.abs(s - v.mu) >= 1.3) parItems.push({ label: v.name, self: (s - 1) / 8, team: (v.mu - 1) / 8, kind: v.mu > s ? 'blind' : 'hidden' })
-  })
-  johariBlind.slice(0, 2).forEach((w) => parItems.push({ label: w, self: 0.12, team: 0.86, kind: 'blind' }))
-  const johariHiddenWords = (selfJohari ?? []).filter((w) => !(insights.johari?.counts ?? []).some((c) => c.word === w)).slice(0, 2)
-  johariHiddenWords.forEach((w) => parItems.push({ label: w, self: 0.86, team: 0.12, kind: 'hidden' }))
-  const parSorted = [...parItems].sort((a, b) => Math.abs(b.team - b.self) - Math.abs(a.team - a.self)).slice(0, 8)
-  if (hasSelf && parSorted.length >= 3) {
-    cards.splice(cards.length - 1, 0, {
-      tone: 'paper',
-      node: (
-        <div>
-          <p className="kicker mb-1 text-pink-deep">
-            the whole-self mirror
-            <InfoTip text="Every self-vs-team gap on one spine (virtues, Johari, watch-outs). When most gaps lean the same way, your self-image is skewed one consistent direction." />
-          </p>
-          <h2 className="display mb-4 text-3xl">Which way you tilt</h2>
-          <SpineParallax items={parSorted} />
         </div>
       ),
     })
