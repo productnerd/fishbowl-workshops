@@ -44,12 +44,6 @@ export async function getSelfReport(
   return { authed: true, hasSelf: Boolean(data.hasSelf), self: (data.self as SelfData) ?? null }
 }
 
-export interface SelfInsight {
-  headline: string
-  insights: string[]
-  n: number
-}
-
 export interface SelfSynthesis {
   title: string
   portrait: string
@@ -80,19 +74,6 @@ export async function getSynthesis(
   })
   if (error || !data || data.error) return null
   return (data.synthesis as SelfSynthesis) ?? null
-}
-
-// The private "you vs your team" narrative. Bearer-gated and generated server-side;
-// returns null until a team report exists. Cached on the self row, regenerated when
-// the team report grows (or force=true).
-export async function getSelfInsight(slug: string, force = false): Promise<SelfInsight | null> {
-  const auth = getSubjectAuth()
-  if (!auth) return null
-  const { data, error } = await supabase.functions.invoke('fishbowl-self-insight', {
-    body: { bearer: auth.bearer, slug, force },
-  })
-  if (error || !data || data.error) return null
-  return (data.insight as SelfInsight) ?? null
 }
 
 // Finish an ungated self-assessment: identify the email, claim the session, mint a

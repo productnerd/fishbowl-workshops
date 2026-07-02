@@ -9,19 +9,16 @@ import {
   HATS,
   SDT_NEEDS,
   BELBIN_ROLES,
-  VIA_STRENGTHS,
   CANDOR_ITEMS,
-  ENERGIZER_ACTIVITIES,
   type Session,
   type BigFiveScores,
-  type EnergizerTags,
   type ResponsibilityTiers,
   type HatScores,
   type VirtueScores,
 } from '@fishbowl/feedback-core'
 import { getSession } from '../lib/data'
 import { questions } from '../data/questions'
-import { getSelfReport, getSelfInsight, getSynthesis, type SelfData, type SelfInsight, type SelfSynthesis } from '../lib/self'
+import { getSelfReport, getSynthesis, type SelfData, type SelfSynthesis } from '../lib/self'
 import { useAiInsights } from '../lib/aiInsights'
 import { topPercent } from '../lib/percentile'
 import { computeGolden } from '../lib/goldenScore'
@@ -34,7 +31,6 @@ import PersonalityCard, { SideCharacter } from '../components/PersonalityCard'
 import LockedCard from '../components/LockedCard'
 import RelinkPrompt from '../components/RelinkPrompt'
 import EntryModal from '../components/EntryModal'
-import EnergyOverlay from '../components/EnergyOverlay'
 import ResponsibilitiesLadder from '../components/ResponsibilitiesLadder'
 import HatsRadar from '../components/HatsRadar'
 import BlindSpotQuadrant from '../components/BlindSpotQuadrant'
@@ -53,7 +49,6 @@ import StrengthsPodium from '../components/StrengthsPodium'
 import TodoList from '../components/TodoList'
 import OneOnOne from '../components/OneOnOne'
 import StickyNote from '../components/StickyNote'
-import ViaDeck from '../components/ViaDeck'
 import JohariWindow from '../components/JohariWindow'
 import WatchoutsDeck from '../components/WatchoutsDeck'
 import { WEAKNESSES } from '@fishbowl/feedback-core'
@@ -104,8 +99,6 @@ export default function Results() {
   const [modalDismissed, setModalDismissed] = useState(false)
   const [synthesis, setSynthesis] = useState<SelfSynthesis | null>(null)
   const [synthesisLoading, setSynthesisLoading] = useState(false)
-  const [selfInsight, setSelfInsight] = useState<SelfInsight | null>(null)
-  const [selfInsightLoading, setSelfInsightLoading] = useState(false)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -162,22 +155,6 @@ export default function Results() {
       cancelled = true
     }
   }, [slug, hasSelf, insights, self])
-
-  // The private "you vs them" narrative (bearer-gated) — kept alongside the new visual
-  // self-vs-team slides until we decide which to retire.
-  useEffect(() => {
-    if (!slug || !hasSelf || !insights) return
-    let cancelled = false
-    setSelfInsightLoading(true)
-    getSelfInsight(slug).then((r) => {
-      if (cancelled) return
-      setSelfInsight(r)
-      setSelfInsightLoading(false)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [slug, hasSelf, insights])
 
   if (loading) {
     return (
@@ -472,29 +449,6 @@ export default function Results() {
 
   // Energizers: a self-only lens — only the subject can say what energizes or drains
   // them, so colleagues are never asked. Shows once they've self-assessed.
-  const selfEnergizers = hasSelf ? ((self?.self_payload?.energizers as EnergizerTags | undefined) ?? null) : null
-  if (selfEnergizers && Object.keys(selfEnergizers).length > 0) {
-    const energyRows = ENERGIZER_ACTIVITIES
-      .filter((a) => typeof selfEnergizers[a.id] === 'number')
-      .map((a) => ({ id: a.id, label: a.label, teamMean: 0, n: 0 }))
-    const energyCard = {
-      tone: 'paper' as const,
-      node: (
-        <div>
-          <p className="kicker mb-1 text-pink-deep">
-            energy
-            <InfoTip text="Marcus Buckingham's strengths idea: a strength is an activity that energizes you, not merely one you're good at. This one's yours alone — only you can know what lifts or drains you." />
-          </p>
-          <h2 className="display mb-1 text-3xl">What lifts you, what drains you</h2>
-          <p className="mb-3 text-sm text-ink-soft">Your own read — only you can call this one.</p>
-          {cap('energy')}
-          <EnergyOverlay team={energyRows} self={selfEnergizers} />
-        </div>
-      ),
-    }
-    cards.splice(cards.length - 1, 0, energyCard)
-  }
-
   // Responsibilities ladder: team tiers always (>=5); self tiers overlay once self-assessed.
   const selfTiers = hasSelf ? ((self?.self_payload?.responsibility_tiers as ResponsibilityTiers | undefined) ?? null) : null
   const teamResp = insights.responsibilities ?? []
@@ -641,27 +595,6 @@ export default function Results() {
   // so the card shows the graceful team-only view instead of an empty self overlay.
   const selfArr = (v: unknown): string[] | null =>
     hasSelf && Array.isArray(v) && v.length > 0 ? (v as string[]) : null
-  const selfVia = selfArr(sp.via)
-  if (insights.via?.length || (selfVia && selfVia.length > 0)) {
-    const team = (insights.via ?? []).map((v) => {
-      const s = VIA_STRENGTHS.find((x) => x.id === v.id)
-      return { id: v.id, name: s?.name ?? v.id, virtue: s?.virtue ?? '', count: v.count }
-    })
-    fwCards.push({
-      tone: 'paper',
-      node: (
-        <div>
-          <p className="kicker mb-1 text-blue-deep">
-            signature strengths
-            <InfoTip text="The VIA Classification (Peterson & Seligman) — 24 character strengths under 6 virtues. Your signature strengths (the top few) feel the most energizing and authentic." />
-          </p>
-          <h2 className="display mb-5 text-3xl">Your top strengths</h2>
-          <ViaDeck team={team} self={selfVia} total={insights.via?.[0]?.n ?? 0} />
-        </div>
-      ),
-    })
-  }
-
   const selfJohari = selfArr(sp.johari)
   if ((insights.johari && insights.johari.counts.length) || (selfJohari && selfJohari.length > 0)) {
     fwCards.push({
@@ -741,40 +674,6 @@ export default function Results() {
           <h2 className="display mb-4 text-3xl">Blind spots &amp; hidden strengths</h2>
           {cap('blindspots')}
           <BlindSpotQuadrant points={gapRows} />
-        </div>
-      ),
-    })
-  }
-
-  // The original private "you vs them" narrative card (kept alongside the visual
-  // dumbbell + quadrant; we'll decide together which to retire).
-  if (hasSelf && (selfInsight || selfInsightLoading)) {
-    cards.splice(cards.length - 1, 0, {
-      tone: 'sand',
-      node: (
-        <div>
-          <p className="kicker mb-1 text-pink-deep">
-            you vs them · in words
-            <InfoTip text="A private read comparing your self-assessment against how your team sees you. Only you can see this." />
-          </p>
-          <h2 className="display mb-4 text-3xl">Your read, meet theirs</h2>
-          {selfInsight ? (
-            <>
-              <p className="serif mb-4 text-xl leading-snug text-ink">{selfInsight.headline}</p>
-              <ul className="flex flex-col gap-3">
-                {selfInsight.insights.map((t, i) => (
-                  <li key={i} className="flex gap-2 leading-relaxed text-ink">
-                    <span className="text-pink-deep">•</span>
-                    <span>
-                      <Rich text={t} />
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <p className="text-ink-soft">Reading the gaps between how you see yourself and how your team does…</p>
-          )}
         </div>
       ),
     })
