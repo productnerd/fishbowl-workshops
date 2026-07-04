@@ -1157,24 +1157,15 @@ export default function Results() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col px-5 py-6">
       {showEntryModal && <EntryModal onTakeNow={goSelf} onLater={dismissModal} />}
-      {/* exit (any slide) / back-to-home (last slide), top-right of the deck */}
+      {/* exit to home — a subtle ✕ top-right on every slide, last included */}
       <div className="mb-3 flex justify-end">
-        {idx < total - 1 ? (
-          <button
-            onClick={() => navigate('/')}
-            aria-label="Exit to home"
-            className="press grid h-10 w-10 cursor-pointer place-items-center rounded-full border-[2.5px] border-ink bg-paper-hi text-lg font-black text-ink shadow-chunky-sm"
-          >
-            ✕
-          </button>
-        ) : (
-          <button
-            onClick={() => navigate('/')}
-            className="press cursor-pointer rounded-full border-[2.5px] border-ink bg-pink px-5 py-2.5 font-display font-black text-ink shadow-chunky-sm sc-pink"
-          >
-            Back to home →
-          </button>
-        )}
+        <button
+          onClick={() => navigate('/')}
+          aria-label="Exit to home"
+          className="press grid h-10 w-10 cursor-pointer place-items-center rounded-full border-[2.5px] border-ink bg-paper-hi text-lg font-black text-ink shadow-chunky-sm"
+        >
+          ✕
+        </button>
       </div>
       {/* dots */}
       <div className="mb-4 flex gap-1.5">
