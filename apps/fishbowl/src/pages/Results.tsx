@@ -47,6 +47,7 @@ import BelbinReport from '../components/BelbinReport'
 import BelbinComposition from '../components/BelbinComposition'
 import StrengthsPodium from '../components/StrengthsPodium'
 import TodoList from '../components/TodoList'
+import LaterToggle from '../components/LaterToggle'
 import OneOnOne from '../components/OneOnOne'
 import StickyNote from '../components/StickyNote'
 import JohariWindow from '../components/JohariWindow'
@@ -980,18 +981,6 @@ export default function Results() {
   // gaps, hats, blind spots); fall back to the team-only one when there's no self-read.
   const ap = (hasSelf && synthesis?.actionPlan) || insights.actionPlan
   if (ap) {
-    const bullets = (items: string[]) => (
-      <ul className="mt-1 flex flex-col gap-1.5">
-        {items.filter(Boolean).map((t, i) => (
-          <li key={i} className="flex gap-2 leading-snug text-ink">
-            <span className="text-ink/50">•</span>
-            <span>
-              <Rich text={t} />
-            </span>
-          </li>
-        ))}
-      </ul>
-    )
     const planText = () => {
       const p = (s: string) => s.replace(/\*\*/g, '')
       const lines = ['My Fishbowl action plan', '', 'STOP NOW']
@@ -1015,15 +1004,7 @@ export default function Results() {
           <TodoList items={ap.stopNow} tone="stop" />
           <p className="kicker mb-2 mt-5 text-blue-deep">3 to start this week</p>
           <TodoList items={ap.startNow} tone="start" />
-          {hasNext && (
-            <div className="mt-3 rounded-2xl border-2 border-ink/40 bg-paper-hi/60 p-4">
-              <p className="kicker text-ink-soft">then, once those stick</p>
-              <p className="kicker mt-1.5 text-pink-deep/80">also stop</p>
-              {bullets(ap.stopNext)}
-              <p className="kicker mt-3 text-blue-deep/80">also start</p>
-              {bullets(ap.startNext)}
-            </div>
-          )}
+          {hasNext && <LaterToggle stop={ap.stopNext} start={ap.startNext} />}
           <a
             href={`mailto:?subject=${encodeURIComponent('My Fishbowl action plan')}&body=${encodeURIComponent(planText())}`}
             className="press mt-4 block cursor-pointer rounded-2xl border-[2.5px] border-ink bg-blue px-5 py-3 text-center font-display font-black text-paper-hi shadow-chunky-sm sc-navy"
