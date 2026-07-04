@@ -1169,8 +1169,13 @@ export default function Results() {
     if (slug) localStorage.setItem(`fishbowl_self_nudge_seen_${slug}`, '1')
   }
 
-  // Drop the breather in at the halfway mark (not buried near the end).
-  if (reassuranceCard) cards.splice(Math.floor(cards.length / 2), 0, reassuranceCard)
+  // Drop the breather in at the halfway mark (not buried near the end). It lands before
+  // the full-read card, so nudge the "skip to full read" target down one to stay in sync.
+  if (reassuranceCard) {
+    const at = Math.floor(cards.length / 2)
+    cards.splice(at, 0, reassuranceCard)
+    if (fullReadIdxRef.current >= at) fullReadIdxRef.current += 1
+  }
 
   const total = cards.length
   // Clamp for the card we actually render: idx can briefly sit out of range while the
