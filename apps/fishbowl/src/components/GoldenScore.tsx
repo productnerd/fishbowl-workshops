@@ -3,7 +3,8 @@ import type { Golden } from '../lib/goldenScore'
 // A dartboard for the golden mean: the gold centre is the virtuous middle, the rim is
 // the extremes. Each of the sixteen dimensions (ten virtues + six hats) is a dot placed
 // at its distance from centre; the dashed ring is how close you sit on average — which
-// is the Golden Score.
+// is the Golden Score. On wide screens the card splits: words + number on the left, a
+// big dartboard + legend on the right.
 const CX = 150
 const CY = 112
 const R = 94
@@ -20,75 +21,87 @@ export default function GoldenScore({ golden }: { golden: Golden }) {
   })
 
   return (
-    <div>
-      {/* Hero number */}
-      <div className="text-center">
-        <div className="display text-6xl leading-none" style={{ color: '#b8892a' }}>
-          {golden.score}
+    <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-center lg:gap-10">
+      {/* LEFT: the words, the number, the flex */}
+      <div>
+        <p className="kicker mb-1 text-pink-deep">the golden mean</p>
+        <h2 className="display mb-3 text-3xl lg:text-4xl">The Golden Score</h2>
+        <p className="mb-5 text-sm leading-relaxed text-ink-soft">
+          One number for the whole picture, from Aristotle's <span className="font-semibold text-ink">golden mean</span>: every
+          virtue is the midpoint between too little and too much. The closer you sit to that centre, across all ten virtues and
+          six hats, your read blended with your team's, the higher you score.
+        </p>
+
+        <div className="flex items-baseline gap-3">
+          <span className="display text-7xl leading-none" style={{ color: '#b8892a' }}>
+            {golden.score}
+          </span>
+          <span className="kicker text-ink-soft">out of 100</span>
         </div>
-        <p className="kicker mt-1 text-ink-soft">out of 100</p>
+
+        {golden.topPercent != null && (
+          <div className="mt-5 rounded-2xl border-[2.5px] border-ink px-5 py-4 shadow-chunky-sm" style={{ background: '#f5e6b8' }}>
+            <div className="display text-2xl" style={{ color: '#8f6a1c' }}>
+              Top {golden.topPercent}%
+            </div>
+            <p className="mt-1 text-sm leading-snug text-ink">
+              You're more virtuous than <span className="font-black">{golden.betterThan}%</span> of your colleagues, that's
+              something to pat yourself on the back for. 👏
+            </p>
+          </div>
+        )}
+
+        <p className="mt-5 text-sm text-ink-soft">
+          Closest to the mean: <span className="font-semibold text-ink">{golden.best.label}</span>. Furthest:{' '}
+          <span className="font-semibold text-ink">{golden.worst.label}</span>.
+        </p>
       </div>
 
-      <svg viewBox="0 0 300 230" className="mx-auto mt-1 w-full max-w-[290px]" role="img" aria-label={`Golden Score ${golden.score} of 100`}>
-        <defs>
-          <radialGradient id="goldTarget" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#f3da85" />
-            <stop offset="30%" stopColor="#dcae3d" />
-            <stop offset="62%" stopColor="#e2d4b6" />
-            <stop offset="100%" stopColor="#dcb9c6" />
-          </radialGradient>
-        </defs>
+      {/* RIGHT: the big dartboard + legend */}
+      <div>
+        <svg viewBox="0 0 300 230" className="mx-auto block w-full max-w-[300px] lg:max-w-[460px]" role="img" aria-label={`Golden Score ${golden.score} of 100`}>
+          <defs>
+            <radialGradient id="goldTarget" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#f3da85" />
+              <stop offset="30%" stopColor="#dcae3d" />
+              <stop offset="62%" stopColor="#e2d4b6" />
+              <stop offset="100%" stopColor="#dcb9c6" />
+            </radialGradient>
+          </defs>
 
-        {/* Target */}
-        <circle cx={CX} cy={CY} r={R} fill="url(#goldTarget)" stroke="#2a2420" strokeWidth={2.5} />
-        <circle cx={CX} cy={CY} r={R * 0.66} fill="none" stroke="#2a2420" strokeOpacity={0.16} strokeWidth={1} />
-        <circle cx={CX} cy={CY} r={R * 0.33} fill="none" stroke="#2a2420" strokeOpacity={0.16} strokeWidth={1} />
+          {/* Target */}
+          <circle cx={CX} cy={CY} r={R} fill="url(#goldTarget)" stroke="#2a2420" strokeWidth={2.5} />
+          <circle cx={CX} cy={CY} r={R * 0.66} fill="none" stroke="#2a2420" strokeOpacity={0.16} strokeWidth={1} />
+          <circle cx={CX} cy={CY} r={R * 0.33} fill="none" stroke="#2a2420" strokeOpacity={0.16} strokeWidth={1} />
 
-        {/* The golden mean: dead centre */}
-        <circle cx={CX} cy={CY} r={5} fill="#8f6a1c" />
+          {/* The golden mean: dead centre */}
+          <circle cx={CX} cy={CY} r={5} fill="#8f6a1c" />
 
-        {/* Your average distance from the mean = the score */}
-        <circle cx={CX} cy={CY} r={avgR} fill="none" stroke="#2a2420" strokeWidth={2} strokeDasharray="5 4" strokeOpacity={0.85} />
+          {/* Your average distance from the mean = the score */}
+          <circle cx={CX} cy={CY} r={avgR} fill="none" stroke="#2a2420" strokeWidth={2} strokeDasharray="5 4" strokeOpacity={0.85} />
 
-        {/* Each dimension */}
-        {dots.map((d) => (
-          <circle key={d.key} cx={d.x} cy={d.y} r={5} fill={d.color} stroke="#2a2420" strokeOpacity={0.55} strokeWidth={1} />
-        ))}
+          {/* Each dimension */}
+          {dots.map((d) => (
+            <circle key={d.key} cx={d.x} cy={d.y} r={5} fill={d.color} stroke="#2a2420" strokeOpacity={0.55} strokeWidth={1} />
+          ))}
 
-        {/* Rim + centre labels */}
-        <text x={CX} y={CY + R + 20} textAnchor="middle" className="serif" fontSize={11} fill="#5a4f45" fontStyle="italic">
-          rim = the extremes · centre = the golden mean
-        </text>
-      </svg>
+          {/* Rim + centre labels */}
+          <text x={CX} y={CY + R + 20} textAnchor="middle" className="serif" fontSize={11} fill="#5a4f45" fontStyle="italic">
+            rim = the extremes · centre = the golden mean
+          </text>
+        </svg>
 
-      {/* Percentile flex — only when top quartile */}
-      {golden.topPercent != null && (
-        <div className="mt-4 rounded-2xl border-[2.5px] border-ink px-5 py-4 text-center shadow-chunky-sm" style={{ background: '#f5e6b8' }}>
-          <div className="display text-2xl" style={{ color: '#8f6a1c' }}>
-            Top {golden.topPercent}%
-          </div>
-          <p className="mt-1 text-sm leading-snug text-ink">
-            You're more virtuous than <span className="font-black">{golden.betterThan}%</span> of your colleagues — that's
-            something to pat yourself on the back for. 👏
-          </p>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-ink-soft">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="inline-block h-2.5 w-2.5 rounded-full border border-ink/50" style={{ background: '#a83f6f' }} /> virtues
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="inline-block h-2.5 w-2.5 rounded-full border border-ink/50" style={{ background: '#dcae3d' }} /> thinking hats
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="inline-block h-3 w-3 rounded-full border-2 border-dashed border-ink/70" /> your average
+          </span>
         </div>
-      )}
-
-      {/* Grounding + legend */}
-      <p className="mt-4 text-center text-sm text-ink-soft">
-        Closest to the mean: <span className="font-semibold text-ink">{golden.best.label}</span>. Furthest:{' '}
-        <span className="font-semibold text-ink">{golden.worst.label}</span>.
-      </p>
-      <div className="mt-2 flex items-center justify-center gap-5 text-xs text-ink-soft">
-        <span className="inline-flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-2.5 rounded-full border border-ink/50" style={{ background: '#a83f6f' }} /> virtues
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-2.5 rounded-full border border-ink/50" style={{ background: '#dcae3d' }} /> thinking hats
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded-full border-2 border-dashed border-ink/70" /> your average
-        </span>
       </div>
     </div>
   )

@@ -237,7 +237,7 @@ export default function Results() {
     )
   }
 
-  const cards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode; character?: { type: string; name: string } }[] = [
+  const cards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode; character?: { type: string; name: string }; wide?: boolean }[] = [
     {
       tone: 'pink',
       node: (
@@ -907,18 +907,8 @@ export default function Results() {
   if (golden) {
     cards.push({
       tone: 'paper',
-      node: (
-        <div>
-          <p className="kicker mb-1 text-pink-deep">the golden mean</p>
-          <h2 className="display mb-2 text-3xl">The Golden Score</h2>
-          <p className="mb-4 text-sm leading-relaxed text-ink-soft">
-            One number for the whole picture, from Aristotle's <span className="font-semibold text-ink">golden mean</span>: every
-            virtue is the midpoint between too little and too much. The closer you sit to that centre — across all ten virtues and
-            six hats, your read blended with your team's — the higher you score.
-          </p>
-          <GoldenScore golden={golden} />
-        </div>
-      ),
+      wide: true,
+      node: <GoldenScore golden={golden} />,
     })
   }
 
@@ -1224,7 +1214,11 @@ export default function Results() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -24 }}
             transition={{ duration: 0.32, ease: [0.2, 0.8, 0.2, 1] as const }}
-            className="w-full"
+            className={
+              cards[cur].wide
+                ? 'w-full lg:relative lg:left-1/2 lg:w-[min(84vw,1040px)] lg:shrink-0 lg:-translate-x-1/2'
+                : 'w-full'
+            }
           >
             <Card tone={cards[cur].tone} className="max-h-[88vh] overflow-y-auto p-7 sm:p-9">
               {cards[cur].node}
