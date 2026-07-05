@@ -53,6 +53,8 @@ const QUESTIONS: Q[] = [
   { id: 20, type: 'freetext', dimension: 'appreciation', text: 'What do you most appreciate about working with {name}?' },
   { id: 21, type: 'freetext', dimension: 'growth', text: 'What is one thing that would make {name} even more effective?' },
   { id: 22, type: 'freetext', dimension: 'message', text: 'If {name} could read one thing from this feedback, what should it be?' },
+  { id: 32, type: 'freetext', dimension: 'aura', text: "In plain words, what's {name}'s vibe or aura?" },
+  { id: 33, type: 'freetext', dimension: 'first_impression', text: 'What was your first impression of {name}?' },
 ]
 
 const VIRTUES = QUESTIONS.filter((q) => q.type === 'virtue')

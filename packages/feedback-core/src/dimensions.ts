@@ -11,14 +11,22 @@ export interface OrientationMeta {
   key: Orientation
   title: string
   tagline: string
-  color: string // dial + accent colour
+  color: string // mid shade (accent)
+  colorLight: string // low scores
+  colorDark: string // high scores
 }
 
 export const ORIENTATIONS: OrientationMeta[] = [
-  { key: 'cognitive', title: 'How You Prefer to Think', tagline: 'Your approach to thinking and solving problems.', color: '#1366ac' },
-  { key: 'interpersonal', title: 'How You Engage with Others', tagline: 'How you naturally relate to the people around you.', color: '#a83f6f' },
-  { key: 'motivational', title: 'How You Apply Yourself', tagline: 'How you set goals, cope with setbacks, and drive forward.', color: '#b8892a' },
+  { key: 'cognitive', title: 'How You Prefer to Think', tagline: 'Your approach to thinking and solving problems.', color: '#1366ac', colorLight: '#8fb9dd', colorDark: '#0c3a63' },
+  { key: 'interpersonal', title: 'How You Engage with Others', tagline: 'How you naturally relate to the people around you.', color: '#a83f6f', colorLight: '#e6a9c3', colorDark: '#6b2544' },
+  { key: 'motivational', title: 'How You Apply Yourself', tagline: 'How you set goals, cope with setbacks, and drive forward.', color: '#b8892a', colorLight: '#dcbf7a', colorDark: '#765414' },
 ]
+
+// Level → shade: the depth of colour signals how strongly the dimension applies
+// (light = low, mid = moderate, dark = high). No words, just the shade.
+export function shadeFor(o: OrientationMeta, score: number): string {
+  return score >= 70 ? o.colorDark : score >= 40 ? o.color : o.colorLight
+}
 
 // The new, original items (asked after the Big Five block). Answered 1–7, reverse = 8−raw.
 export interface DimensionItem {

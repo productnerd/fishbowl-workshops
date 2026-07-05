@@ -262,7 +262,7 @@ export default function Questionnaire() {
             {q.type === 'scenario' && q.options && (
               <ScenarioChoice options={q.options} selected={(a as string) ?? null} onSelect={handleSelect} />
             )}
-            {q.type === 'freetext' && <FreeText value={(a as string) || ''} onChange={set} />}
+            {q.type === 'freetext' && <FreeText value={(a as string) || ''} onChange={set} maxLength={q.maxLength} placeholder={q.placeholder} />}
             {q.type === 'responsibilities' && (
               <TierTagger
                 items={session.responsibilities || []}

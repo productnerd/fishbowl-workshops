@@ -1,4 +1,4 @@
-import type { DimensionScore, OrientationMeta } from '@fishbowl/feedback-core'
+import { shadeFor, type DimensionScore, type OrientationMeta } from '@fishbowl/feedback-core'
 
 // One orientation's card: its dimensions as donut dials with label, band, and a short
 // neutral descriptor (the % + band carry how strongly it applies).
@@ -38,20 +38,18 @@ export default function DimensionsProfile({ orientation, dims }: { orientation: 
       <p className="mb-5 text-sm text-ink-soft">{orientation.tagline}</p>
 
       <div className="flex flex-col gap-3">
-        {dims.map((d) => (
-          <div key={d.key} className="flex items-center gap-4 rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3.5 shadow-chunky-sm">
-            <Dial score={d.score} color={orientation.color} />
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-baseline gap-x-2">
+        {dims.map((d) => {
+          const color = shadeFor(orientation, d.score)
+          return (
+            <div key={d.key} className="flex items-center gap-4 rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3.5 shadow-chunky-sm">
+              <Dial score={d.score} color={color} />
+              <div className="min-w-0">
                 <p className="serif text-lg font-black leading-tight text-ink">{d.label}</p>
-                <span className="text-[11px] font-black uppercase tracking-wide" style={{ color: orientation.color }}>
-                  {d.band}
-                </span>
+                <p className="mt-0.5 text-sm leading-snug text-ink-soft">{d.blurb}</p>
               </div>
-              <p className="mt-0.5 text-sm leading-snug text-ink-soft">{d.blurb}</p>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

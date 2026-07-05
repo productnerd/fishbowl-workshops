@@ -59,6 +59,9 @@ export interface Question {
     virtueTraits?: string[]
     excessiveTraits?: string[]
   }
+  // freetext: optional hard character cap + custom placeholder
+  maxLength?: number
+  placeholder?: string
 }
 
 export interface Session {

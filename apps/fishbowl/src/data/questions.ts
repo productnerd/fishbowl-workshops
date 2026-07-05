@@ -156,6 +156,10 @@ export const questions: Question[] = [
   { id: 20, type: 'freetext', dimension: 'appreciation', section: 'In Their Words', sectionDescription: 'A few honest words. Stays anonymous.', text: 'What do you most appreciate about working with {name}?' },
   { id: 21, type: 'freetext', dimension: 'growth', section: 'In Their Words', sectionDescription: 'A few honest words. Stays anonymous.', text: 'What is one thing that would make {name} even more effective?' },
   { id: 22, type: 'freetext', dimension: 'message', section: 'In Their Words', sectionDescription: 'A few honest words. Stays anonymous.', text: 'If {name} could read one thing from this feedback, what should it be?' },
+
+  // ── First Impressions: quick gut reads (freetext, synthesized, never shown verbatim) ──
+  { id: 32, type: 'freetext', dimension: 'aura', section: 'First Impressions', sectionDescription: 'Quick gut read. Stays anonymous.', text: "In plain words, what's {name}'s vibe or aura?", placeholder: 'e.g. calm and sharp, warm chaos energy…', maxLength: 120 },
+  { id: 33, type: 'freetext', dimension: 'first_impression', section: 'First Impressions', sectionDescription: 'Quick gut read. Stays anonymous.', text: 'What was your first impression of {name}?', placeholder: 'When you first started working together…' },
 ]
 
 const withName = (q: Question, name: string): Question => ({
