@@ -115,11 +115,11 @@ export default function Dashboard() {
               </button>
             )}
           </div>
-          <p className={`mt-2 text-sm ${selfDone ? 'text-ink-soft' : 'text-paper-hi/85'}`}>
-            {selfDone
-              ? "Your report will show your self-view next to your team's."
-              : 'Do your own first (~2 min). It makes the whole thing sharper. Share in parallel.'}
-          </p>
+          {!selfDone && (
+            <p className="mt-2 text-sm text-paper-hi/85">
+              Do your own first (~2 min). It makes the whole thing sharper. Share in parallel.
+            </p>
+          )}
         </Card>
 
         {/* Step 2 — share with colleagues */}

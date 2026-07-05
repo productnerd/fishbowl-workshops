@@ -7,12 +7,12 @@ type Dial = { def: string; exc: string; score: number }
 // (archetype shadow + hottest thinking hat) shows they all trace to the same source.
 export default function VirtueViceDial({ dials, engine }: { dials: Dial[]; engine: { shadow: string; hat: string } }) {
   const VB = 320
-  const x0 = 92
+  const x0 = 28
   const x1 = 300
   const span = x1 - x0
   const px = (v: number) => x0 + ((Math.min(9, Math.max(1, v)) - 1) / 8) * span
-  const rowH = 46
-  const height = dials.length * rowH + 10
+  const rowH = 56
+  const height = dials.length * rowH + 14
 
   return (
     <div>
@@ -24,19 +24,13 @@ export default function VirtueViceDial({ dials, engine }: { dials: Dial[]; engin
       </div>
       <svg viewBox={`0 0 ${VB} ${height}`} className="block w-full" role="img" aria-label="Virtue into vice redline gauges">
         {dials.map((d, i) => {
-          const y = 10 + i * rowH + 14
+          const y = 16 + i * rowH
+          const labelY = y + 22
           const score = d.score
           const excess = score > 6
           const deficient = score < 4
           return (
             <g key={i}>
-              {/* pole labels */}
-              <text x={x0 - 6} y={y + 3.5} textAnchor="end" fontSize={10} fontWeight={deficient ? 800 : 600} fill={deficient ? '#d9734a' : '#5a4f45'}>
-                {d.def}
-              </text>
-              <text x={x1 + 6} y={y + 3.5} textAnchor="start" fontSize={10} fontWeight={excess ? 800 : 600} fill={excess ? '#d9734a' : '#5a4f45'}>
-                {d.exc}
-              </text>
               {/* track */}
               <rect x={x0} y={y - 4} width={span} height={8} rx={4} fill="#e2d4b6" />
               {/* redlines */}
@@ -48,6 +42,13 @@ export default function VirtueViceDial({ dials, engine }: { dials: Dial[]; engin
               <line x1={px(5)} y1={y - 7} x2={px(5)} y2={y + 7} stroke="#2a2420" strokeOpacity={0.4} strokeWidth={1} />
               {/* needle */}
               <circle cx={px(score)} cy={y} r={6.5} fill={excess || deficient ? '#d9734a' : '#2f9e7a'} stroke="#2a2420" strokeWidth={2} />
+              {/* pole labels — under the bar at each end so neither can clip */}
+              <text x={x0} y={labelY} textAnchor="start" fontSize={10} fontWeight={deficient ? 800 : 600} fill={deficient ? '#d9734a' : '#5a4f45'}>
+                {d.def}
+              </text>
+              <text x={x1} y={labelY} textAnchor="end" fontSize={10} fontWeight={excess ? 800 : 600} fill={excess ? '#d9734a' : '#5a4f45'}>
+                {d.exc}
+              </text>
             </g>
           )
         })}

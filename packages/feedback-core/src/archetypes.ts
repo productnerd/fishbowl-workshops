@@ -47,7 +47,20 @@ const SIGNALS: Record<string, Record<string, number>> = {
 export interface ArchetypeResult extends Archetype {
   runnerUp: string
   fromSelf: boolean
+  // The handful of signals that most pushed this archetype to the top — the honest
+  // "why you landed here". source 'you' = from your own Big Five, 'team' = from how
+  // colleagues scored your virtues.
+  drivers: { label: string; source: 'you' | 'team' }[]
 }
+
+// Human labels for the signal keys used in SIGNALS, for the "why you" line.
+const DRIVER_LABELS: Record<string, string> = {
+  O: 'openness', C: 'conscientiousness', E: 'sociability', A: 'warmth', ES: 'steadiness',
+  rigor: 'rigour', candor: 'candour', drive: 'drive', courage: 'courage', confidence: 'confidence',
+  decisiveness: 'decisiveness', generosity: 'generosity', receptiveness: 'openness to input',
+  collaboration: 'collaboration', composure: 'composure',
+}
+const BIG_FIVE_KEYS = new Set(['O', 'C', 'E', 'A', 'ES'])
 
 // Blend: self Big Five (when present) + team virtue means. Either alone still works.
 export function deriveArchetype(
@@ -73,5 +86,14 @@ export function deriveArchetype(
     })
     .sort((a, b) => b.s - a.s)
 
-  return { ...ARCHETYPES[scores[0].key], runnerUp: ARCHETYPES[scores[1].key].name, fromSelf: Boolean(bigFive) }
+  // The top positive contributors to the winning archetype = the "why you" drivers.
+  const winnerWeights = SIGNALS[scores[0].key]
+  const drivers = Object.entries(winnerWeights)
+    .map(([sk, w]) => ({ sk, c: (sig[sk] ?? 0) * w }))
+    .filter((x) => x.c > 0.08)
+    .sort((a, b) => b.c - a.c)
+    .slice(0, 3)
+    .map((x) => ({ label: DRIVER_LABELS[x.sk] ?? x.sk, source: (BIG_FIVE_KEYS.has(x.sk) ? 'you' : 'team') as 'you' | 'team' }))
+
+  return { ...ARCHETYPES[scores[0].key], runnerUp: ARCHETYPES[scores[1].key].name, fromSelf: Boolean(bigFive), drivers }
 }

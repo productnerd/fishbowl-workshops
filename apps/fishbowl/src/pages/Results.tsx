@@ -446,6 +446,15 @@ export default function Results() {
   // after the personality card.
   const virtueMeans = Object.fromEntries(insights.virtues.map((v) => [v.dimension, v.mu]))
   const archetype = deriveArchetype(hasSelf ? (self?.big_five ?? null) : null, virtueMeans)
+  // The honest "why you landed here": name the traits that actually drove the pick,
+  // split by whose read they came from (your own Big Five vs the team's virtue scores).
+  const joinList = (a: string[]) => (a.length <= 1 ? a[0] ?? '' : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`)
+  const teamDrivers = (archetype?.drivers ?? []).filter((d) => d.source === 'team').map((d) => d.label)
+  const selfDrivers = (archetype?.drivers ?? []).filter((d) => d.source === 'you').map((d) => d.label)
+  const whyParts: string[] = []
+  if (teamDrivers.length) whyParts.push(`your team reads high ${joinList(teamDrivers)} in you`)
+  if (selfDrivers.length) whyParts.push(`your own answers run high on ${joinList(selfDrivers)}`)
+  const archWhy = whyParts.length ? `${whyParts.join(', and ').replace(/^./, (c) => c.toUpperCase())}.` : ''
   const archCard: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode } | null = archetype
     ? {
         tone: 'ink',
@@ -457,9 +466,18 @@ export default function Results() {
             </p>
             <p className="display mt-3 text-[clamp(2.6rem,8vw,4rem)] text-paper-hi">{archetype.name}</p>
             <p className="serif mt-2 text-lg text-paper-hi/80">{archetype.essence}</p>
+            <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-paper-hi/70">
+              Archetypes are twelve universal characters — the Hero, the Sage, the Caregiver, and nine more — that recur across every culture&rsquo;s stories. We never ask which you are; we read it from how you and your team actually answered.
+            </p>
             <p className="mt-5 text-lg leading-relaxed text-paper-hi/90">
               {archetype.cardTemplate.replace('{name}', session.creator_name)}
             </p>
+            {archWhy && (
+              <p className="mx-auto mt-4 max-w-md text-[0.95rem] leading-relaxed text-paper-hi/80">
+                <span className="font-semibold text-blue">Why this one. </span>
+                {archWhy}
+              </p>
+            )}
             <div className="mt-6 grid grid-cols-2 gap-3 text-left">
               <div className="rounded-2xl border-2 border-blue/40 bg-blue/15 p-3">
                 <p className="kicker text-blue">☀ Light</p>
@@ -756,12 +774,14 @@ export default function Results() {
       return { label: meta.label, behavior: s.winner, verdict: (balanced ? 'balanced' : 'off') as 'balanced' | 'off', hatLabel: meta.hatLabel, hatColor: meta.hatColor }
     })
     .filter((r): r is { label: string; behavior: string; verdict: 'balanced' | 'off'; hatLabel: string; hatColor: string } => r !== null)
+  // Built here, but placed later — right before the Work Manual (see below).
+  let fourRoomsCard: (typeof cards)[number] | null = null
   if (hasSelf && scenarioRooms.length >= 3) {
     const fourth = hotHat
       ? { label: 'Your default gear', behavior: `You lead with the ${hotHatName} hat`, verdict: 'balanced' as const, hatLabel: hotHatName, hatColor: HAT_COLOR[hotHat.key] ?? '#b8ab97' }
       : null
     const rooms = fourth ? [...scenarioRooms.slice(0, 3), fourth] : scenarioRooms.slice(0, 4)
-    cards.splice(cards.length - 1, 0, {
+    fourRoomsCard = {
       tone: 'sand',
       node: (
         <div>
@@ -774,7 +794,7 @@ export default function Results() {
           <FourRooms rooms={rooms} />
         </div>
       ),
-    })
+    }
   }
 
   // Why it persists: high confidence + low receptiveness = a blind spot only they can open.
@@ -1006,6 +1026,11 @@ export default function Results() {
       ),
     })
   }
+
+  // "A day in four rooms" lands here, right before the Work Manual (behaviour across
+  // situations, then the operating manual that follows from it). Shown even if the
+  // manual is still loading, so it never drops out of the deck.
+  if (fourRoomsCard) cards.push(fourRoomsCard)
 
   // The Work Manual — a typed operating manual of first-person lines ("As a leader, I…"),
   // grounded in self + team. Its own focused AI call; sits after the full read as a

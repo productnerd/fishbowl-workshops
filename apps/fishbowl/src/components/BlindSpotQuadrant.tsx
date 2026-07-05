@@ -21,8 +21,6 @@ export default function BlindSpotQuadrant({ points }: { points: Point[] }) {
       <svg viewBox="0 0 240 246" className="mx-auto block w-full max-w-[340px]" role="img" aria-label="Blind spots and hidden strengths quadrant">
         <rect x={O} y={O} width={S} height={S} fill="#f5eedc" stroke="#2a2420" strokeOpacity={0.25} />
         <line x1={O} y1={bottom} x2={bottom} y2={O} stroke="#2a2420" strokeOpacity={0.35} strokeWidth={1.4} strokeDasharray="4 4" />
-        <text x={O + 52} y={O + 20} fontSize={9.5} fontWeight={700} fill={BLIND} textAnchor="middle">BLIND SPOTS</text>
-        <text x={bottom - 56} y={bottom - 12} fontSize={9.5} fontWeight={700} fill={HIDDEN} textAnchor="middle">HIDDEN STRENGTHS</text>
 
         {points.map((p) => {
           const diff = p.self - p.team
