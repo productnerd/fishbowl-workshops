@@ -256,7 +256,7 @@ export default function Results() {
               onClick={() => fullReadIdxRef.current >= 0 && setIdx(fullReadIdxRef.current)}
               className="press mt-8 w-fit cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-5 py-3 font-display font-black text-ink shadow-chunky-sm"
             >
-              📖 Skip to your full written read →
+              📖 Skip to final report →
             </button>
           )}
           {!hasSelf && slug && <RelinkPrompt slug={slug} />}
