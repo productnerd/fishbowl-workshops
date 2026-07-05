@@ -14,10 +14,10 @@ export interface BigFiveItem {
   id: string // e.g. 'ocean_O1'
   trait: BigFiveTrait
   text: string
-  reverse: boolean // reverse-keyed: scored 6 - raw
+  reverse: boolean // reverse-keyed: scored 8 - raw
 }
 
-// 40 items, 1–5 agree/disagree, 8 per trait. Reverse-key pattern per trait is
+// 40 items, 1–7 agree/disagree, 8 per trait. Reverse-key pattern per trait is
 // [F,F,R,R,F,R,F,R], so any prefix (the first 4 / 6 / 8) stays balanced — the
 // depth slider takes the first N per trait via selectBigFiveItems().
 export const BIG_FIVE_ITEMS: BigFiveItem[] = [
@@ -101,7 +101,7 @@ export function selectBigFiveItems(perTrait: number): BigFiveItem[] {
   return out
 }
 
-// Mean each trait's answered items (reverse → 6 − raw), map 1–5 → 0–100.
+// Mean each trait's answered items (reverse → 8 − raw), map 1–7 → 0–100.
 export function scoreBigFive(answers: Record<string, number>): BigFiveScores {
   const out = {} as Record<BigFiveTrait, number>
   for (const trait of TRAIT_ORDER) {
@@ -110,11 +110,11 @@ export function scoreBigFive(answers: Record<string, number>): BigFiveScores {
       .map((i) => {
         const raw = answers[i.id]
         if (typeof raw !== 'number') return null
-        return i.reverse ? 6 - raw : raw
+        return i.reverse ? 8 - raw : raw
       })
       .filter((v): v is number => v != null)
-    const mean = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 3
-    out[trait] = Math.round(((mean - 1) / 4) * 100)
+    const mean = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 4
+    out[trait] = Math.round(((mean - 1) / 6) * 100)
   }
   return { ...out, emotionalStability: 100 - out.neuroticism }
 }

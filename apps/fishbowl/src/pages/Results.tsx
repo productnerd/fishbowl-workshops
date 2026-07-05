@@ -238,7 +238,7 @@ export default function Results() {
     )
   }
 
-  const cards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode; character?: { type: string; name: string }; wide?: boolean }[] = [
+  const cards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode; character?: { type: string; name: string }; wide?: boolean; bare?: boolean }[] = [
     {
       tone: 'pink',
       node: (
@@ -897,6 +897,7 @@ export default function Results() {
   if (insights.goodVibes) {
     cards.push({
       tone: 'ink',
+      bare: true,
       node: <LetterFromTeam name={session.creator_name} body={insights.goodVibes} words={vibeWords} />,
     })
   }
@@ -1038,10 +1039,11 @@ export default function Results() {
   if (hasSelf && synthesis?.biases && synthesis.biases.length > 0) {
     cards.push({
       tone: 'sand',
+      bare: true,
       node: (
-        <div>
+        <div className="text-center">
           <p className="kicker mb-1 text-pink-deep">stick it on your monitor</p>
-          <h2 className="display mb-4 text-3xl">Keep these in mind</h2>
+          <h2 className="display mb-5 text-3xl">Keep these in mind</h2>
           <StickyNote bullets={synthesis.biases} />
         </div>
       ),
@@ -1192,9 +1194,14 @@ export default function Results() {
                 : 'w-full'
             }
           >
-            <Card tone={cards[cur].tone} className="max-h-[88vh] overflow-y-auto p-7 sm:p-9">
-              {cards[cur].node}
-            </Card>
+            {cards[cur].bare ? (
+              // No card chrome — the node IS the object (e.g. the letter paper, the post-it).
+              <div className="max-h-[88vh] overflow-y-auto">{cards[cur].node}</div>
+            ) : (
+              <Card tone={cards[cur].tone} className="max-h-[88vh] overflow-y-auto p-7 sm:p-9">
+                {cards[cur].node}
+              </Card>
+            )}
           </motion.div>
         </AnimatePresence>
       </div>

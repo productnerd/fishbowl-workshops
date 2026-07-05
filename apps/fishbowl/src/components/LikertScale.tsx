@@ -1,4 +1,3 @@
-const SEGMENTS = [1, 2, 3, 4, 5]
 // Subtle brown ramp by distance from the neutral middle (bipolar mode).
 const BROWN = ['bg-paper-hi', 'bg-sand', 'bg-sand-deep']
 
@@ -7,34 +6,40 @@ const BROWN = ['bg-paper-hi', 'bg-sand', 'bg-sand-deep']
 //  - bipolar: a position scale where the middle is neutral and the edges are the
 //    strong positions. Only the pressed cell highlights (pink); the rest carry a
 //    subtle brown tint that deepens toward the edges. No numbers.
+// `points` sets how many cells (default 5; the personality scale uses 7).
 export default function LikertScale({
   value,
   onChange,
   lowLabel,
   highLabel,
   bipolar = false,
+  points = 5,
 }: {
   value: number | null
   onChange: (v: number) => void
   lowLabel: string
   highLabel: string
   bipolar?: boolean
+  points?: number
 }) {
+  const segments = Array.from({ length: points }, (_, i) => i + 1)
+  const middle = (points + 1) / 2
   return (
     <div className="w-full select-none">
       <div className="card-3d flex gap-2 bg-sand p-2.5">
-        {SEGMENTS.map((s) => {
+        {segments.map((s) => {
           const isSel = value === s
           if (bipolar) {
-            const dist = Math.abs(s - 3) // 0 (middle) .. 2 (edge)
+            const dist = Math.floor(Math.abs(s - middle)) // 0 (middle) .. edge
+            const shade = BROWN[Math.min(dist, BROWN.length - 1)]
             return (
               <button
                 key={s}
                 type="button"
                 onClick={() => onChange(s)}
-                aria-label={`Position ${s} of 5`}
+                aria-label={`Position ${s} of ${points}`}
                 className={`depress-sm h-16 flex-1 cursor-pointer rounded-2xl border-[2.5px] border-ink ${
-                  isSel ? 'bg-pink sc-pink is-on' : BROWN[dist]
+                  isSel ? 'bg-pink sc-pink is-on' : shade
                 }`}
               />
             )
