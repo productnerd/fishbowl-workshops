@@ -15,25 +15,25 @@ Drop files here, named by the **4-letter type code**:
 NOTE: the files currently in these folders are throwaway colored placeholders so
 the wiring is visible. Replace them with the real art using the same file names.
 
-## Type → Disney character
+## Type → character (fictional protagonists)
 
-| TYPE | Character | File names |
-|---|---|---|
-| INTJ | Jafar | `INTJ.png` / `INTJ.jpg` |
-| INTP | Milo Thatch | `INTP.png` / `INTP.jpg` |
-| ENTJ | Scar | `ENTJ.png` / `ENTJ.jpg` |
-| ENTP | Hades | `ENTP.png` / `ENTP.jpg` |
-| INFJ | Elsa | `INFJ.png` / `INFJ.jpg` |
-| INFP | Belle | `INFP.png` / `INFP.jpg` |
-| ENFJ | Hans | `ENFJ.png` / `ENFJ.jpg` |
-| ENFP | Rapunzel | `ENFP.png` / `ENFP.jpg` |
-| ISTJ | Mufasa | `ISTJ.png` / `ISTJ.jpg` |
-| ISFJ | Mrs. Potts | `ISFJ.png` / `ISFJ.jpg` |
-| ESTJ | Captain Hook | `ESTJ.png` / `ESTJ.jpg` |
-| ESFJ | Cinderella | `ESFJ.png` / `ESFJ.jpg` |
-| ISTP | Tarzan | `ISTP.png` / `ISTP.jpg` |
-| ISFP | Pocahontas | `ISFP.png` / `ISFP.jpg` |
-| ESTP | Gaston | `ESTP.png` / `ESTP.jpg` |
-| ESFP | Aladdin | `ESFP.png` / `ESFP.jpg` |
+| TYPE | Character | Source | File names |
+|---|---|---|---|
+| ISTJ | Carl Fredricksen | Up | `ISTJ.png` / `ISTJ.jpg` |
+| ISFJ | Samwise Gamgee | The Lord of the Rings | `ISFJ.png` / `ISFJ.jpg` |
+| INFJ | Jean Valjean | Les Misérables | `INFJ.png` / `INFJ.jpg` |
+| INTJ | Lisbeth Salander | The Girl with the Dragon Tattoo | `INTJ.png` / `INTJ.jpg` |
+| ISTP | Max Rockatansky | Mad Max: Fury Road | `ISTP.png` / `ISTP.jpg` |
+| ISFP | Ponyo | Ponyo | `ISFP.png` / `ISFP.jpg` |
+| INFP | Amélie Poulain | Amélie | `INFP.png` / `INFP.jpg` |
+| INTP | Ellie Sattler | Jurassic Park | `INTP.png` / `INTP.jpg` |
+| ESTP | Long John Silver | Treasure Island | `ESTP.png` / `ESTP.jpg` |
+| ESFP | Kuzco | The Emperor's New Groove | `ESFP.png` / `ESFP.jpg` |
+| ENFP | Jack Sparrow | Pirates of the Caribbean | `ENFP.png` / `ENFP.jpg` |
+| ENTP | Tyrion Lannister | A Song of Ice and Fire | `ENTP.png` / `ENTP.jpg` |
+| ESTJ | Hank Schrader | Breaking Bad | `ESTJ.png` / `ESTJ.jpg` |
+| ESFJ | Molly Weasley | Harry Potter | `ESFJ.png` / `ESFJ.jpg` |
+| ENFJ | John Keating | Dead Poets Society | `ENFJ.png` / `ENFJ.jpg` |
+| ENTJ | Miranda Priestly | The Devil Wears Prada | `ENTJ.png` / `ENTJ.jpg` |
 
 (Backgrounds go in `public/backgrounds/` with the same `<TYPE>.jpg` names.)
