@@ -61,7 +61,7 @@ const DEPTHS: SelfDepth[] = [
   { id: 'extended', name: 'Extended', perTrait: 8, time: '~10 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
 ]
 
-type Phase = 'checking' | 'already' | 'needauth' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks' | 'reflections'
+type Phase = 'checking' | 'needauth' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks' | 'reflections'
 
 // The 10 virtue scales, reused from the colleague survey so the vice/virtue behaviours
 // (deficientTraits / virtueTraits / excessiveTraits) are a single source of truth.
@@ -108,9 +108,10 @@ export default function SelfAssessment() {
       }
       const s = r.self
       const sp = (s?.self_payload ?? {}) as Record<string, any>
-      // Already finished it? Don't let them redo it; send them to their dashboard.
+      // Already finished it? Don't let them redo it; bounce them straight to their
+      // dashboard (replace, so Back doesn't land them back on the self-assessment).
       if (s && s.completed) {
-        setPhase('already')
+        goDashboard(true)
         return
       }
       // Resume an in-progress (not yet completed) self-assessment where they left off.
@@ -188,8 +189,9 @@ export default function SelfAssessment() {
   }
 
   // Send them to their dashboard (the share/status screen), making sure it can render
-  // this session even if they arrived on a device that never created it locally.
-  const goDashboard = async () => {
+  // this session even if they arrived on a device that never created it locally. Pass
+  // replace=true for an auto-redirect so Back doesn't bounce them onto the self-flow.
+  const goDashboard = async (replace = false) => {
     if (!slug) return
     const session = await getSession(slug)
     const mine = readMine()
@@ -197,7 +199,7 @@ export default function SelfAssessment() {
       MY_KEY,
       JSON.stringify({ slug, creator_name: session?.creator_name ?? mine?.creator_name ?? '', email: mine?.email ?? null })
     )
-    navigate(`/dashboard/${slug}`)
+    navigate(`/dashboard/${slug}`, { replace })
   }
 
   // ── depth ──
@@ -376,27 +378,6 @@ export default function SelfAssessment() {
             <div className="mt-6">
               <Button variant="pink" onClick={() => navigate('/')} className="!text-lg">
                 Back to home
-              </Button>
-            </div>
-          </Card>
-        </motion.div>
-      </div>
-    )
-  }
-
-  if (phase === 'already') {
-    return (
-      <div className="grid min-h-dvh place-items-center px-5">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm text-center">
-          <Card tone="paper" className="p-7">
-            <div className="text-5xl">✅</div>
-            <h1 className="display mt-3 text-4xl">Already done</h1>
-            <p className="mt-2 text-ink-soft">
-              You've already taken your self-read, no need to redo it. Head to your dashboard to share your link and watch the answers roll in.
-            </p>
-            <div className="mt-6">
-              <Button variant="pink" onClick={goDashboard} className="!text-lg">
-                Go to my dashboard →
               </Button>
             </div>
           </Card>
