@@ -6,6 +6,8 @@ import {
   REQUIRED_RESPONSES,
   deriveType,
   deriveArchetype,
+  scoreDimensions,
+  ORIENTATIONS,
   HATS,
   SDT_NEEDS,
   BELBIN_ROLES,
@@ -25,6 +27,7 @@ import { computeGolden } from '../lib/goldenScore'
 import Card from '../components/Card'
 import GoldenScore from '../components/GoldenScore'
 import LetterFromTeam from '../components/LetterFromTeam'
+import DimensionsProfile from '../components/DimensionsProfile'
 import VirtueGauge from '../components/VirtueGauge'
 import StatBar from '../components/StatBar'
 import PersonalityCard, { SideCharacter } from '../components/PersonalityCard'
@@ -408,6 +411,19 @@ export default function Results() {
       ),
     },
   ]
+  // The 3-orientation trait profile (how you think / engage / apply yourself), derived from
+  // the Big Five answers plus the dimension items. Sits right after the personality card,
+  // once self-assessed.
+  const dimScores =
+    hasSelf && self?.ocean_answers && Object.keys(self.ocean_answers).length > 0 ? scoreDimensions(self.ocean_answers) : null
+  if (dimScores) {
+    for (const o of ORIENTATIONS) {
+      selfCards.push({
+        tone: 'paper',
+        node: <DimensionsProfile orientation={o} dims={dimScores.filter((d) => d.orientation === o.key)} />,
+      })
+    }
+  }
   cards.splice(1, 0, ...selfCards)
 
   // Archetype: derived from the team virtue means (always), blended with the subject's

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   selectBigFiveItems,
+  DIMENSION_ITEMS,
   scoreBigFive,
   deriveType,
   RESPONSIBILITY_TIERS,
@@ -202,7 +203,13 @@ export default function SelfAssessment() {
   // ── depth ──
   const [depthIdx, setDepthIdx] = useState(1) // default middle (Standard)
   const [depth, setDepth] = useState<SelfDepth>(DEPTHS[1])
-  const items = useMemo(() => selectBigFiveItems(depth.perTrait), [depth])
+  // Big Five block (depth-scaled) + the fixed dimension block. The dimension items are
+  // always asked so every dimension gets signal regardless of depth; scoreBigFive ignores
+  // them (it only reads the ocean_* ids), so the Big Five core is unaffected.
+  const items = useMemo<{ id: string; text: string; reverse: boolean }[]>(
+    () => [...selectBigFiveItems(depth.perTrait), ...DIMENSION_ITEMS],
+    [depth]
+  )
 
   // ── quiz ──
   const [i, setI] = useState(0)
