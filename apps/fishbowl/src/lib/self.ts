@@ -76,6 +76,38 @@ export async function getSynthesis(
   return (data.synthesis as SelfSynthesis) ?? null
 }
 
+export interface WorkManual {
+  entries: { key: string; stem: string; text: string }[]
+  n: number
+}
+
+// The Work Manual is its own focused AI call (kept out of the big synthesis so each
+// heavy narrative stays sharp). It rarely changes once the team report is in, so we
+// cache it client-side in localStorage keyed by (slug, response_count) instead of
+// adding a DB column. Returns null until a team report + self-read both exist.
+export async function getWorkManual(slug: string, n: number): Promise<WorkManual | null> {
+  const auth = getSubjectAuth()
+  if (!auth) return null
+  const cacheKey = `fb_workmanual_${slug}_${n}`
+  try {
+    const cached = localStorage.getItem(cacheKey)
+    if (cached) return JSON.parse(cached) as WorkManual
+  } catch {
+    // ignore malformed cache
+  }
+  const { data, error } = await supabase.functions.invoke('fishbowl-workmanual', {
+    body: { bearer: auth.bearer, slug },
+  })
+  if (error || !data || data.error || !data.manual) return null
+  const manual = data.manual as WorkManual
+  try {
+    localStorage.setItem(cacheKey, JSON.stringify(manual))
+  } catch {
+    // storage full / disabled — fine, we just refetch next time
+  }
+  return manual
+}
+
 // Finish an ungated self-assessment: identify the email, claim the session, mint a
 // device bearer and save the self-read in one call. Returns the bearer to store
 // locally so the report opens with the self-view immediately.

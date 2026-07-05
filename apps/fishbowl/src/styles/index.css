@@ -19,10 +19,15 @@
   --font-body: "Hanken Grotesk", system-ui, sans-serif;
   --font-mono: "Spline Sans Mono", ui-monospace, monospace;
   --font-hand: "Kalam", "Bradley Hand", cursive;
+  --font-typewriter: "Special Elite", "Courier New", ui-monospace, monospace;
 }
 
 .handwritten {
   font-family: var(--font-hand);
+}
+
+.typewriter {
+  font-family: var(--font-typewriter);
 }
 
 @layer base {

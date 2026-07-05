@@ -20,13 +20,14 @@ import {
 } from '@fishbowl/feedback-core'
 import { getSession } from '../lib/data'
 import { questions } from '../data/questions'
-import { getSelfReport, getSynthesis, type SelfData, type SelfSynthesis } from '../lib/self'
+import { getSelfReport, getSynthesis, getWorkManual, type SelfData, type SelfSynthesis, type WorkManual as WorkManualData } from '../lib/self'
 import { useAiInsights } from '../lib/aiInsights'
 import { topPercent } from '../lib/percentile'
 import { computeGolden } from '../lib/goldenScore'
 import Card from '../components/Card'
 import GoldenScore from '../components/GoldenScore'
 import LetterFromTeam from '../components/LetterFromTeam'
+import WorkManual from '../components/WorkManual'
 import DimensionsProfile from '../components/DimensionsProfile'
 import VirtueGauge from '../components/VirtueGauge'
 import StatBar from '../components/StatBar'
@@ -103,6 +104,7 @@ export default function Results() {
   const [modalDismissed, setModalDismissed] = useState(false)
   const [synthesis, setSynthesis] = useState<SelfSynthesis | null>(null)
   const [synthesisLoading, setSynthesisLoading] = useState(false)
+  const [workManual, setWorkManual] = useState<WorkManualData | null>(null)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -159,6 +161,19 @@ export default function Results() {
       cancelled = true
     }
   }, [slug, hasSelf, insights, self])
+
+  // The Work Manual — its own focused AI call, cached client-side by (slug, n). Fetched
+  // once the team report + self-read exist; renders as a typed manual page in the deck.
+  useEffect(() => {
+    if (!slug || !hasSelf || !insights || !self || !session) return
+    let cancelled = false
+    getWorkManual(slug, session.response_count || 0).then((r) => {
+      if (!cancelled) setWorkManual(r)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [slug, hasSelf, insights, self, session])
 
   if (loading) {
     return (
@@ -989,6 +1004,17 @@ export default function Results() {
           </p>
         </div>
       ),
+    })
+  }
+
+  // The Work Manual — a typed operating manual of first-person lines ("As a leader, I…"),
+  // grounded in self + team. Its own focused AI call; sits after the full read as a
+  // shareable, hand-it-to-a-teammate artifact.
+  if (hasSelf && workManual && workManual.entries.length > 0) {
+    cards.push({
+      tone: 'paper',
+      bare: true,
+      node: <WorkManual name={session.creator_name} manual={workManual} />,
     })
   }
 

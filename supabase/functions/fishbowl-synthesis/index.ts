@@ -71,6 +71,34 @@ const SDT_NAMES: Record<string, string> = {
   purpose: 'Purpose', safety: 'Safety', vitality: 'Vitality',
 }
 
+// ── Trait dimensions (mirror of packages/feedback-core/src/dimensions.ts). Kept in sync
+// by hand; edge functions can't import the workspace package. Scored 0-100 from the same
+// 1-7 self answers as the Big Five (reverse = 8-raw, mean -> (mean-1)/6*100). ──
+const ORIENTATION_TITLE: Record<string, string> = {
+  cognitive: 'How you think', interpersonal: 'How you engage with others', motivational: 'How you apply yourself',
+}
+const DIMENSIONS: { key: string; label: string; orientation: string; items: { id: string; reverse: boolean }[] }[] = [
+  { key: 'creative', label: 'Creative', orientation: 'cognitive', items: [{ id: 'ocean_O1', reverse: false }, { id: 'ocean_O5', reverse: false }, { id: 'ocean_O7', reverse: false }, { id: 'ocean_O6', reverse: true }] },
+  { key: 'deliberative', label: 'Deliberative', orientation: 'cognitive', items: [{ id: 'dim_delib_logic', reverse: false }, { id: 'dim_delib_impartial', reverse: false }, { id: 'ocean_C2', reverse: false }] },
+  { key: 'detailed', label: 'Detailed & Reliable', orientation: 'cognitive', items: [{ id: 'ocean_C1', reverse: false }, { id: 'ocean_C7', reverse: false }, { id: 'ocean_C3', reverse: true }, { id: 'ocean_C8', reverse: true }] },
+  { key: 'conceptual', label: 'Conceptual', orientation: 'cognitive', items: [{ id: 'dim_conceptual', reverse: false }, { id: 'ocean_O7', reverse: false }, { id: 'ocean_O8', reverse: true }] },
+  { key: 'extraverted', label: 'Extraverted', orientation: 'interpersonal', items: [{ id: 'ocean_E1', reverse: false }, { id: 'ocean_E5', reverse: false }, { id: 'ocean_E7', reverse: false }, { id: 'ocean_E3', reverse: true }, { id: 'ocean_E6', reverse: true }] },
+  { key: 'tough', label: 'Tough', orientation: 'interpersonal', items: [{ id: 'ocean_A3', reverse: false }, { id: 'ocean_A4', reverse: false }, { id: 'ocean_A6', reverse: false }, { id: 'ocean_A8', reverse: false }, { id: 'ocean_A1', reverse: true }] },
+  { key: 'nurturing', label: 'Nurturing', orientation: 'interpersonal', items: [{ id: 'dim_empathy', reverse: false }, { id: 'ocean_A5', reverse: false }, { id: 'ocean_A2', reverse: false }, { id: 'ocean_A7', reverse: false }] },
+  { key: 'leadership', label: 'Leadership', orientation: 'interpersonal', items: [{ id: 'dim_lead_charge', reverse: false }, { id: 'dim_lead_bar', reverse: false }, { id: 'ocean_E5', reverse: false }] },
+  { key: 'composed', label: 'Composed', orientation: 'motivational', items: [{ id: 'ocean_N3', reverse: false }, { id: 'ocean_N4', reverse: false }, { id: 'ocean_N6', reverse: false }, { id: 'ocean_N8', reverse: false }, { id: 'ocean_N2', reverse: true }] },
+  { key: 'autonomous', label: 'Autonomous', orientation: 'motivational', items: [{ id: 'dim_auto_accountable', reverse: false }, { id: 'dim_auto_internal', reverse: false }] },
+  { key: 'flexible', label: 'Flexible', orientation: 'motivational', items: [{ id: 'dim_flex_agile', reverse: false }, { id: 'dim_flex_growth', reverse: false }, { id: 'ocean_N3', reverse: false }] },
+  { key: 'determined', label: 'Determined', orientation: 'motivational', items: [{ id: 'dim_determined', reverse: false }, { id: 'ocean_C1', reverse: false }] },
+]
+function scoreDimensions(answers: Record<string, number>) {
+  return DIMENSIONS.map((d) => {
+    const vals = d.items.map((it) => (typeof answers[it.id] === 'number' ? (it.reverse ? 8 - answers[it.id] : answers[it.id]) : null)).filter((v): v is number => v != null)
+    const mean = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 4
+    return { key: d.key, label: d.label, orientation: d.orientation, score: Math.round(((mean - 1) / 6) * 100), answered: vals.length }
+  })
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: cors })
   try {
@@ -87,7 +115,7 @@ Deno.serve(async (req) => {
 
     const { data: self } = await sb
       .from('fishbowl_self_assessments')
-      .select('big_five, mbti, self_payload, completed, ai_synthesis')
+      .select('big_five, mbti, self_payload, completed, ai_synthesis, ocean_answers')
       .eq('session_id', session.id)
       .maybeSingle()
     if (!self || !self.completed) return ok({ synthesis: null, reason: 'no self yet' })
@@ -107,6 +135,12 @@ Deno.serve(async (req) => {
     const sp = self.self_payload || {}
     const refl = (sp.reflections || {}) as { aspiration?: string; blindspot?: string; manual?: string }
     const bf = self.big_five || {}
+    // Trait dimensions from the raw self answers, grouped by orientation for the prompt.
+    const dims = self.ocean_answers && typeof self.ocean_answers === 'object' ? scoreDimensions(self.ocean_answers) : []
+    const dimsByOrientation = ['cognitive', 'interpersonal', 'motivational'].map((o) => ({
+      title: ORIENTATION_TITLE[o],
+      rows: dims.filter((d) => d.orientation === o && d.answered > 0),
+    })).filter((g) => g.rows.length > 0)
     const selfV = sp.virtues || {}
     const selfEn = sp.energizers || {}
     const selfHats = sp.hats || {}
@@ -251,7 +285,11 @@ Playful type: ${type}${nick}. (Use this exact type code if you mention it; never
 
 === JUNGIAN ARCHETYPE ===
 ${arch ? `${arch.name}: ${arch.essence || ''}\nLight: ${arch.light || ''}\nShadow: ${arch.shadow || ''}${arch.runnerUp ? `\nWith a touch of: ${arch.runnerUp}` : ''}` : '(not available)'}
-
+${dimsByOrientation.length ? `
+=== TRAIT DIMENSIONS (your own read, 0-100; grouped by orientation. Higher = more of that trait, not better) ===
+${dimsByOrientation.map((g) => `${g.title}: ${g.rows.map((r) => `${r.label} ${r.score}`).join(', ')}`).join('\n')}
+Use the standouts (very high or very low) to sharpen the read; do not just recite the numbers.
+` : ''}
 === VIRTUES (golden mean; 1-9, 5=ideal balance; sorted by biggest self-vs-team gap) ===
 ${virtueLines.map((g: any) => `- ${g.name}: team ${round(g.mu)}${g.self != null ? `, you ${g.self}` : ''}${g.diff != null ? ` (diff ${g.diff})` : ''}. Tendency: ${g.tendency}. Poles: ${g.deficientPole} (low) .. ${g.excessivePole} (high).`).join('\n')}
 
