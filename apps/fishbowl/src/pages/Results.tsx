@@ -310,7 +310,7 @@ export default function Results() {
     },
     {
       tone: 'paper',
-      sec: 2.0,
+      sec: 2.05,
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">
@@ -473,6 +473,42 @@ export default function Results() {
     })
   }
   cards.splice(1, 0, ...selfCards)
+
+  // First impression: how you land the first time people meet you, from the team's
+  // "first impression" free-text. Team-only, so it shows for everyone; opens Act 2.
+  if (insights.firstImpression) {
+    cards.push({
+      tone: 'sand',
+      sec: 2.0,
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">first impressions</p>
+          <h2 className="display mb-4 text-3xl">How you land at first</h2>
+          <div className="text-[1.05rem] leading-relaxed text-ink">
+            <Rich text={insights.firstImpression} />
+          </div>
+        </div>
+      ),
+    })
+  }
+
+  // How you come across: your hoped-for image (your own reflection) held up against how you
+  // actually land, drawing on the team's aura read + the words they reach for most. Self-gated.
+  if (hasSelf && synthesis?.howYouComeAcross) {
+    cards.push({
+      tone: 'blue',
+      sec: 2.02,
+      node: (
+        <div className="text-paper-hi">
+          <p className="kicker mb-1 text-paper-hi/80">hope vs how you land</p>
+          <h2 className="display mb-4 text-3xl">How you come across</h2>
+          <div className="text-[1.05rem] leading-relaxed text-paper-hi/95">
+            <Rich text={synthesis.howYouComeAcross} />
+          </div>
+        </div>
+      ),
+    })
+  }
 
   // Archetype: derived from the team virtue means (always), blended with the subject's
   // Big Five when they've self-assessed. Placed late in the deck (a closing lens), well

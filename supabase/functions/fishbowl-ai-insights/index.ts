@@ -353,6 +353,8 @@ ALWAYS also write a P.S. (returned separately as "postscript"): one short standa
   "closing": "2 warm sentences sending them off.",
   "goodVibes": "the letter body from the team, 'we'/'you' voice, 4 to 6 sentences, at most two paragraphs split by the token ¶¶, no greeting or signature, **bold** 2 to 3 phrases (see THE LETTER rule)",
   "postscript": "the letter's P.S.: one short line under 20 words, emotional, sweet, playful and witty (see THE LETTER rule). No 'P.S.' prefix, no signature.",
+  "firstImpression": "2 to 3 sentences synthesizing ONLY the 'first impression' free-text into the honest, human read of how you land the first time people meet you. Warm and specific, second person ('you'), **bold** 1 to 2 phrases. If NO 'first impression' free-text was given, return an empty string (do not improvise from other data).",
+  "auraSummary": "1 to 2 sentences distilling ONLY the 'vibe / aura' free-text into how you actually come across, the energy people feel in the room with you. Second person ('you'), **bold** 1 phrase. If NO 'vibe / aura' free-text was given, return an empty string (do not improvise from other data).",
   "actionPlan": { "stopNow": ["a behaviour to stop this week, **bold** 1 phrase", "a second one", "a third one"], "startNow": ["a behaviour to start this week, **bold** 1 phrase", "a second one", "a third one"], "stopNext": ["a stop to add once the first are habit", "a second one", "a third one"], "startNext": ["a start to add once the first are habit", "a second one", "a third one"] }${sessionResp.length ? `,
   "responsibilities": { ${responsibilityStats.map((r) => `"${r.index}": ["2 to 3 short bullet points on HOW the team reads you on this responsibility — concrete behaviours showing where you ${r.teamTier === 1 ? 'fall short' : r.teamTier === 3 ? 'exceed and delight' : 'meet expectations'}, drawn from the colleague notes; synthesize, never quote anyone, **bold** one phrase in each"]`).join(', ')} }` : ''}
 }
@@ -422,6 +424,8 @@ Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} 
       closing: prose.closing || '',
       goodVibes: typeof prose.goodVibes === 'string' ? prose.goodVibes : '',
       postscript: typeof prose.postscript === 'string' ? prose.postscript : '',
+      firstImpression: typeof prose.firstImpression === 'string' ? prose.firstImpression : '',
+      auraSummary: typeof prose.auraSummary === 'string' ? prose.auraSummary : '',
       actionPlan: prose.actionPlan
         ? {
             stopNow: toN(prose.actionPlan.stopNow, 3),

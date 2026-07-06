@@ -138,6 +138,10 @@ Deno.serve(async (req) => {
     const johariOpen = teamJohari.filter((w) => selfJohari.includes(w))
     const johariBlind = (team.johari?.counts || []).filter((c: any) => !selfJohari.includes(c.word)).map((c: any) => `${c.word} (${c.count}/${team.johari?.n})`)
     const johariHidden = selfJohari.filter((w) => !teamJohari.includes(w))
+    // The words colleagues reached for most often (Johari picks by count) + the team's
+    // aura read, for the "how you come across" synthesis.
+    const johariTop: string[] = (team.johari?.counts || []).slice().sort((a: any, b: any) => b.count - a.count).slice(0, 6).map((c: any) => c.word)
+    const auraSummary: string = typeof team.auraSummary === 'string' ? team.auraSummary : ''
 
     const teamNohari: string[] = (team.nohari?.counts || []).filter((c: any) => c.count >= 2).map((c: any) => c.word)
     const nohariOpen = teamNohari.filter((w) => selfNohari.includes(w))
@@ -245,7 +249,8 @@ Wrap the few most important phrases per paragraph in **bold** (the claims someon
   "constellation": [ { "label": "a 1 to 3 word name for the shared root theme", "words": ["EXACT blind-spot words from the Johari BLIND / Nohari BLIND / watch-out lists above that share this root", "another"] } ],
   "oneOnOne": ["4 to 6 concrete things to raise in a routine 1:1 with their manager. EACH must be SELF-AWARE: anchored in where THEIR OWN read diverges from the TEAM's (a specific gap, blind spot, or watch-out), naming how they see it vs how the team does. A QUESTION to ask or something to SHARE, <= 22 words, starting with 'Ask: ' or 'Share: ' (e.g. 'Share: I rate my candor a 2 but the team reads 6, help me calibrate')."],
   "biases": ["4 to 6 SHORT punchy notes-to-self (<= 9 words each) of the tendencies, blind spots and biases to keep at the back of their mind. No 'Ask/Share' prefix, no bold, just the pattern in plain words (e.g. 'I decide before I loop people in')."],
-  "greatAt": [ { "label": "a specific ROLE, RESPONSIBILITY or type of TASK this person would be great at and love (<= 6 words)", "why": "one short clause grounding it in a real STRENGTH + what ENERGIZES them, <= 16 words" } ]
+  "greatAt": [ { "label": "a specific ROLE, RESPONSIBILITY or type of TASK this person would be great at and love (<= 6 words)", "why": "one short clause grounding it in a real STRENGTH + what ENERGIZES them, <= 16 words" } ],
+  "howYouComeAcross": "2 to 3 sentences, second person, that hold up who you HOPE to be seen as (your ASPIRATION) against how you ACTUALLY land, drawing on the team's aura read and the words colleagues reach for most WHERE THEY EXIST. Name the overlap warmly and any gap honestly (never harsh). **bold** 1 to 2 phrases. If no ASPIRATION was given, return an empty string."
 }
 For "greatAt": propose 3 to 4, best first. Combine what the team rates them STRONGEST at (top strengths, high virtues, VIA) with what ENERGIZES them (their energizers) and the role they play, to name concrete things they'd thrive doing. Specific and real (e.g. "Own key client relationships", "Run the launch war-room"), never vague ("be a leader").
 For "constellation": look ONLY at the words the team flagged that the person did NOT own (Johari blind spot, Nohari blind spot, watch-outs). If two or more of them trace to ONE underlying theme, group them into a named constellation (1, at most 2 groups). Use the words VERBATIM as given. If nothing coheres, return an empty array.
@@ -317,6 +322,10 @@ Wants the team to describe them as: ${refl.aspiration || '(not given)'}
 A weakness they own / feedback they keep hearing: ${refl.blindspot || '(not given)'}
 Their user manual for a new teammate: ${refl.manual || '(not given)'}
 Use these where they add colour and voice: contrast the ASPIRATION with how the team actually describes them (a real self-vs-team signal), take the OWNED weakness seriously and connect it to the data, and let the user manual sharpen the practical advice. Quote their phrasing sparingly.
+
+=== HOW YOU LAND ON PEOPLE (team) ===
+Your aura / vibe (team's read): ${auraSummary || '(not given)'}
+The words colleagues reach for most: ${johariTop.join(', ') || '(none)'}
 
 Return the JSON now.`
 
@@ -417,6 +426,7 @@ Return the JSON now.`
       ...(oneOnOne.length ? { oneOnOne } : {}),
       ...(biases.length ? { biases } : {}),
       ...(greatAt.length ? { greatAt } : {}),
+      ...(typeof prose.howYouComeAcross === 'string' && prose.howYouComeAcross.trim() ? { howYouComeAcross: stripDashes(prose.howYouComeAcross) } : {}),
       ...(actionPlan && actionPlan.stopNow.length ? { actionPlan } : {}),
       n,
     }

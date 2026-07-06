@@ -56,6 +56,8 @@ export interface SelfSynthesis {
   oneOnOne?: string[]
   biases?: string[]
   greatAt?: { label: string; why: string }[]
+  // How you come across: your hoped-for image held up against the team's aura read + words.
+  howYouComeAcross?: string
   n: number
 }
 

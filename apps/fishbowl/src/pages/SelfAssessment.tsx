@@ -561,9 +561,11 @@ export default function SelfAssessment() {
               transition={{ duration: 0.26, ease: [0.2, 0.8, 0.2, 1] as const }}
             >
               <p className="kicker mb-1 text-center text-pink-deep">where do you land?</p>
-              <p className="serif mb-6 text-center text-ink-soft">
-                The middle is the virtue; each end is a way to overdo or underdo it.
-              </p>
+              {vIdx === 0 && (
+                <p className="serif mb-6 text-center text-ink-soft">
+                  The middle is the virtue; each end is a way to overdo or underdo it.
+                </p>
+              )}
               <VirtueSlider
                 value={selfVirtues[vq.dimension!] ?? null}
                 onChange={onPick}

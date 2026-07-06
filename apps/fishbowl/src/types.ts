@@ -24,6 +24,10 @@ export interface FishbowlReport {
   goodVibes?: string
   // A short, always-present P.S. for the letter: emotional, sweet, playful, witty.
   postscript?: string
+  // How you land the first time people meet you (from the "first impression" free-text).
+  firstImpression?: string
+  // How you come across / your vibe (distilled from the "aura" free-text). Team-only.
+  auraSummary?: string
   // A practical action plan: 2 each to stop/start now, then 2 each to add later.
   actionPlan?: {
     stopNow: string[]
