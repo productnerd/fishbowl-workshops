@@ -107,9 +107,9 @@ function PageBackdrop({ type }: { type: string }) {
 // set in the report, where a big SideCharacter takes over on wide screens; elsewhere
 // (e.g. the self-read reveal) there's no side character, so the cut-out shows at all
 // sizes.
-//   public/characters/<TYPE>.png
+//   public/characters/<TYPE>.webp
 function CharacterCutout({ type, character, hideOnWide }: { type: string; character: string; hideOnWide?: boolean }) {
-  const charSrc = `${import.meta.env.BASE_URL}characters/${type}.png`
+  const charSrc = `${import.meta.env.BASE_URL}characters/${type}.webp`
   const ok = useImageReady(charSrc)
   if (!ok) return null
   return (
@@ -131,7 +131,7 @@ function CharacterCutout({ type, character, hideOnWide }: { type: string; charac
 // overflowing. Must be rendered OUTSIDE the framer card wrapper — an animating ancestor
 // transform would otherwise break `position: fixed`.
 export function SideCharacter({ type, name }: { type: string; name: string }) {
-  const charSrc = `${import.meta.env.BASE_URL}characters/${type}.png`
+  const charSrc = `${import.meta.env.BASE_URL}characters/${type}.webp`
   const ok = useImageReady(charSrc)
   if (!ok) return null
   return (
