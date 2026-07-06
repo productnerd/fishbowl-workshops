@@ -2,13 +2,6 @@ import { useState, useEffect } from 'react'
 import { PERSONALITY_AXES, type BigFiveScores, type MbtiType } from '@fishbowl/feedback-core'
 import InfoDot from './InfoDot'
 
-const ALIGN: Record<string, string> = {
-  hero: 'hero energy',
-  villain: 'villain energy',
-  'anti-hero': 'anti-hero energy',
-  mentor: 'mentor energy',
-}
-
 function Badge({ n, dom }: { n: number; dom: boolean }) {
   return (
     <span
@@ -168,13 +161,12 @@ export default function PersonalityCard({ mbti, scores, sideChar }: { mbti: Mbti
         <p className="serif mt-1 text-2xl tracking-wide text-ink-soft">{code}</p>
         <p className="mx-auto mt-3 max-w-md leading-relaxed text-ink-soft">{mbti.flavour}</p>
         {mbti.character && (
-          <div className="mt-4 flex flex-col items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-sand px-3.5 py-1.5 text-sm font-bold text-ink shadow-chunky-sm">
-              <span aria-hidden>🎬</span>
-              Your character match: {mbti.character}
-              {mbti.alignment ? <span className="font-semibold text-ink-soft">· {ALIGN[mbti.alignment] ?? ''}</span> : null}
-            </span>
-            {mbti.matchWhy && <p className="mx-auto max-w-sm text-sm italic leading-snug text-ink-soft">{mbti.matchWhy}</p>}
+          <div className="mx-auto mt-4 max-w-sm rounded-2xl border-2 border-ink bg-sand px-5 py-3.5 text-center shadow-chunky-sm">
+            <p className="kicker flex items-center justify-center gap-1.5 text-ink-soft">
+              <span aria-hidden>🎬</span> Character match
+            </p>
+            <p className="serif mt-1 text-lg font-black text-ink">{mbti.character}</p>
+            {mbti.matchWhy && <p className="mt-1.5 text-sm italic leading-snug text-ink-soft">{mbti.matchWhy}</p>}
           </div>
         )}
       </div>
