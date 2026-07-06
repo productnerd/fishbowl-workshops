@@ -32,6 +32,7 @@ import WorkManual from '../components/WorkManual'
 import DimensionsProfile from '../components/DimensionsProfile'
 import VirtueGauge from '../components/VirtueGauge'
 import StatBar from '../components/StatBar'
+import { playClick } from '../lib/sound'
 import PersonalityCard, { SideCharacter } from '../components/PersonalityCard'
 import LockedCard from '../components/LockedCard'
 import RelinkPrompt from '../components/RelinkPrompt'
@@ -1243,14 +1244,17 @@ export default function Results() {
   // Clamp for the card we actually render: idx can briefly sit out of range while the
   // deck is still assembling (self/synthesis load in), which would otherwise crash.
   const cur = Math.min(Math.max(idx, 0), total - 1)
-  const go = (d: number) => setIdx((i) => Math.min(Math.max(i + d, 0), total - 1))
+  const go = (d: number) => {
+    playClick()
+    setIdx((i) => Math.min(Math.max(i + d, 0), total - 1))
+  }
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col px-5 py-6">
       {showEntryModal && <EntryModal onTakeNow={goSelf} onLater={dismissModal} />}
       {/* exit to home — a faded ✕ fixed to the screen's top-right corner, sharpens on hover */}
       <button
-        onClick={() => navigate('/')}
+        onClick={() => { playClick(); navigate('/') }}
         aria-label="Exit to home"
         className="press fixed right-2 top-2 z-40 grid h-10 w-10 cursor-pointer place-items-center rounded-full border-2 border-ink/30 bg-paper-hi/70 text-lg font-black text-ink/70 opacity-50 backdrop-blur-sm transition-opacity hover:opacity-100 sm:right-5 sm:top-5"
       >
@@ -1322,7 +1326,7 @@ export default function Results() {
       {/* Skip straight to the full read — floats at the screen's bottom-right until you reach it */}
       {hasSelf && (synthesis || synthesisLoading) && fullReadIdxRef.current >= 0 && cur < fullReadIdxRef.current && (
         <button
-          onClick={() => setIdx(fullReadIdxRef.current)}
+          onClick={() => { playClick(); setIdx(fullReadIdxRef.current) }}
           className="press fixed bottom-3 right-2 z-30 cursor-pointer rounded-full border-2 border-ink bg-paper-hi/90 px-4 py-2.5 font-display text-sm font-black text-ink shadow-chunky-sm backdrop-blur-sm sm:bottom-5 sm:right-5"
         >
           Skip to final report →
