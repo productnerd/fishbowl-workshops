@@ -431,7 +431,7 @@ export default function SelfAssessment() {
                 setDepthIdx(Number(e.target.value))
               }}
               aria-label="How deep to go"
-              className="mt-4 w-full cursor-pointer accent-pink"
+              className="depth-slider mt-4 cursor-pointer"
             />
             <div className="mt-1 flex justify-between text-xs font-bold">
               {DEPTHS.map((d, k) => (

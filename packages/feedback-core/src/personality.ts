@@ -22,7 +22,7 @@ export interface BigFiveItem {
 // depth slider takes the first N per trait via selectBigFiveItems().
 export const BIG_FIVE_ITEMS: BigFiveItem[] = [
   { id: 'ocean_O1', trait: 'openness', reverse: false, text: 'I get a kick out of new ideas, even half-baked ones.' },
-  { id: 'ocean_O2', trait: 'openness', reverse: false, text: 'A beautiful song or a clever bit of design can give me actual goosebumps.' },
+  { id: 'ocean_O2', trait: 'openness', reverse: false, text: 'A beautiful song or a clever bit of design can give me deep joy.' },
   { id: 'ocean_O3', trait: 'openness', reverse: true, text: 'I prefer the tried-and-true over the experimental.' },
   { id: 'ocean_O4', trait: 'openness', reverse: true, text: "I'm a little suspicious of ideas that sound too clever." },
   { id: 'ocean_O5', trait: 'openness', reverse: false, text: 'I collect random interests the way some people collect browser tabs.' },

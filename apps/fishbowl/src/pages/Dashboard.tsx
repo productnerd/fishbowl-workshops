@@ -117,7 +117,7 @@ export default function Dashboard() {
           </div>
           {!selfDone && (
             <p className="mt-2 text-sm text-paper-hi/85">
-              Do your own first (~2 min). It makes the whole thing sharper. Share in parallel.
+              Do your own first (4 to 10 min, depending on depth). It makes the whole thing sharper. Share in parallel.
             </p>
           )}
         </Card>
