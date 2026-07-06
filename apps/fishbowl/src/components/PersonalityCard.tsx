@@ -162,18 +162,19 @@ export default function PersonalityCard({ mbti, scores, sideChar }: { mbti: Mbti
       <div className="text-center">
         <p className="kicker text-pink-deep">
           your personality type is
-          <InfoDot>A playful Big-Five-to-16-personalities approximation, with a Disney archetype to match. Fun, not a clinical test.</InfoDot>
+          <InfoDot>A playful Big-Five-to-16-personalities approximation, matched to a fictional character who shares the archetype. Fun, not a clinical test.</InfoDot>
         </p>
         <h2 className="display mt-1 text-[clamp(1.7rem,6vw,2.6rem)] leading-[1.05]">{mbti.nickname}</h2>
         <p className="serif mt-1 text-2xl tracking-wide text-ink-soft">{code}</p>
         <p className="mx-auto mt-3 max-w-md leading-relaxed text-ink-soft">{mbti.flavour}</p>
         {mbti.character && (
-          <div className="mt-4 flex justify-center">
+          <div className="mt-4 flex flex-col items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-sand px-3.5 py-1.5 text-sm font-bold text-ink shadow-chunky-sm">
               <span aria-hidden>🎬</span>
-              Your Disney match: {mbti.character}
+              Your character match: {mbti.character}
               {mbti.alignment ? <span className="font-semibold text-ink-soft">· {ALIGN[mbti.alignment] ?? ''}</span> : null}
             </span>
+            {mbti.matchWhy && <p className="mx-auto max-w-sm text-sm italic leading-snug text-ink-soft">{mbti.matchWhy}</p>}
           </div>
         )}
       </div>

@@ -349,24 +349,6 @@ export default function Results() {
       ),
     },
     {
-      tone: 'sand',
-      node: (
-        <div>
-          <p className="kicker mb-5 text-pink-deep">what they appreciate</p>
-          <ul className="flex flex-col gap-4">
-            {insights.appreciations.map((a, i) => (
-              <li key={i} className="flex gap-3 text-xl leading-relaxed">
-                <span className="text-pink-deep">❤</span>
-                <span>
-                  <Rich text={a} />
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ),
-    },
-    {
       tone: 'ink',
       node: (
         <div className="flex min-h-[55vh] flex-col justify-center">
@@ -400,16 +382,19 @@ export default function Results() {
     emotionalStability: 66,
   }
   const teaserType = deriveType(teaserBig)
+  // Re-derive the type from the stored Big Five so the character + match text always
+  // reflect the CURRENT archetype table, not whatever was cached at assessment time.
+  const selfMbti = hasSelf && self?.big_five ? deriveType(self.big_five) : self?.mbti ?? null
   const selfCards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode; character?: { type: string; name: string } }[] = [
     {
       tone: 'paper',
-      // On wide screens the Disney character stands in the margin to the right of this
+      // On wide screens the character stands in the margin to the right of this
       // card (only once the subject has self-assessed, never for the locked teaser).
-      ...(hasSelf && self?.mbti?.character ? { character: { type: self.mbti.type, name: self.mbti.character } } : {}),
+      ...(hasSelf && selfMbti?.character ? { character: { type: selfMbti.type, name: selfMbti.character } } : {}),
       node: (
         <div>
-          {hasSelf && self?.mbti && self?.big_five ? (
-            <PersonalityCard mbti={self.mbti} scores={self.big_five} sideChar />
+          {hasSelf && selfMbti && self?.big_five ? (
+            <PersonalityCard mbti={selfMbti} scores={self.big_five} sideChar />
           ) : (
             <LockedCard caption="Take the self-read to reveal your type and five traits." onUnlock={goSelf}>
               <PersonalityCard mbti={teaserType} scores={teaserBig} />
@@ -487,9 +472,6 @@ export default function Results() {
             <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-paper-hi/70">
               Archetypes are twelve universal characters (the Hero, the Sage, the Caregiver, and nine more) that recur across every culture&rsquo;s stories. We never ask which you are; we read it from how you and your team actually answered.
             </p>
-            <p className="mt-5 text-lg leading-relaxed text-paper-hi/90">
-              {archetype.cardTemplate.replace('{name}', session.creator_name)}
-            </p>
             {archWhy && (
               <p className="mx-auto mt-4 max-w-md text-[0.95rem] leading-relaxed text-paper-hi/80">
                 <span className="font-semibold text-blue">Why this one. </span>
@@ -497,13 +479,15 @@ export default function Results() {
               </p>
             )}
             <div className="mt-6 grid grid-cols-2 gap-3 text-left">
-              <div className="rounded-2xl border-2 border-blue/40 bg-blue/15 p-3">
-                <p className="kicker text-blue">☀ Light</p>
-                <p className="mt-1 text-sm leading-snug text-paper-hi/90">{archetype.light}</p>
+              {/* Light: a bright, warm panel that glows against the near-black card. */}
+              <div className="rounded-2xl border-2 border-[#e8c86a] bg-paper-hi p-3 shadow-[0_0_22px_rgba(240,196,25,0.28)]">
+                <p className="kicker text-[#a9781f]">☀ Light</p>
+                <p className="mt-1 text-sm leading-snug text-ink">{archetype.light}</p>
               </div>
-              <div className="rounded-2xl border-2 border-pink/40 bg-pink/10 p-3">
-                <p className="kicker text-pink">☾ Shadow</p>
-                <p className="mt-1 text-sm leading-snug text-paper-hi/90">{archetype.shadow}</p>
+              {/* Shadow: a dark, receding panel, near-transparent with a soft gray outline. */}
+              <div className="rounded-2xl border-2 border-paper-hi/25 bg-black/45 p-3">
+                <p className="kicker text-paper-hi/45">☾ Shadow</p>
+                <p className="mt-1 text-sm leading-snug text-paper-hi/60">{archetype.shadow}</p>
               </div>
             </div>
             <p className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-paper-hi/60">
@@ -945,7 +929,7 @@ export default function Results() {
     ? {
         tone: 'blue' as const,
         node: (
-          <div className="flex min-h-[52vh] flex-col justify-center text-paper-hi">
+          <div className="flex flex-col text-paper-hi">
             <div className="text-5xl">🫧</div>
             <p className="kicker mt-4 text-paper-hi/80">take a breath</p>
             <h2 className="display mt-2 text-4xl leading-tight">Feeling like a lot? That's normal.</h2>
@@ -959,15 +943,35 @@ export default function Results() {
       }
     : null
 
-  // Good vibes, framed as a handwritten letter from the team: their purely-positive note
-  // (goodVibes) on skeuomorphic stationery, plus the warm words they picked as a P.S. The
-  // emotional payoff after all the analysis. Team-only, so it shows for everyone.
+  // The warm cluster: what the team appreciates, then their handwritten letter, back to
+  // back. Both are purely-positive team love, so they belong together as the emotional
+  // payoff after all the analysis. Team-only, so they show for everyone.
+  if (insights.appreciations.length > 0) {
+    cards.push({
+      tone: 'sand',
+      node: (
+        <div>
+          <p className="kicker mb-5 text-pink-deep">what they appreciate</p>
+          <ul className="flex flex-col gap-4">
+            {insights.appreciations.map((a, i) => (
+              <li key={i} className="flex gap-3 text-xl leading-relaxed">
+                <span className="text-pink-deep">❤</span>
+                <span>
+                  <Rich text={a} />
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ),
+    })
+  }
   const vibeWords = (insights.johari?.counts ?? []).slice(0, 6).map((c) => c.word)
   if (insights.goodVibes) {
     cards.push({
       tone: 'ink',
       bare: true,
-      node: <LetterFromTeam name={session.creator_name} body={insights.goodVibes} words={vibeWords} />,
+      node: <LetterFromTeam name={session.creator_name} body={insights.goodVibes} words={vibeWords} postscript={insights.postscript} />,
     })
   }
 
@@ -1142,7 +1146,7 @@ export default function Results() {
     const L: string[] = []
     L.push(`FISHBOWL REPORT, ${session.creator_name}`)
     L.push(plain(insights.headline))
-    if (hasSelf && self?.mbti) L.push(`\nPersonality type: ${self.mbti.nickname} (${self.mbti.fullCode ?? self.mbti.type})`)
+    if (hasSelf && selfMbti) L.push(`\nPersonality type: ${selfMbti.nickname} (${selfMbti.fullCode ?? selfMbti.type})`)
     L.push('\nWHERE YOU SHINE')
     insights.topStrengths.forEach((s) => L.push(`- ${s.label}: ${plain(s.blurb)}`))
     L.push('\nTHE TEN VIRTUES (1-9, 5 = the balanced virtue)')
@@ -1289,7 +1293,7 @@ export default function Results() {
         </AnimatePresence>
       </div>
 
-      {/* Disney character standing on the bottom-right of the screen (wide screens only).
+      {/* Character standing on the bottom-right of the screen (wide screens only).
           Rendered here, outside the animating card wrapper, so `position: fixed` holds. */}
       {cards[cur].character && (
         <SideCharacter type={cards[cur].character.type} name={cards[cur].character.name} />

@@ -340,6 +340,7 @@ The most practical part of the whole report and the single most useful screen, s
 
 === THE LETTER (goodVibes) ===
 This is a short letter written TO you FROM your colleagues, in their collective voice ("we", "us"), speaking to "you". Warm, sincere, a little vulnerable: the things they feel but maybe never said out loud, and wish they had. Pure gratitude and affection, zero criticism or growth talk, no "but". Draw ONLY on the positives the team gave (what they appreciate, your strengths, the warm words they picked, how you lift people, AND the "aura / vibe" and "first impression" free-text, which is exactly how you come across and belongs in this letter) and turn them into heartfelt, specific lines, not a list. Celebrate how you make them FEEL and how you show up WITH them, more than what you produce. Warm strengths (sharp, funny, steady, reliable) belong here when they read as affection, not a review. 4 to 6 sentences. Separate into at most two short paragraphs using the token ¶¶ (two pilcrows), never real line breaks. Do NOT write a greeting or a signature (those are added around your text). **bold** 2 to 3 of the most tender phrases.
+ALWAYS also write a P.S. (returned separately as "postscript"): one short standalone line, under 20 words, the most emotional, humane, sweet, playful and witty note of all. A single tender or funny aside they would scribble at the very bottom, grounded in something real about you. No signature, no ¶¶.
 
 === OUTPUT (JSON only, no code fences) ===
 {
@@ -351,6 +352,7 @@ This is a short letter written TO you FROM your colleagues, in their collective 
   "appreciations": ["3 distinct themes synthesized from the appreciation free-text, each 1 sentence with **bold**", "...", "..."],
   "closing": "2 warm sentences sending them off.",
   "goodVibes": "the letter body from the team, 'we'/'you' voice, 4 to 6 sentences, at most two paragraphs split by the token ¶¶, no greeting or signature, **bold** 2 to 3 phrases (see THE LETTER rule)",
+  "postscript": "the letter's P.S.: one short line under 20 words, emotional, sweet, playful and witty (see THE LETTER rule). No 'P.S.' prefix, no signature.",
   "actionPlan": { "stopNow": ["a behaviour to stop this week, **bold** 1 phrase", "a second one", "a third one"], "startNow": ["a behaviour to start this week, **bold** 1 phrase", "a second one", "a third one"], "stopNext": ["a stop to add once the first are habit", "a second one", "a third one"], "startNext": ["a start to add once the first are habit", "a second one", "a third one"] }${sessionResp.length ? `,
   "responsibilities": { ${responsibilityStats.map((r) => `"${r.index}": ["2 to 3 short bullet points on HOW the team reads you on this responsibility — concrete behaviours showing where you ${r.teamTier === 1 ? 'fall short' : r.teamTier === 3 ? 'exceed and delight' : 'meet expectations'}, drawn from the colleague notes; synthesize, never quote anyone, **bold** one phrase in each"]`).join(', ')} }` : ''}
 }
@@ -419,6 +421,7 @@ Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} 
       appreciations: Array.isArray(prose.appreciations) ? prose.appreciations.slice(0, 3) : [],
       closing: prose.closing || '',
       goodVibes: typeof prose.goodVibes === 'string' ? prose.goodVibes : '',
+      postscript: typeof prose.postscript === 'string' ? prose.postscript : '',
       actionPlan: prose.actionPlan
         ? {
             stopNow: toN(prose.actionPlan.stopNow, 3),

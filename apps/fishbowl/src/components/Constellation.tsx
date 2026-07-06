@@ -87,8 +87,8 @@ export default function Constellation({ words, clusters }: { words: string[]; cl
         {/* Group-name legend: one coloured, italic-serif chip per named group, packed into a
             centred row so they never overlap and never read as just another star word. */}
         {(() => {
-          const chipW = (label: string) => label.length * 5.9 + 26
-          const gap = 9
+          const chipW = (label: string) => label.length * 4.6 + 15
+          const gap = 7
           const rowW = chips.reduce((a, c) => a + chipW(c.label), 0) + gap * Math.max(0, chips.length - 1)
           let lx = (W - rowW) / 2
           return chips.map((c, i) => {
@@ -97,9 +97,9 @@ export default function Constellation({ words, clusters }: { words: string[]; cl
             lx += w + gap
             return (
               <g key={`chip${i}`}>
-                <rect x={cx - w / 2} y={labelY - 12} width={w} height={17} rx={8.5} fill="#0c2333" stroke={c.color} strokeWidth={1.2} />
-                <circle cx={cx - w / 2 + 9} cy={labelY - 3.5} r={2.6} fill={c.color} />
-                <text x={cx + 5} y={labelY} fontSize={10.5} fontStyle="italic" fontWeight={700} fill={c.color} textAnchor="middle" fontFamily="Fraunces, Georgia, serif" letterSpacing="0.2">
+                <rect x={cx - w / 2} y={labelY - 9.5} width={w} height={13} rx={6.5} fill="#0c2333" stroke={c.color} strokeWidth={1} />
+                <circle cx={cx - w / 2 + 7} cy={labelY - 3} r={2} fill={c.color} />
+                <text x={cx + 4} y={labelY} fontSize={8.3} fontStyle="italic" fontWeight={700} fill={c.color} textAnchor="middle" fontFamily="Fraunces, Georgia, serif" letterSpacing="0.1">
                   {c.label}
                 </text>
               </g>

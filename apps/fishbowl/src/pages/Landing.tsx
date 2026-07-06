@@ -43,7 +43,7 @@ type Tone = 'pink' | 'blue' | 'sand' | 'paper'
 // Bento uses only blue + beige tones (pink is reserved for primary actions). `key`
 // maps to an optional background image at public/bento/<key>.png (emoji fallback).
 const FRAMEWORKS: { key: string; title: string; framework: string; blurb: string; tone: Tone; icon: string; cls?: string }[] = [
-  { key: 'personality', title: 'Your personality type', framework: 'Big Five → 16 types', blurb: 'Five traits resolve into a type, paired with a Disney hero or villain to match.', tone: 'blue', icon: '🎭', cls: 'col-span-2 lg:row-span-2' },
+  { key: 'personality', title: 'Your personality type', framework: 'Big Five → 16 types', blurb: 'Five traits resolve into a type, paired with a fictional hero or villain to match.', tone: 'blue', icon: '🎭', cls: 'col-span-2 lg:row-span-2' },
   { key: 'virtues', title: 'The ten virtues', framework: "Aristotle's golden mean", blurb: 'Every strength, taken too far, becomes a flaw. See where you balance on ten.', tone: 'sand', icon: '⚖️', cls: 'col-span-2' },
   { key: 'hats', title: 'Thinking hats', framework: 'Edward de Bono', blurb: 'Which modes of thinking you reach for.', tone: 'blue', icon: '🎩' },
   { key: 'via', title: 'Signature strengths', framework: 'VIA classification', blurb: 'Your top character strengths.', tone: 'paper', icon: '⭐' },
@@ -244,7 +244,7 @@ function ReportPreview() {
       <p className="kicker text-pink-deep">your personality type is</p>
       <h3 className="display mt-1 text-3xl leading-tight">The Quiet Storm</h3>
       <p className="serif text-xl tracking-wide text-ink-soft">INFJ-A</p>
-      <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-sand px-3 py-1 text-sm font-bold text-ink shadow-chunky-sm">🎬 Disney match: Elsa</span>
+      <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-sand px-3 py-1 text-sm font-bold text-ink shadow-chunky-sm">🎬 Character match: Jack Sparrow</span>
       <div className="mt-5 flex flex-col gap-3">
         <MiniAxis left="Extraverted" right="Introverted" leftPct={40} />
         <MiniAxis left="Intuitive" right="Observant" leftPct={72} />

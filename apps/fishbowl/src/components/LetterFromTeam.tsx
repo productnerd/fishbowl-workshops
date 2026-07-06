@@ -3,7 +3,7 @@ import Rich from './Rich'
 // A letter from the team: their good-vibes note (goodVibes) narrated as a handwritten
 // letter on skeuomorphic stationery. Rendered "bare" (no card chrome) so the paper itself
 // is the object. Paragraphs are split on the ¶¶ sentinel the model uses.
-export default function LetterFromTeam({ name, body, words }: { name: string; body: string; words: string[] }) {
+export default function LetterFromTeam({ name, body, words, postscript }: { name: string; body: string; words: string[]; postscript?: string }) {
   const paras = body.split(/¶+/).map((p) => p.trim()).filter(Boolean)
   const ps = words.slice(0, 5)
 
@@ -45,10 +45,15 @@ export default function LetterFromTeam({ name, body, words }: { name: string; bo
             <span className="text-ink-soft">the people you work with</span> 🫶
           </p>
 
-          {ps.length >= 3 && (
+          {postscript ? (
+            <p className="handwritten mt-3 text-base leading-snug text-pink-deep">P.S. {postscript}</p>
+          ) : ps.length >= 3 ? (
             <p className="handwritten mt-3 text-base leading-snug text-pink-deep">
               P.S. the words we keep coming back to for you: {ps.join(', ')}.
             </p>
+          ) : null}
+          {postscript && ps.length >= 3 && (
+            <p className="mt-2 text-xs italic leading-snug text-ink-soft/80">the words we keep coming back to: {ps.join(', ')}.</p>
           )}
         </div>
       </div>

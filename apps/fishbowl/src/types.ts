@@ -22,6 +22,8 @@ export interface FishbowlReport {
   closing: string
   // A warm, purely-positive team love-note (the "good vibes" slide). Team-only.
   goodVibes?: string
+  // A short, always-present P.S. for the letter: emotional, sweet, playful, witty.
+  postscript?: string
   // A practical action plan: 2 each to stop/start now, then 2 each to add later.
   actionPlan?: {
     stopNow: string[]

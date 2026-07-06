@@ -125,9 +125,10 @@ export interface MbtiType {
   identity: 'A' | 'T' // Assertive (calm) / Turbulent (sensitive), from emotional stability
   nickname: string // the archetype title, e.g. 'The Spark'
   flavour: string
-  character: string // the Disney muse the archetype is inspired by
+  character: string // the fictional protagonist the archetype is matched to
   film: string
   alignment: 'hero' | 'villain' | 'anti-hero' | 'mentor'
+  matchWhy: string // one line on how you and this character are alike
   signature: string[]
   axes: { EI: 'E' | 'I'; SN: 'S' | 'N'; TF: 'T' | 'F'; JP: 'J' | 'P'; AT: 'A' | 'T' }
 }
@@ -153,24 +154,25 @@ type TypeMeta = {
   character: string
   film: string
   alignment: 'hero' | 'villain' | 'anti-hero' | 'mentor'
+  matchWhy: string
 }
 const TYPE_META: Record<string, TypeMeta> = {
-  ISTJ: { nickname: 'The Keeper of the Code', character: 'Carl Fredricksen', film: 'Up', alignment: 'hero', flavour: 'Keeps every promise to the letter, guards the routine like a treaty, and has already labelled the box before you thought to pack it.' },
-  ISFJ: { nickname: 'The Quiet Hearth', character: 'Samwise Gamgee', film: 'The Lord of the Rings', alignment: 'hero', flavour: 'Carries more than their share without a word, remembers what everyone else forgot, and absolutely will not leave you behind.' },
-  INFJ: { nickname: 'The Quiet Storm', character: 'Jean Valjean', film: 'Les Misérables', alignment: 'hero', flavour: 'Runs on a private moral compass, does the quiet right thing when no one is watching, and would rather carry the weight than explain it.' },
-  INTJ: { nickname: 'The Grand Schemer', character: 'Lisbeth Salander', film: 'The Girl with the Dragon Tattoo', alignment: 'anti-hero', flavour: 'Maps the whole board in silence, trusts the data over the room, and has three moves planned while everyone else is still saying hello.' },
-  ISTP: { nickname: 'The Improviser', character: 'Max Rockatansky', film: 'Mad Max: Fury Road', alignment: 'anti-hero', flavour: 'Says almost nothing, fixes it with whatever is lying around, and is halfway to a solution before the problem has finished being explained.' },
-  ISFP: { nickname: 'The Free Spirit', character: 'Ponyo', film: 'Ponyo', alignment: 'hero', flavour: 'Follows the heart wherever it points, feels everything at full volume, and leaps first because the moment simply felt right.' },
-  INFP: { nickname: 'The Daydream Believer', character: 'Amélie Poulain', film: 'Amélie', alignment: 'hero', flavour: 'Lives half in a daydream, engineers small anonymous kindnesses, and holds a private standard the ordinary world never quite meets.' },
-  INTP: { nickname: 'The Daydreaming Brainiac', character: 'Ellie Sattler', film: 'Jurassic Park', alignment: 'hero', flavour: 'Reasons straight from the evidence, pokes every assumption to see what breaks, and is genuinely delighted when the model turns out wrong.' },
-  ESTP: { nickname: 'The Charmer with a Catch', character: 'Long John Silver', film: 'Treasure Island', alignment: 'anti-hero', flavour: 'Charms the whole room, reads which way the wind is blowing, and adjusts allegiances the instant the situation rewards it.' },
-  ESFP: { nickname: 'The Showstopper', character: 'Kuzco', film: "The Emperor's New Groove", alignment: 'hero', flavour: 'Narrates their own life like a highlight reel, improvises through every setback, and turns even a full disaster into a bit.' },
-  ENFP: { nickname: 'The Spark', character: 'Jack Sparrow', film: 'Pirates of the Caribbean', alignment: 'anti-hero', flavour: 'Talks their way out of anything, changes the plan mid-sentence, and lands on their feet through pure momentum and charm.' },
-  ENTP: { nickname: 'The Fast-Talking Wildcard', character: 'Tyrion Lannister', film: 'A Song of Ice and Fire', alignment: 'anti-hero', flavour: 'Has nine angles on everything and will happily argue all nine, wins the room with one line, and thinks best with an audience.' },
-  ESTJ: { nickname: 'The Captain of Order', character: 'Hank Schrader', film: 'Breaking Bad', alignment: 'hero', flavour: 'Takes command by default, says the blunt thing everyone was thinking, and refuses to accept that the rules are merely guidelines.' },
-  ESFJ: { nickname: 'The Heart That Holds It Together', character: 'Molly Weasley', film: 'Harry Potter', alignment: 'hero', flavour: 'Feeds everyone, remembers every birthday, holds the whole family together, and turns ferocious the moment you threaten one of them.' },
-  ENFJ: { nickname: 'The Charming Operator', character: 'John Keating', film: 'Dead Poets Society', alignment: 'mentor', flavour: 'Sees the potential you keep hidden, rallies the room with a word, and makes you believe you were capable of it all along.' },
-  ENTJ: { nickname: 'The Throne-Taker', character: 'Miranda Priestly', film: 'The Devil Wears Prada', alignment: 'villain', flavour: 'Sets an impossible bar with one raised eyebrow, runs the whole operation three steps ahead, and is never impressed on the first try.' },
+  ISTJ: { nickname: 'The Keeper of the Code', character: 'Carl Fredricksen', film: 'Up', alignment: 'hero', flavour: 'Keeps every promise to the letter, guards the routine like a treaty, and has already labelled the box before you thought to pack it.', matchWhy: 'Like Carl, you run on loyalty and kept promises: steady, dependable, and unmovable once you commit.' },
+  ISFJ: { nickname: 'The Quiet Hearth', character: 'Samwise Gamgee', film: 'The Lord of the Rings', alignment: 'hero', flavour: 'Carries more than their share without a word, remembers what everyone else forgot, and absolutely will not leave you behind.', matchWhy: 'Like Sam, you quietly carry more than your share and never leave your people behind.' },
+  INFJ: { nickname: 'The Quiet Storm', character: 'Jean Valjean', film: 'Les Misérables', alignment: 'hero', flavour: 'Runs on a private moral compass, does the quiet right thing when no one is watching, and would rather carry the weight than explain it.', matchWhy: 'You share his private moral compass: doing the quiet right thing without needing anyone to notice.' },
+  INTJ: { nickname: 'The Grand Schemer', character: 'Lisbeth Salander', film: 'The Girl with the Dragon Tattoo', alignment: 'anti-hero', flavour: 'Maps the whole board in silence, trusts the data over the room, and has three moves planned while everyone else is still saying hello.', matchWhy: 'Like Lisbeth, you read the whole board in silence and trust the evidence over the room.' },
+  ISTP: { nickname: 'The Improviser', character: 'Max Rockatansky', film: 'Mad Max: Fury Road', alignment: 'anti-hero', flavour: 'Says almost nothing, fixes it with whatever is lying around, and is halfway to a solution before the problem has finished being explained.', matchWhy: 'Like Max, you say little and fix it with whatever is on hand: all action, no speeches.' },
+  ISFP: { nickname: 'The Free Spirit', character: 'Ponyo', film: 'Ponyo', alignment: 'hero', flavour: 'Follows the heart wherever it points, feels everything at full volume, and leaps first because the moment simply felt right.', matchWhy: 'Like Ponyo, you feel everything at full volume and leap when your heart says the moment is right.' },
+  INFP: { nickname: 'The Daydream Believer', character: 'Amélie Poulain', film: 'Amélie', alignment: 'hero', flavour: 'Lives half in a daydream, engineers small anonymous kindnesses, and holds a private standard the ordinary world never quite meets.', matchWhy: 'You share her rich inner world and quiet, deliberate kindness done for its own sake.' },
+  INTP: { nickname: 'The Daydreaming Brainiac', character: 'Ellie Sattler', film: 'Jurassic Park', alignment: 'hero', flavour: 'Reasons straight from the evidence, pokes every assumption to see what breaks, and is genuinely delighted when the model turns out wrong.', matchWhy: 'Like Ellie, you reason straight from evidence and are delighted, not defensive, when a better answer wins.' },
+  ESTP: { nickname: 'The Charmer with a Catch', character: 'Long John Silver', film: 'Treasure Island', alignment: 'anti-hero', flavour: 'Charms the whole room, reads which way the wind is blowing, and adjusts allegiances the instant the situation rewards it.', matchWhy: 'You share his charm and quick read of the room, adapting fast the moment the situation shifts.' },
+  ESFP: { nickname: 'The Showstopper', character: 'Kuzco', film: "The Emperor's New Groove", alignment: 'hero', flavour: 'Narrates their own life like a highlight reel, improvises through every setback, and turns even a full disaster into a bit.', matchWhy: 'Like Kuzco, you improvise through every setback and turn even a disaster into a good story.' },
+  ENFP: { nickname: 'The Spark', character: 'Jack Sparrow', film: 'Pirates of the Caribbean', alignment: 'anti-hero', flavour: 'Talks their way out of anything, changes the plan mid-sentence, and lands on their feet through pure momentum and charm.', matchWhy: 'Like Jack, you change the plan mid-sentence and land on your feet through sheer momentum and charm.' },
+  ENTP: { nickname: 'The Fast-Talking Wildcard', character: 'Tyrion Lannister', film: 'A Song of Ice and Fire', alignment: 'anti-hero', flavour: 'Has nine angles on everything and will happily argue all nine, wins the room with one line, and thinks best with an audience.', matchWhy: 'Like Tyrion, you see every angle, win the room with a line, and think best out loud.' },
+  ESTJ: { nickname: 'The Captain of Order', character: 'Hank Schrader', film: 'Breaking Bad', alignment: 'hero', flavour: 'Takes command by default, says the blunt thing everyone was thinking, and refuses to accept that the rules are merely guidelines.', matchWhy: 'You share his instinct to take command and say the blunt, needed thing out loud.' },
+  ESFJ: { nickname: 'The Heart That Holds It Together', character: 'Molly Weasley', film: 'Harry Potter', alignment: 'hero', flavour: 'Feeds everyone, remembers every birthday, holds the whole family together, and turns ferocious the moment you threaten one of them.', matchWhy: 'Like Molly, you hold everyone together and turn fierce the moment your people are threatened.' },
+  ENFJ: { nickname: 'The Charming Operator', character: 'John Keating', film: 'Dead Poets Society', alignment: 'mentor', flavour: 'Sees the potential you keep hidden, rallies the room with a word, and makes you believe you were capable of it all along.', matchWhy: 'You share his gift for seeing hidden potential and making people believe they were capable all along.' },
+  ENTJ: { nickname: 'The Throne-Taker', character: 'Miranda Priestly', film: 'The Devil Wears Prada', alignment: 'villain', flavour: 'Sets an impossible bar with one raised eyebrow, runs the whole operation three steps ahead, and is never impressed on the first try.', matchWhy: 'Like Miranda, you set an impossibly high bar and run the whole operation three steps ahead.' },
 }
 
 // ≥50 → high pole letter (exactly 50 rounds to the high pole: E, N, F, J, A).
@@ -184,7 +186,7 @@ export function deriveType(s: BigFiveScores): MbtiType {
   const AT = s.emotionalStability >= 50 ? 'A' : 'T'
   const type = `${EI}${SN}${TF}${JP}`
   const meta: TypeMeta =
-    TYPE_META[type] ?? { nickname: 'The Original', flavour: 'A blend all your own.', character: 'an original', film: '', alignment: 'hero' }
+    TYPE_META[type] ?? { nickname: 'The Original', flavour: 'A blend all your own.', character: 'an original', film: '', alignment: 'hero', matchWhy: '' }
   return {
     type,
     fullCode: `${type}-${AT}`,
@@ -194,6 +196,7 @@ export function deriveType(s: BigFiveScores): MbtiType {
     character: meta.character,
     film: meta.film,
     alignment: meta.alignment,
+    matchWhy: meta.matchWhy,
     signature: [POLE_WORD[EI], POLE_WORD[SN], POLE_WORD[TF]],
     axes: { EI, SN, TF, JP, AT },
   }
