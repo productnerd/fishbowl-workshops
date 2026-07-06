@@ -87,13 +87,12 @@ export default function Create() {
           maxLength={120}
           className="mt-4 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-left text-base text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/55 focus:shadow-chunky"
         />
-        <p className="mt-6 mb-1 text-sm font-semibold text-ink-soft">A little context sharpens the whole AI report:</p>
         <input
           value={role}
           onChange={(e) => setRole(e.target.value)}
           placeholder="Your role (e.g. Product Manager)"
           maxLength={80}
-          className="mt-2 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-left text-base text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/55 focus:shadow-chunky"
+          className="mt-4 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-left text-base text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/55 focus:shadow-chunky"
         />
         <input
           value={vertical}
@@ -105,7 +104,8 @@ export default function Create() {
         <div className="mt-3">
           <CountryPicker value={country} onChange={setCountry} />
         </div>
-        <div className="mt-7">
+        <p className="mt-7 mb-2 text-sm font-semibold text-ink">A little context sharpens the whole AI report</p>
+        <div className="mt-1">
           <Button variant="pink" onClick={create} disabled={!name.trim() || loading} className="!text-xl">
             {loading ? 'Creating…' : 'Create my link →'}
           </Button>
