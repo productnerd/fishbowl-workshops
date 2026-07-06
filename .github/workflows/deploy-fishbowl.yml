@@ -32,6 +32,9 @@ jobs:
       - name: Install dependencies (workspace root)
         run: npm install --legacy-peer-deps
 
+      - name: Test
+        run: npm test
+
       - name: Build
         run: npm run build -w @fishbowl/fishbowl
         env:
