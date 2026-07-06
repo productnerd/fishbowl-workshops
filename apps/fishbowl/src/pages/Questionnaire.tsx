@@ -76,6 +76,24 @@ export default function Questionnaire() {
   const [via, setVia] = useState<string[]>([])
   const [johari, setJohari] = useState<string[]>([])
   const [nohari, setNohari] = useState<string[]>([])
+  // First-open explainer: the friend often gets this link with zero context, so we
+  // spell out what it is (anonymous, to help the person grow) before the first question.
+  // Shown once per link (localStorage-gated).
+  const [showIntro, setShowIntro] = useState(() => {
+    try {
+      return !localStorage.getItem(`fishbowl_intro_seen_${slug}`)
+    } catch {
+      return true
+    }
+  })
+  const dismissIntro = () => {
+    try {
+      localStorage.setItem(`fishbowl_intro_seen_${slug}`, '1')
+    } catch {
+      /* storage unavailable */
+    }
+    setShowIntro(false)
+  }
   const advanceTimer = useRef<number | null>(null)
   // Fresh per-load seed → this respondent gets a sampled subset of pooled modules.
   const seedRef = useRef(Math.floor(Math.random() * 1e9))
@@ -198,6 +216,56 @@ export default function Questionnaire() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-5">
+      {/* First-open explainer for the friend who arrived with no context. */}
+      <AnimatePresence>
+        {showIntro && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 grid place-items-center bg-ink/45 px-5 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 18, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
+              transition={{ duration: 0.24, ease: [0.2, 0.8, 0.2, 1] as const }}
+              className="w-full max-w-sm rounded-3xl border-[2.5px] border-ink bg-paper-hi p-7 text-center shadow-chunky"
+            >
+              <div className="text-5xl">🪞</div>
+              <p className="kicker mt-3 text-pink-deep">you were asked for feedback</p>
+              <h2 className="display mt-1 text-3xl leading-tight">Help {session.creator_name} see themselves</h2>
+              <ul className="mx-auto mt-5 flex max-w-xs flex-col gap-3 text-left text-[0.95rem] leading-snug text-ink-soft">
+                <li className="flex gap-2.5">
+                  <span aria-hidden>🔒</span>
+                  <span>
+                    <span className="font-bold text-ink">Completely anonymous.</span> {session.creator_name} sees the patterns, never who said what.
+                  </span>
+                </li>
+                <li className="flex gap-2.5">
+                  <span aria-hidden>💡</span>
+                  <span>
+                    It shows them their <span className="font-bold text-ink">blind spots</span> so they can grow and be easier to work with.
+                  </span>
+                </li>
+                <li className="flex gap-2.5">
+                  <span aria-hidden>⏱️</span>
+                  <span>
+                    About <span className="font-bold text-ink">3 minutes</span>. Just answer honestly.
+                  </span>
+                </li>
+              </ul>
+              <button
+                onClick={dismissIntro}
+                className="press mt-7 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-pink sc-pink px-5 py-3.5 font-display text-lg font-black text-ink shadow-chunky-sm"
+              >
+                Got it, let&rsquo;s go →
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* progress */}
       <div className="sticky top-0 z-10 -mx-5 px-5 pb-3 pt-5">
         <div className="mb-2 flex items-center justify-between">
