@@ -17,7 +17,7 @@ export default function SdtProfile({ team }: { team: TeamNeed[] }) {
     <div className="flex flex-col gap-4">
       <p className="serif text-lg text-ink">
         After working with you, your team most feels{' '}
-        <span className="font-semibold text-pink-deep">{top.label.toLowerCase()}</span> — {stem(top.key)}.
+        <span className="font-semibold text-pink-deep">{top.label.toLowerCase()}</span>, {stem(top.key)}.
       </p>
 
       <div className="flex flex-col gap-2.5">

@@ -84,7 +84,7 @@ export default function WatchoutsDeck({
             </div>
           ) : (
             <p className="text-sm font-semibold text-ink-soft">
-              {teamHasData ? 'Nothing extra — everything you owned, they saw too.' : 'You didn’t pick any.'}
+              {teamHasData ? 'Nothing extra, everything you owned, they saw too.' : 'You didn’t pick any.'}
             </p>
           )}
         </div>

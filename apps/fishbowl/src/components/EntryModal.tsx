@@ -11,7 +11,7 @@ export default function EntryModal({ onTakeNow, onLater }: { onTakeNow: () => vo
           <div className="text-5xl">🪞</div>
           <h2 className="display mt-3 text-3xl">See yourself first</h2>
           <p className="mt-2 text-ink-soft">
-            We recommend the 2-minute self-assessment first — your report is richer when we can show it next to how
+            We recommend the 2-minute self-assessment first, your report is richer when we can show it next to how
             you see yourself.
           </p>
           <div className="mt-5 flex flex-col gap-3">

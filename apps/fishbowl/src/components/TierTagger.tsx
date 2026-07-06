@@ -58,7 +58,7 @@ export default function TierTagger({
               }}
               className="depress-sm cursor-pointer rounded-xl border-2 border-ink bg-paper-hi px-3 py-2 text-xs font-bold text-ink-soft"
             >
-              —
+              None
             </button>
           </div>
           {(value[i] === 3 || value[i] === 1) && (

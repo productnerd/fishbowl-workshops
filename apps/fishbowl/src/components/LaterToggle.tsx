@@ -9,7 +9,7 @@ export default function LaterToggle({ stop, start }: { stop: string[]; start: st
     <ul className="mt-1 flex flex-col gap-1.5">
       {items.filter(Boolean).map((t, i) => (
         <li key={i} className="flex gap-2 text-sm leading-snug text-ink">
-          <span className="text-ink/40">–</span>
+          <span className="text-ink/40">-</span>
           <span>
             <Rich text={t} />
           </span>

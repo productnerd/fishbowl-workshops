@@ -329,7 +329,7 @@ export default function Questionnaire() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Your email (optional) — get notified + your own Fishbowl"
+            placeholder="Your email (optional), get notified + your own Fishbowl"
             className="w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-base text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/55 focus:shadow-chunky"
           />
           <p className="mt-1.5 text-center text-xs text-ink-soft">

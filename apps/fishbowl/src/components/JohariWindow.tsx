@@ -118,7 +118,7 @@ export default function JohariWindow({
           {blind.length ? (
             blind.map((w) => <Chip key={w} word={w} count={countOf(w)} tone="pink" dense={dense} />)
           ) : (
-            <span className="text-xs text-ink-soft">Nothing here — your read matched theirs.</span>
+            <span className="text-xs text-ink-soft">Nothing here, your read matched theirs.</span>
           )}
         </Pane>
       </div>

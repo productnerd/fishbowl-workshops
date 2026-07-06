@@ -101,11 +101,11 @@ export default function CandorPlot({
       {/* legend + quadrant readout */}
       <div className="flex flex-col gap-1.5 text-xs font-semibold text-ink-soft">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded-full border-2 border-ink bg-blue" /> team — {teamQ.name}
+          <span className="inline-block h-3 w-3 rounded-full border-2 border-ink bg-blue" /> team, {teamQ.name}
         </span>
         {hasSelf && (
           <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-full border-[2.5px] border-pink-deep bg-paper-hi" /> you — {selfQ!.name}
+            <span className="inline-block h-3 w-3 rounded-full border-[2.5px] border-pink-deep bg-paper-hi" /> you, {selfQ!.name}
           </span>
         )}
       </div>

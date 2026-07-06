@@ -17,7 +17,7 @@ export default function EnergyOverlay({ team, self }: { team: TeamEnergizer[]; s
   return (
     <div className="flex flex-col gap-3">
       {!teamHasData && self && (
-        <p className="text-xs text-ink-soft">Just your read — only you can call this one.</p>
+        <p className="text-xs text-ink-soft">Just your read, only you can call this one.</p>
       )}
       {rows.map((r) => {
         const s = self?.[r.id]

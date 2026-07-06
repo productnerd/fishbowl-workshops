@@ -2,7 +2,7 @@
 // (blue) and, when present, the subject's own marker (pink). The span between the two
 // is painted dark pink to flag a meaningful gap. Matches the energy/hats sliders so the
 // team/you colours are consistent everywhere.
-const GAP = '#5e2746' // dark pink/purple — the "you vs team" gap highlight
+const GAP = '#5e2746' // dark pink/purple, the "you vs team" gap highlight
 
 export default function VirtueGauge({
   name,

@@ -83,7 +83,7 @@ export default function Create() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email (optional) — get notified + your report"
+          placeholder="Email (optional), get notified + your report"
           maxLength={120}
           className="mt-4 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-left text-base text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/55 focus:shadow-chunky"
         />

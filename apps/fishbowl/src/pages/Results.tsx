@@ -287,7 +287,7 @@ export default function Results() {
         <div>
           <p className="kicker mb-1 text-blue-deep">
             your balance
-            <InfoTip text="Aristotle's golden mean: every strength is the midpoint between two vices. The middle — not the extreme — is the virtue." />
+            <InfoTip text="Aristotle's golden mean: every strength is the midpoint between two vices. The middle, not the extreme, is the virtue." />
           </p>
           <h2 className="display mb-4 text-3xl">The ten virtues</h2>
           {cap('virtues')}
@@ -568,7 +568,7 @@ export default function Results() {
         <div>
           <p className="kicker mb-1 text-blue-deep">
             thinking style
-            <InfoTip text="Edward de Bono's Six Thinking Hats — six modes of thought (facts, feelings, optimism, caution, creativity, process). The radar shows the shape of how you think: how strongly each mode shows up." />
+            <InfoTip text="Edward de Bono's Six Thinking Hats, six modes of thought (facts, feelings, optimism, caution, creativity, process). The radar shows the shape of how you think: how strongly each mode shows up." />
           </p>
           <h2 className="display mb-4 text-3xl">Six thinking hats</h2>
           {cap('hats')}
@@ -594,7 +594,7 @@ export default function Results() {
         <div>
           <p className="kicker mb-1 text-pink-deep">
             feedback style
-            <InfoTip text="Kim Scott's Radical Candor — caring personally while challenging directly. The other three corners (Ruinous Empathy, Obnoxious Aggression, Manipulative Insincerity) are common failure modes. Situational, not a fixed trait." />
+            <InfoTip text="Kim Scott's Radical Candor, caring personally while challenging directly. The other three corners (Ruinous Empathy, Obnoxious Aggression, Manipulative Insincerity) are common failure modes. Situational, not a fixed trait." />
           </p>
           <h2 className="display mb-5 text-3xl">Care × challenge</h2>
           <CandorPlot teamCare={rc.teamCare} teamChallenge={rc.teamChallenge} selfCare={axisMean('care')} selfChallenge={axisMean('challenge')} />
@@ -612,7 +612,7 @@ export default function Results() {
         <div>
           <p className="kicker mb-1 text-blue-deep">
             what you fuel
-            <InfoTip text="Self-Determination Theory (Deci & Ryan): the needs people feel met — autonomy, competence, relatedness, plus purpose, safety and vitality. What do you leave in your colleagues' tanks?" />
+            <InfoTip text="Self-Determination Theory (Deci & Ryan): the needs people feel met, autonomy, competence, relatedness, plus purpose, safety and vitality. What do you leave in your colleagues' tanks?" />
           </p>
           <h2 className="display mb-5 text-3xl">What you fuel in others</h2>
           <SdtProfile team={sdtTeam} />
@@ -646,10 +646,10 @@ export default function Results() {
         <div>
           <p className="kicker mb-1 text-pink-deep">
             team role
-            <InfoTip text="Belbin's nine team roles — the distinct ways people contribute, grouped Thinking / Action / People. The bar blends your own read (50%) with the team's (50%)." />
+            <InfoTip text="Belbin's nine team roles, the distinct ways people contribute, grouped Thinking / Action / People. The bar blends your own read (50%) with the team's (50%)." />
           </p>
           <h2 className="display mb-4 text-3xl">The roles you play</h2>
-          <p className="mb-2 text-sm text-ink-soft">Your role mix — your read and the team's, weighted equally.</p>
+          <p className="mb-2 text-sm text-ink-soft">Your role mix, your read and the team's, weighted equally.</p>
           <BelbinComposition segments={belbinComposite} />
           <div className="mt-6">
             <BelbinReport team={belbinTeam} self={selfBelbin} />
@@ -693,7 +693,7 @@ export default function Results() {
         <div>
           <p className="kicker mb-1 text-pink-deep">
             watch-outs
-            <InfoTip text="The flip side of your strengths — the behaviours colleagues flagged as things to watch. A word only shows here when at least two people named it, so a single off-day or one harsh read doesn't define you. Meant kindly: these are edges to soften, not verdicts." />
+            <InfoTip text="The flip side of your strengths, the behaviours colleagues flagged as things to watch. A word only shows here when at least two people named it, so a single off-day or one harsh read doesn't define you. Meant kindly: these are edges to soften, not verdicts." />
           </p>
           <h2 className="display mb-4 text-3xl">Your top watch-outs</h2>
           {cap('watchouts')}
@@ -707,7 +707,7 @@ export default function Results() {
         <div>
           <p className="kicker mb-1 text-pink-deep">
             the other window
-            <InfoTip text="The Nohari Window — the shadow side of Johari. The same four-pane idea applied to growth areas: comparing the watch-outs you own against the ones your team names reveals your Open edges, your Blind Spots, and what's still Hidden." />
+            <InfoTip text="The Nohari Window, the shadow side of Johari. The same four-pane idea applied to growth areas: comparing the watch-outs you own against the ones your team names reveals your Open edges, your Blind Spots, and what's still Hidden." />
           </p>
           <h2 className="display mb-5 text-3xl">Nohari window</h2>
           <JohariWindow teamCounts={teamNohari} self={selfNohari} n={insights.nohari?.n ?? 0} total={WEAKNESSES.length} dense />
@@ -737,7 +737,7 @@ export default function Results() {
         <div>
           <p className="kicker mb-1 text-pink-deep">
             the map
-            <InfoTip text="Every trait plotted: across = how the team rates you, up = how you rate yourself. Off the diagonal is where you and the team disagree — blind spots above it, hidden strengths below." />
+            <InfoTip text="Every trait plotted: across = how the team rates you, up = how you rate yourself. Off the diagonal is where you and the team disagree, blind spots above it, hidden strengths below." />
           </p>
           <h2 className="display mb-4 text-3xl">Blind spots &amp; hidden strengths</h2>
           {cap('blindspots')}
@@ -805,7 +805,7 @@ export default function Results() {
         <div>
           <p className="kicker mb-1 text-blue-deep">
             behaviour in motion
-            <InfoTip text="You are not one style — you shift by situation. Each room is a scenario your team rated; the border lights amber where your balance breaks." />
+            <InfoTip text="You are not one style, you shift by situation. Each room is a scenario your team rated; the border lights amber where your balance breaks." />
           </p>
           <h2 className="display mb-4 text-3xl">A day in four rooms</h2>
           {cap('rooms')}
@@ -827,7 +827,7 @@ export default function Results() {
         <div>
           <p className="kicker mb-1 text-pink-deep">
             why it persists
-            <InfoTip text="The trait that would let you see a blind spot (receptiveness) is the one running low, while confidence runs high — so the door only opens from the outside." />
+            <InfoTip text="The trait that would let you see a blind spot (receptiveness) is the one running low, while confidence runs high, so the door only opens from the outside." />
           </p>
           <h2 className="display mb-5 text-3xl">The locked door</h2>
           {cap('lockedDoor')}
@@ -869,7 +869,7 @@ export default function Results() {
         <div>
           <p className="kicker mb-1 text-blue">
             the blind side
-            <InfoTip text="Only the words the team flagged that you didn't own. When several trace to one root, they join into a named constellation — separate blind spots with a single hidden theme." />
+            <InfoTip text="Only the words the team flagged that you didn't own. When several trace to one root, they join into a named constellation, separate blind spots with a single hidden theme." />
           </p>
           <h2 className="display mb-4 text-3xl text-paper-hi">The blind-spot constellation</h2>
           <Constellation words={blindStars} clusters={synthesis?.constellation} />
@@ -1140,7 +1140,7 @@ export default function Results() {
   const buildSummary = () => {
     const plain = (s: string) => (s || '').replace(/\*\*/g, '')
     const L: string[] = []
-    L.push(`FISHBOWL REPORT — ${session.creator_name}`)
+    L.push(`FISHBOWL REPORT, ${session.creator_name}`)
     L.push(plain(insights.headline))
     if (hasSelf && self?.mbti) L.push(`\nPersonality type: ${self.mbti.nickname} (${self.mbti.fullCode ?? self.mbti.type})`)
     L.push('\nWHERE YOU SHINE')
@@ -1178,7 +1178,7 @@ export default function Results() {
   const synthesisText = (): string => {
     if (!synthesis) return ''
     const plain = (s: string) => (s || '').replace(/\*\*/g, '').replace(/\*/g, '')
-    const L: string[] = [`THE FULL READ — ${synthesis.title}`, '', plain(synthesis.portrait)]
+    const L: string[] = [`THE FULL READ, ${synthesis.title}`, '', plain(synthesis.portrait)]
     synthesis.sections.forEach((s) => L.push('', s.heading.toUpperCase(), plain(s.body)))
     return L.join('\n')
   }

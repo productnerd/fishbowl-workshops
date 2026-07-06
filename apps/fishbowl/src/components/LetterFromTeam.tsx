@@ -42,7 +42,7 @@ export default function LetterFromTeam({ name, body, words }: { name: string; bo
           <p className="handwritten mt-3 text-lg leading-tight text-ink">
             With love,
             <br />
-            <span className="text-ink-soft">— the people you work with</span> 🫶
+            <span className="text-ink-soft">the people you work with</span> 🫶
           </p>
 
           {ps.length >= 3 && (

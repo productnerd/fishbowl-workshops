@@ -10,7 +10,7 @@ export default function StickyNote({ bullets }: { bullets: string[] }) {
         <ul className="font-mono flex flex-col gap-2.5 text-[0.95rem] leading-relaxed text-ink">
           {bullets.filter(Boolean).map((b, i) => (
             <li key={i} className="flex gap-2">
-              <span className="text-ink/40" aria-hidden>–</span>
+              <span className="text-ink/40" aria-hidden>-</span>
               <span>{b}</span>
             </li>
           ))}

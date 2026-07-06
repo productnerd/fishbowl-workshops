@@ -627,7 +627,7 @@ export default function SelfAssessment() {
           <h1 className="display mt-2 text-4xl">Your responsibilities</h1>
           <p className="mt-3 text-ink-soft">
             List up to {MAX_RESPONSIBILITIES} core parts of your role and mark where you think you land. Your team
-            rates the same list — we'll show both.
+            rates the same list, we'll show both.
           </p>
           <div className="mt-6 flex flex-col gap-4">
             {responsibilities.map((r, i) => (
@@ -828,7 +828,7 @@ export default function SelfAssessment() {
           <p className="kicker text-pink-deep">in your own words · optional</p>
           <h1 className="display mt-2 text-4xl">A few reflections</h1>
           <p className="mt-2 text-ink-soft">
-            Private to you. Only you ever see these — your team never does; they just make your report sharper.
+            Private to you. Only you ever see these, your team never does; they just make your report sharper.
           </p>
 
           <label className="mt-7 block">

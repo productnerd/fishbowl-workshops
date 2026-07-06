@@ -100,21 +100,21 @@ export default function ViaDeck({
               title="Matched"
               blurb="You and your team agree"
               items={matched.map(nameOf)}
-              empty="No overlap yet — your picks and theirs point elsewhere."
+              empty="No overlap yet, your picks and theirs point elsewhere."
             />
             <Section
               tone="pink"
               title="Hidden"
               blurb="You see it; the team hasn't named it"
               items={hidden.map(nameOf)}
-              empty="Nothing hidden — everything you claimed, they saw too."
+              empty="Nothing hidden, everything you claimed, they saw too."
             />
             <Section
               tone="sand"
               title="Blind spot"
               blurb="The team sees it; you didn't claim it"
               items={blindSpot.map(nameOf)}
-              empty="No blind spots — you named everything they did."
+              empty="No blind spots, you named everything they did."
             />
           </div>
 
