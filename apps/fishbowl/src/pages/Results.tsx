@@ -90,6 +90,30 @@ function Screen({ children }: { children: ReactNode }) {
   return <div className="mx-auto grid min-h-dvh max-w-lg place-items-center px-5 text-center">{children}</div>
 }
 
+// One slide in the report deck. `sec` is the act.position sort key (1.0 .. 7.9); the deck
+// is ordered by it and a breather divider is dropped at each act boundary. `breather`
+// marks those dividers (excluded from the breadcrumb count, breadcrumbs hidden on them).
+type Slide = {
+  tone: Parameters<typeof Card>[0]['tone']
+  node: ReactNode
+  character?: { type: string; name: string }
+  wide?: boolean
+  bare?: boolean
+  sec?: number
+  breather?: boolean
+  fullRead?: boolean
+}
+
+// The seven acts. The breather before each act (2..7) announces it; act 1 needs none.
+const ACTS: Record<number, { title: string; line: string }> = {
+  2: { title: 'How the team sees you', line: "Enough about your own read. Here's the mirror your colleagues hold up." },
+  3: { title: 'How you operate', line: 'Not just who you are, but how you actually move through a workday.' },
+  4: { title: 'Where the gaps are', line: 'The honest part: what you might not see, and what you quietly undersell.' },
+  5: { title: 'The warm part', line: 'Set the analysis down for a second. This is what they wanted you to hear.' },
+  6: { title: 'Putting it together', line: 'Every thread from the last few minutes, woven into one read.' },
+  7: { title: 'What to do with it', line: "Insight is nice. Here's how to actually use it this week." },
+}
+
 export default function Results() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
@@ -258,9 +282,10 @@ export default function Results() {
     )
   }
 
-  const cards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode; character?: { type: string; name: string }; wide?: boolean; bare?: boolean }[] = [
+  const cards: Slide[] = [
     {
       tone: 'pink',
+      sec: 1.0,
       node: (
         <div className="flex min-h-[60vh] flex-col justify-center">
           <p className="kicker text-ink/70">your fishbowl</p>
@@ -274,6 +299,7 @@ export default function Results() {
     },
     {
       tone: 'paper',
+      sec: 1.5,
       node: (
         <div>
           <p className="kicker mb-2 text-pink-deep">where you shine · your top 5</p>
@@ -284,6 +310,7 @@ export default function Results() {
     },
     {
       tone: 'paper',
+      sec: 2.0,
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">
@@ -322,6 +349,7 @@ export default function Results() {
     },
     {
       tone: 'blue',
+      sec: 2.1,
       node: (
         <div className="flex min-h-[55vh] flex-col justify-center">
           <p className="kicker text-paper-hi/80">most balanced</p>
@@ -337,6 +365,7 @@ export default function Results() {
     },
     {
       tone: 'paper',
+      sec: 2.2,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">at work</p>
@@ -386,9 +415,10 @@ export default function Results() {
   // Re-derive the type from the stored Big Five so the character + match text always
   // reflect the CURRENT archetype table, not whatever was cached at assessment time.
   const selfMbti = hasSelf && self?.big_five ? deriveType(self.big_five) : self?.mbti ?? null
-  const selfCards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode; character?: { type: string; name: string } }[] = [
+  const selfCards: Slide[] = [
     {
       tone: 'paper',
+      sec: 1.1,
       // On wide screens the character stands in the margin to the right of this
       // card (only once the subject has self-assessed, never for the locked teaser).
       ...(hasSelf && selfMbti?.character ? { character: { type: selfMbti.type, name: selfMbti.character } } : {}),
@@ -434,12 +464,13 @@ export default function Results() {
       }
       dimEvidence[d.key] = { self: ev ? `You ${ev.lean}: “${ev.text}”` : null, team: teamLine }
     }
-    for (const o of ORIENTATIONS) {
+    ORIENTATIONS.forEach((o, i) => {
       selfCards.push({
         tone: 'paper',
+        sec: 1.2 + i * 0.1,
         node: <DimensionsProfile orientation={o} dims={dimScores.filter((d) => d.orientation === o.key)} evidence={dimEvidence} />,
       })
-    }
+    })
   }
   cards.splice(1, 0, ...selfCards)
 
@@ -459,9 +490,10 @@ export default function Results() {
   const archWhy = whyParts.length ? `${whyParts.join(', and ').replace(/^./, (c) => c.toUpperCase())}.` : ''
   // The runner-up's essence, lower-cased and de-punctuated so it reads "who brings order…".
   const runnerUpLine = archetype ? archetype.runnerUpEssence.replace(/\.$/, '').replace(/^./, (c) => c.toLowerCase()) : ''
-  const archCard: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode } | null = archetype
+  const archCard: Slide | null = archetype
     ? {
         tone: 'ink',
+        sec: 1.6,
         node: (
           <div className="flex min-h-[55vh] flex-col justify-center text-center">
             <p className="kicker text-blue">
@@ -510,8 +542,9 @@ export default function Results() {
     ? teamResp
     : (self?.responsibilities ?? []).map((label, index) => ({ index, label, teamTier: 2, n: 0 }))
   if (teamRespHasData || (selfTiers && Object.keys(selfTiers).length > 0 && respRows.length > 0)) {
-    const respCard = {
-      tone: 'paper' as const,
+    const respCard: Slide = {
+      tone: 'paper',
+      sec: 2.3,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -542,13 +575,14 @@ export default function Results() {
 
   // ── Phase 3 framework cards — team layer at >=5; self overlays once self-assessed ──
   const sp = (self?.self_payload ?? {}) as Record<string, unknown>
-  const fwCards: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode }[] = []
+  const fwCards: Slide[] = []
 
   const selfHats = hasSelf ? ((sp.hats as HatScores) ?? null) : null
   if (insights.hats?.some((h) => h.n > 0) || (selfHats && Object.keys(selfHats).length > 0)) {
     const team = (insights.hats ?? []).map((h) => ({ key: h.key, label: HATS.find((x) => x.key === h.key)?.mode ?? h.key, mu: h.mu, n: h.n }))
     fwCards.push({
       tone: 'paper',
+      sec: 3.0,
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">
@@ -575,6 +609,7 @@ export default function Results() {
     }
     fwCards.push({
       tone: 'paper',
+      sec: 3.1,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -593,6 +628,7 @@ export default function Results() {
     const sdtTeam = insights.sdt.map((s) => ({ key: s.key, label: SDT_NEEDS.find((x) => x.key === s.key)?.label ?? s.key, meanPoints: s.meanPoints, n: s.n }))
     fwCards.push({
       tone: 'sand',
+      sec: 3.2,
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">
@@ -627,6 +663,7 @@ export default function Results() {
       .sort((a, b) => b.pct - a.pct)
     fwCards.push({
       tone: 'paper',
+      sec: 3.3,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -652,6 +689,7 @@ export default function Results() {
   if ((insights.johari && insights.johari.counts.length) || (selfJohari && selfJohari.length > 0)) {
     fwCards.push({
       tone: 'paper',
+      sec: 4.0,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -674,6 +712,7 @@ export default function Results() {
   if (hasNohari) {
     fwCards.push({
       tone: 'paper',
+      sec: 4.1,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -688,6 +727,7 @@ export default function Results() {
     })
     fwCards.push({
       tone: 'paper',
+      sec: 4.2,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -718,6 +758,7 @@ export default function Results() {
   if (gapRows.length > 0) {
     cards.splice(cards.length - 1, 0, {
       tone: 'paper',
+      sec: 4.3,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -746,6 +787,7 @@ export default function Results() {
   if (hasSelf && viceDials.length > 0 && archetype) {
     cards.splice(cards.length - 1, 0, {
       tone: 'paper',
+      sec: 4.4,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -786,6 +828,7 @@ export default function Results() {
     const rooms = fourth ? [...scenarioRooms.slice(0, 3), fourth] : scenarioRooms.slice(0, 4)
     fourRoomsCard = {
       tone: 'sand',
+      sec: 3.4,
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">
@@ -808,6 +851,7 @@ export default function Results() {
   if (hasSelf && typeof confSelf === 'number' && recVirtue && typeof recSelf === 'number' && confSelf >= 5.5 && recSelf <= recVirtue.mu) {
     cards.splice(cards.length - 1, 0, {
       tone: 'paper',
+      sec: 4.5,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -831,6 +875,7 @@ export default function Results() {
     const rc = insights.radicalCandor
     cards.splice(cards.length - 1, 0, {
       tone: 'sand',
+      sec: 4.6,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -850,6 +895,7 @@ export default function Results() {
   if (hasSelf && blindStars.length >= 3) {
     cards.splice(cards.length - 1, 0, {
       tone: 'ink',
+      sec: 4.7,
       node: (
         <div>
           <p className="kicker mb-1 text-blue">
@@ -873,6 +919,7 @@ export default function Results() {
   if (hasSelf && compVirtue && typeof compSelf === 'number' && heatDir !== 'steady') {
     cards.splice(cards.length - 1, 0, {
       tone: 'sand',
+      sec: 4.8,
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">
@@ -898,6 +945,7 @@ export default function Results() {
   if (hasSelf && teamW.thinking + teamW.action + teamW.people > 0 && energyW.thinking + energyW.action + energyW.people > 0) {
     cards.splice(cards.length - 1, 0, {
       tone: 'paper',
+      sec: 5.3,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -926,23 +974,19 @@ export default function Results() {
 
   // A breather, dropped in at the halfway point below: reassure the reader they don't
   // have to hold all of this, because the end pulls it together into a usable summary.
-  const reassuranceCard = hasSelf
-    ? {
-        tone: 'blue' as const,
-        node: (
-          <div className="flex flex-col text-paper-hi">
-            <div className="text-5xl">🫧</div>
-            <p className="kicker mt-4 text-paper-hi/80">take a breath</p>
-            <h2 className="display mt-2 text-4xl leading-tight">Feeling like a lot? That's normal.</h2>
-            <p className="mt-4 text-lg leading-relaxed text-paper-hi/90">
-              You don't have to hold all of this. By the end we pull the whole picture together into{' '}
-              <span className="font-black">one clear read</span>, a <span className="font-black">practical action plan</span>, and a
-              short summary you can actually keep. Just keep swiping.
-            </p>
-          </div>
-        ),
-      }
-    : null
+  // A breather / chapter divider that separates the acts. Marked `breather` so it is left
+  // out of the breadcrumb count and the breadcrumbs hide while it is on screen.
+  const makeBreather = (act: number): Slide => ({
+    tone: 'blue',
+    breather: true,
+    node: (
+      <div className="flex min-h-[58vh] flex-col justify-center text-center text-paper-hi">
+        <p className="kicker text-paper-hi/70">the next part</p>
+        <h2 className="display mt-3 text-[clamp(2.3rem,7vw,3.4rem)] leading-tight">{ACTS[act].title}</h2>
+        <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-paper-hi/85">{ACTS[act].line}</p>
+      </div>
+    ),
+  })
 
   // The warm cluster: what the team appreciates, then their handwritten letter, back to
   // back. Both are purely-positive team love, so they belong together as the emotional
@@ -950,6 +994,7 @@ export default function Results() {
   if (insights.appreciations.length > 0) {
     cards.push({
       tone: 'sand',
+      sec: 5.0,
       node: (
         <div>
           <p className="kicker mb-5 text-pink-deep">what they appreciate</p>
@@ -972,6 +1017,7 @@ export default function Results() {
     cards.push({
       tone: 'ink',
       bare: true,
+      sec: 5.1,
       node: <LetterFromTeam name={session.creator_name} body={insights.goodVibes} words={vibeWords} postscript={insights.postscript} />,
     })
   }
@@ -984,6 +1030,7 @@ export default function Results() {
     cards.push({
       tone: 'paper',
       wide: true,
+      sec: 5.2,
       node: <GoldenScore golden={golden} />,
     })
   }
@@ -994,6 +1041,7 @@ export default function Results() {
     const tl = synthesis.throughLine
     cards.push({
       tone: 'sand',
+      sec: 6.0,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">the through-line</p>
@@ -1014,9 +1062,10 @@ export default function Results() {
           <Rich text={p} />
         </p>
       ))
-    fullReadIdxRef.current = cards.length
     cards.push({
       tone: 'paper',
+      sec: 6.1,
+      fullRead: true,
       node: synthesis ? (
         <div>
           <p className="kicker mb-1 text-blue-deep">the full read</p>
@@ -1062,6 +1111,7 @@ export default function Results() {
     cards.push({
       tone: 'paper',
       bare: true,
+      sec: 6.2,
       node: <WorkManual name={session.creator_name} manual={workManual} />,
     })
   }
@@ -1086,6 +1136,7 @@ export default function Results() {
     const hasNext = ap.stopNext.some(Boolean) || ap.startNext.some(Boolean)
     cards.push({
       tone: 'pink',
+      sec: 7.0,
       node: (
         <div>
           <p className="kicker mb-1 text-ink/70">your move</p>
@@ -1111,6 +1162,7 @@ export default function Results() {
   if (hasSelf && synthesis?.oneOnOne && synthesis.oneOnOne.length > 0) {
     cards.push({
       tone: 'paper',
+      sec: 7.1,
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">
@@ -1130,6 +1182,7 @@ export default function Results() {
     cards.push({
       tone: 'sand',
       bare: true,
+      sec: 7.2,
       node: (
         <div className="text-center">
           <p className="kicker mb-1 text-pink-deep">stick it on your monitor</p>
@@ -1204,6 +1257,7 @@ export default function Results() {
   if (!hasSelf) {
     cards.push({
       tone: 'paper',
+      sec: 7.3,
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">take it with you</p>
@@ -1232,13 +1286,23 @@ export default function Results() {
     if (slug) localStorage.setItem(`fishbowl_self_nudge_seen_${slug}`, '1')
   }
 
-  // Drop the breather in at the halfway mark (not buried near the end). It lands before
-  // the full-read card, so nudge the "skip to full read" target down one to stay in sync.
-  if (reassuranceCard) {
-    const at = Math.floor(cards.length / 2)
-    cards.splice(at, 0, reassuranceCard)
-    if (fullReadIdxRef.current >= at) fullReadIdxRef.current += 1
+  // ── Order the deck by act (the sec key), then drop a breather divider at each act
+  // boundary. Cards with no sec (the retired "one last thing" closing card) are left out. ──
+  const ordered = cards.filter((c) => c.sec != null).sort((a, b) => a.sec! - b.sec!)
+  const deck: Slide[] = []
+  let lastAct = 0
+  for (const c of ordered) {
+    const act = Math.floor(c.sec!)
+    if (act !== lastAct) {
+      if (ACTS[act]) deck.push(makeBreather(act)) // no divider before act 1
+      lastAct = act
+    }
+    deck.push(c)
   }
+  cards.length = 0
+  cards.push(...deck)
+  // The skip target works off the final, breather-inclusive deck.
+  fullReadIdxRef.current = cards.findIndex((c) => c.fullRead)
 
   const total = cards.length
   // Clamp for the card we actually render: idx can briefly sit out of range while the
@@ -1260,16 +1324,21 @@ export default function Results() {
       >
         ✕
       </button>
-      {/* dots */}
-      <div className="mb-4 flex gap-1.5 pr-12 sm:pr-0">
-        {cards.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setIdx(i)}
-            className={`h-2 flex-1 cursor-pointer rounded-full border border-ink ${i <= idx ? 'bg-ink' : 'bg-paper-hi'}`}
-          />
-        ))}
-      </div>
+      {/* dots — one per CONTENT slide (breathers excluded); the whole row hides while a
+          breather divider is on screen so those separators sit outside the progress count */}
+      {!cards[cur]?.breather && (
+        <div className="mb-4 flex gap-1.5 pr-12 sm:pr-0">
+          {cards.map((c, i) =>
+            c.breather ? null : (
+              <button
+                key={i}
+                onClick={() => setIdx(i)}
+                className={`h-2 flex-1 cursor-pointer rounded-full border border-ink ${i <= cur ? 'bg-ink' : 'bg-paper-hi'}`}
+              />
+            )
+          )}
+        </div>
+      )}
 
       <div className="flex flex-1 items-center">
         <AnimatePresence mode="wait">
