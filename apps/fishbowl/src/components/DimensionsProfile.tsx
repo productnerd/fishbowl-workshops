@@ -28,7 +28,15 @@ function Dial({ score, color }: { score: number; color: string }) {
   )
 }
 
-export default function DimensionsProfile({ orientation, dims }: { orientation: OrientationMeta; dims: DimensionScore[] }) {
+export default function DimensionsProfile({
+  orientation,
+  dims,
+  evidence,
+}: {
+  orientation: OrientationMeta
+  dims: DimensionScore[]
+  evidence?: Record<string, { self: string | null; team: string | null }>
+}) {
   return (
     <div>
       <p className="kicker mb-1" style={{ color: orientation.color }}>
@@ -40,12 +48,19 @@ export default function DimensionsProfile({ orientation, dims }: { orientation: 
       <div className="flex flex-col gap-3">
         {dims.map((d) => {
           const color = shadeFor(orientation, d.score)
+          const ev = evidence?.[d.key]
           return (
             <div key={d.key} className="flex items-center gap-4 rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3.5 shadow-chunky-sm">
               <Dial score={d.score} color={color} />
               <div className="min-w-0">
                 <p className="serif text-lg font-black leading-tight text-ink">{d.label}</p>
                 <p className="mt-0.5 text-sm leading-snug text-ink-soft">{d.blurb}</p>
+                {ev?.self && <p className="mt-1.5 text-xs italic leading-snug text-ink-soft/90">{ev.self}</p>}
+                {ev?.team && (
+                  <p className="mt-1 text-xs font-bold leading-snug" style={{ color }}>
+                    {ev.team}
+                  </p>
+                )}
               </div>
             </div>
           )

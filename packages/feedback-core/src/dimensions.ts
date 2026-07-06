@@ -1,9 +1,10 @@
 // A three-orientation trait read (how you think / engage / apply yourself) layered on top
 // of the Big Five. Each of the 12 dimensions is scored from a mix of REUSED Big Five items
-// and a handful of new dimension-specific items — the Big Five core is untouched.
+// and a handful of new dimension-specific items, the Big Five core is untouched.
 //
-// Items are answered on the same 1–7 self scale. Scoring mirrors scoreBigFive:
-// reverse → 8 − raw, then mean → (mean − 1) / 6 × 100.
+// Items are answered on the same 1 to 7 self scale. Scoring mirrors scoreBigFive:
+// reverse then 8 minus raw, then mean then (mean minus 1) / 6 times 100.
+import { BIG_FIVE_ITEMS } from './personality'
 
 export type Orientation = 'cognitive' | 'interpersonal' | 'motivational'
 
@@ -119,4 +120,28 @@ export function scoreDimensions(answers: Record<string, number>): DimensionScore
     const score = Math.round(((mean - 1) / 6) * 100)
     return { key: d.key, label: d.label, orientation: d.orientation, blurb: d.blurb, score, band: bandOf(score), answered: vals.length }
   })
+}
+
+// The person's OWN strongest statement behind a dimension's score: the item (from the
+// Big Five or dimension pool) that pulled hardest on this dimension, with whether they
+// agreed with it or pushed back. This is the honest "what you actually said" for a score.
+export function dimensionEvidence(
+  key: string,
+  answers: Record<string, number>
+): { text: string; lean: 'agreed with' | 'pushed back on' } | null {
+  const dim = DIMENSIONS.find((d) => d.key === key)
+  if (!dim) return null
+  let best: { text: string; adj: number; raw: number } | null = null
+  for (const it of dim.items) {
+    const raw = answers[it.id]
+    if (typeof raw !== 'number') continue
+    const adj = it.reverse ? 8 - raw : raw // higher = more of this dimension
+    const src = DIMENSION_ITEMS.find((i) => i.id === it.id) ?? BIG_FIVE_ITEMS.find((i) => i.id === it.id)
+    if (!src) continue
+    // The item that leans furthest from neutral (4) in the dimension's direction.
+    if (!best || Math.abs(adj - 4) > Math.abs(best.adj - 4)) best = { text: src.text, adj, raw }
+  }
+  if (!best) return null
+  // Lean is about their stance on the STATEMENT (raw), not the dimension-adjusted value.
+  return { text: best.text, lean: best.raw >= 4 ? 'agreed with' : 'pushed back on' }
 }

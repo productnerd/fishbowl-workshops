@@ -58,7 +58,7 @@ export default function HatsRadar({ team, self }: { team: TeamHat[]; self: HatSc
 
   return (
     <div>
-      <svg viewBox={`0 0 ${size} ${size}`} className="mx-auto block w-full max-w-[320px]" role="img" aria-label="Six thinking hats radar">
+      <svg viewBox={`0 0 ${size} ${size}`} className="mx-auto block w-full max-w-[440px]" role="img" aria-label="Six thinking hats radar">
         {[0.25, 0.5, 0.75, 1].map((f) => (
           <polygon key={f} points={ring(f)} fill="none" stroke="#2a2420" strokeOpacity={0.13} strokeWidth={1} />
         ))}

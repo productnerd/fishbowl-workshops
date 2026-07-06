@@ -7,6 +7,7 @@ import {
   deriveType,
   deriveArchetype,
   scoreDimensions,
+  dimensionEvidence,
   ORIENTATIONS,
   HATS,
   SDT_NEEDS,
@@ -224,7 +225,7 @@ export default function Results() {
             </>
           ) : (
             <>
-              <motion.div animate={{ scale: [1, 1.12, 1] }} transition={{ repeat: Infinity, duration: 1.4, ease: 'easeInOut' }} className="text-6xl">
+              <motion.div animate={{ scale: [1, 1.16, 1], opacity: [0.6, 1, 0.6] }} transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }} className="text-6xl">
                 ✍️
               </motion.div>
               <h1 className="display mt-4 text-4xl">Writing your report…</h1>
@@ -266,14 +267,6 @@ export default function Results() {
             <Rich text={insights.headline} />
           </h1>
           <p className="mt-6 text-ink/70">{session.response_count} colleagues. One honest mirror.</p>
-          {hasSelf && (synthesis || synthesisLoading) && (
-            <button
-              onClick={() => fullReadIdxRef.current >= 0 && setIdx(fullReadIdxRef.current)}
-              className="press mt-8 w-fit cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-5 py-3 font-display font-black text-ink shadow-chunky-sm"
-            >
-              📖 Skip to final report →
-            </button>
-          )}
           {!hasSelf && slug && <RelinkPrompt slug={slug} />}
         </div>
       ),
@@ -432,10 +425,33 @@ export default function Results() {
   const dimScores =
     hasSelf && self?.ocean_answers && Object.keys(self.ocean_answers).length > 0 ? scoreDimensions(self.ocean_answers) : null
   if (dimScores) {
+    // Per-dimension supporting colour: the person's own strongest statement behind the
+    // score, plus the closest related team signal (a virtue the team scored) where one
+    // maps. Not baked into the score, but real evidence that supports it.
+    const DIM_TEAM_VIRTUE: Record<string, string> = {
+      deliberative: 'rigor', detailed: 'ownership', tough: 'candor', nurturing: 'generosity',
+      leadership: 'confidence', composed: 'composure', autonomous: 'ownership',
+      flexible: 'receptiveness', determined: 'drive',
+    }
+    const ans = self!.ocean_answers
+    const dimEvidence: Record<string, { self: string | null; team: string | null }> = {}
+    for (const d of dimScores) {
+      const ev = dimensionEvidence(d.key, ans)
+      const vkey = DIM_TEAM_VIRTUE[d.key]
+      const v = vkey ? insights.virtues.find((x) => x.dimension === vkey) : undefined
+      // Only surface the team signal when it points the SAME way as the score (so it
+      // supports it, rather than contradicting it, which would just read as confusing).
+      let teamLine: string | null = null
+      if (v) {
+        if (d.score >= 55 && v.mu >= 6) teamLine = `Your team reads high on ${v.name.toLowerCase()}`
+        else if (d.score <= 45 && v.mu <= 4) teamLine = `Your team reads low on ${v.name.toLowerCase()}`
+      }
+      dimEvidence[d.key] = { self: ev ? `You ${ev.lean}: “${ev.text}”` : null, team: teamLine }
+    }
     for (const o of ORIENTATIONS) {
       selfCards.push({
         tone: 'paper',
-        node: <DimensionsProfile orientation={o} dims={dimScores.filter((d) => d.orientation === o.key)} />,
+        node: <DimensionsProfile orientation={o} dims={dimScores.filter((d) => d.orientation === o.key)} evidence={dimEvidence} />,
       })
     }
   }
@@ -455,6 +471,8 @@ export default function Results() {
   if (teamDrivers.length) whyParts.push(`your team reads high ${joinList(teamDrivers)} in you`)
   if (selfDrivers.length) whyParts.push(`your own answers run high on ${joinList(selfDrivers)}`)
   const archWhy = whyParts.length ? `${whyParts.join(', and ').replace(/^./, (c) => c.toUpperCase())}.` : ''
+  // The runner-up's essence, lower-cased and de-punctuated so it reads "who brings order…".
+  const runnerUpLine = archetype ? archetype.runnerUpEssence.replace(/\.$/, '').replace(/^./, (c) => c.toLowerCase()) : ''
   const archCard: { tone: Parameters<typeof Card>[0]['tone']; node: ReactNode } | null = archetype
     ? {
         tone: 'ink',
@@ -467,7 +485,7 @@ export default function Results() {
             <p className="display mt-3 text-[clamp(2.6rem,8vw,4rem)] text-paper-hi">{archetype.name}</p>
             <p className="serif mt-2 text-lg text-paper-hi/80">{archetype.essence}</p>
             <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-paper-hi/70">
-              Archetypes are twelve universal characters — the Hero, the Sage, the Caregiver, and nine more — that recur across every culture&rsquo;s stories. We never ask which you are; we read it from how you and your team actually answered.
+              Archetypes are twelve universal characters (the Hero, the Sage, the Caregiver, and nine more) that recur across every culture&rsquo;s stories. We never ask which you are; we read it from how you and your team actually answered.
             </p>
             <p className="mt-5 text-lg leading-relaxed text-paper-hi/90">
               {archetype.cardTemplate.replace('{name}', session.creator_name)}
@@ -488,9 +506,9 @@ export default function Results() {
                 <p className="mt-1 text-sm leading-snug text-paper-hi/90">{archetype.shadow}</p>
               </div>
             </div>
-            <p className="mt-5 text-sm text-paper-hi/60">
-              with a touch of {archetype.runnerUp}
-              {archetype.fromSelf ? '' : ' · take your self-read to sharpen this'}
+            <p className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-paper-hi/60">
+              With a touch of <span className="font-semibold text-paper-hi/85">{archetype.runnerUp}</span>, who {runnerUpLine}.
+              {archetype.fromSelf ? '' : ' Take your self-read to sharpen this.'}
             </p>
           </div>
         ),
@@ -1226,18 +1244,16 @@ export default function Results() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col px-5 py-6">
       {showEntryModal && <EntryModal onTakeNow={goSelf} onLater={dismissModal} />}
-      {/* exit to home — a subtle ✕ top-right on every slide, last included */}
-      <div className="mb-3 flex justify-end">
-        <button
-          onClick={() => navigate('/')}
-          aria-label="Exit to home"
-          className="press grid h-10 w-10 cursor-pointer place-items-center rounded-full border-[2.5px] border-ink bg-paper-hi text-lg font-black text-ink shadow-chunky-sm"
-        >
-          ✕
-        </button>
-      </div>
+      {/* exit to home — a faded ✕ fixed to the screen's top-right corner, sharpens on hover */}
+      <button
+        onClick={() => navigate('/')}
+        aria-label="Exit to home"
+        className="press fixed right-2 top-2 z-40 grid h-10 w-10 cursor-pointer place-items-center rounded-full border-2 border-ink/30 bg-paper-hi/70 text-lg font-black text-ink/70 opacity-50 backdrop-blur-sm transition-opacity hover:opacity-100 sm:right-5 sm:top-5"
+      >
+        ✕
+      </button>
       {/* dots */}
-      <div className="mb-4 flex gap-1.5">
+      <div className="mb-4 flex gap-1.5 pr-12 sm:pr-0">
         {cards.map((_, i) => (
           <button
             key={i}
@@ -1296,6 +1312,16 @@ export default function Results() {
           className="press fixed right-2 top-1/2 z-30 grid h-12 w-12 -translate-y-1/2 cursor-pointer place-items-center rounded-full border-[2.5px] border-ink bg-pink text-2xl font-black text-ink shadow-chunky-sm sc-pink sm:right-5"
         >
           →
+        </button>
+      )}
+
+      {/* Skip straight to the full read — floats at the screen's bottom-right until you reach it */}
+      {hasSelf && (synthesis || synthesisLoading) && fullReadIdxRef.current >= 0 && cur < fullReadIdxRef.current && (
+        <button
+          onClick={() => setIdx(fullReadIdxRef.current)}
+          className="press fixed bottom-3 right-2 z-30 cursor-pointer rounded-full border-2 border-ink bg-paper-hi/90 px-4 py-2.5 font-display text-sm font-black text-ink shadow-chunky-sm backdrop-blur-sm sm:bottom-5 sm:right-5"
+        >
+          Skip to final report →
         </button>
       )}
     </div>

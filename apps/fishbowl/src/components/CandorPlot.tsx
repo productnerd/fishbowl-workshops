@@ -31,7 +31,7 @@ export default function CandorPlot({
   const selfY = hasSelf ? py(selfCare) : 0
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="mx-auto flex w-full max-w-[300px] flex-col gap-3">
       <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-[2.5px] border-ink bg-paper-hi shadow-chunky-sm">
         {/* quadrant tints: TL ruinous empathy, TR radical candor, BL manipulative, BR obnoxious */}
         <div className="absolute left-0 top-0 h-1/2 w-1/2 bg-sand/60" title="Ruinous Empathy" />
