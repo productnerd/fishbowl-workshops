@@ -10,12 +10,16 @@ export default function ChipPicker({
   max,
   value,
   onChange,
+  bare = false,
 }: {
   options: { id: string; label: string; group?: string }[]
   min: number
   max: number
   value: string[]
   onChange: (v: string[]) => void
+  // `bare` drops the "Picked" counter bar and the caption, leaving only the chips
+  // (used for the static landing-page previews).
+  bare?: boolean
 }) {
   const atMax = value.length >= max
 
@@ -35,12 +39,14 @@ export default function ChipPicker({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="sticky top-2 z-10 flex items-center justify-between rounded-2xl border-[2.5px] border-ink bg-blue px-4 py-3 text-paper-hi shadow-chunky-sm sc-navy">
-        <span className="kicker text-paper-hi/80">Picked</span>
-        <span className="font-display text-2xl font-black leading-none">
-          {value.length} <span className="text-paper-hi/70">/ {max}</span>
-        </span>
-      </div>
+      {!bare && (
+        <div className="sticky top-2 z-10 flex items-center justify-between rounded-2xl border-[2.5px] border-ink bg-blue px-4 py-3 text-paper-hi shadow-chunky-sm sc-navy">
+          <span className="kicker text-paper-hi/80">Picked</span>
+          <span className="font-display text-2xl font-black leading-none">
+            {value.length} <span className="text-paper-hi/70">/ {max}</span>
+          </span>
+        </div>
+      )}
 
       {groups.map((g, gi) => (
         <div key={gi} className="flex flex-col gap-2">
@@ -68,9 +74,11 @@ export default function ChipPicker({
         </div>
       ))}
 
-      <p className="text-center text-xs font-semibold text-ink-soft">
-        {value.length < min ? `Pick at least ${min}` : atMax ? 'That’s your max' : `Pick up to ${max}`}
-      </p>
+      {!bare && (
+        <p className="text-center text-xs font-semibold text-ink-soft">
+          {value.length < min ? `Pick at least ${min}` : atMax ? 'That’s your max' : `Pick up to ${max}`}
+        </p>
+      )}
     </div>
   )
 }

@@ -87,9 +87,9 @@ function BentoActivity({ kind }: { kind: string }) {
     case 'via':
       return <Xs h="4.5rem" scale={0.62}><ChipPicker options={[{ id: 'curiosity', label: 'Curiosity' }, { id: 'humor', label: 'Humor' }, { id: 'bravery', label: 'Bravery' }, { id: 'kindness', label: 'Kindness' }, { id: 'leadership', label: 'Leadership' }]} min={1} max={5} value={['curiosity', 'humor']} onChange={noop} /></Xs>
     case 'johari':
-      return <Xs h="4.5rem" scale={0.62}><ChipPicker options={[{ id: 'bold', label: 'bold' }, { id: 'calm', label: 'calm' }, { id: 'witty', label: 'witty' }, { id: 'kind', label: 'kind' }, { id: 'sharp', label: 'sharp' }]} min={1} max={5} value={['bold', 'witty']} onChange={noop} /></Xs>
+      return <Xs h="4.5rem" scale={0.62}><ChipPicker bare options={[{ id: 'bold', label: 'bold' }, { id: 'calm', label: 'calm' }, { id: 'witty', label: 'witty' }, { id: 'kind', label: 'kind' }, { id: 'sharp', label: 'sharp' }]} min={1} max={5} value={['bold', 'witty']} onChange={noop} /></Xs>
     case 'nohari':
-      return <Xs h="4.5rem" scale={0.62}><ChipPicker options={[{ id: 'impatient', label: 'impatient' }, { id: 'blunt', label: 'blunt' }, { id: 'stubborn', label: 'stubborn' }, { id: 'aloof', label: 'aloof' }]} min={1} max={4} value={['impatient', 'blunt']} onChange={noop} /></Xs>
+      return <Xs h="4.5rem" scale={0.62}><ChipPicker bare options={[{ id: 'impatient', label: 'impatient' }, { id: 'blunt', label: 'blunt' }, { id: 'stubborn', label: 'stubborn' }, { id: 'aloof', label: 'aloof' }]} min={1} max={4} value={['impatient', 'blunt']} onChange={noop} /></Xs>
     case 'hats':
       return <Xs h="6rem" scale={0.5}><HatsTagger value={{ white: 5, red: 6 }} onChange={noop} /></Xs>
     case 'belbin':
