@@ -170,16 +170,19 @@ const withName = (q: Question, name: string): Question => ({
   sectionDescription: q.sectionDescription.replace(/\{name\}/g, name),
 })
 
-export type SurveyDepth = 'quick' | 'full'
+export type SurveyDepth = 'quick' | 'standard' | 'full'
 
-// The colleague chooses how much to give. Everyone answers CORE (no `pool`). The QUICK
-// survey adds only the light At-Work rating modules (~6 to 7 min); the FULL survey adds
-// every deeper framework activity too (~13 to 14 min). Aggregation tolerates missing
-// answers, so quick-takers and full-takers mix freely.
+// The colleague chooses how much to give. Everyone answers CORE (no `pool`). QUICK adds only
+// the light At-Work ratings (~6 to 7 min). STANDARD adds the fast, fun signal modules too
+// (situations, strengths, the word portraits, watch-outs) (~10 min). FULL adds every deeper
+// framework activity (~13 to 14 min). Aggregation tolerates missing answers, so the three
+// mix freely.
 const QUICK_POOLS = new Set(['comp_a', 'comp_b'])
+const STANDARD_POOLS = new Set(['comp_a', 'comp_b', 'scenarios', 'via', 'johari', 'nohari'])
 
 export function getColleagueSurvey(name: string, hasResponsibilities: boolean, depth: SurveyDepth): Question[] {
   const usable = questions.filter((q) => q.type !== 'responsibilities' || hasResponsibilities)
-  const keep = (q: Question) => depth === 'full' || !q.pool || QUICK_POOLS.has(q.pool)
+  const pools = depth === 'full' ? null : depth === 'standard' ? STANDARD_POOLS : QUICK_POOLS
+  const keep = (q: Question) => !q.pool || pools === null || pools.has(q.pool)
   return usable.filter(keep).map((q) => withName(q, name))
 }

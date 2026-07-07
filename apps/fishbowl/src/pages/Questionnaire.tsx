@@ -74,7 +74,7 @@ export default function Questionnaire() {
   // How much the colleague chose to give: quick (~6-7 min) or full (~13-14 min). Null until
   // they pick on the screen after the intro. Restored from saved progress so resume matches.
   const [depth, setDepth] = useState<SurveyDepth | null>(() =>
-    saved.depth === 'quick' || saved.depth === 'full' ? (saved.depth as SurveyDepth) : null
+    saved.depth === 'quick' || saved.depth === 'standard' || saved.depth === 'full' ? (saved.depth as SurveyDepth) : null
   )
   const questions = useMemo<Question[]>(
     () => (session && depth ? getColleagueSurvey(session.creator_name, (session.responsibilities?.length ?? 0) > 0, depth) : []),
@@ -262,7 +262,19 @@ export default function Questionnaire() {
               <span className="kicker text-ink/70">~13 to 14 minutes</span>
               <span className="display mt-1 block text-2xl leading-tight">Go all in</span>
               <p className="mt-1.5 text-[0.95rem] leading-snug text-ink/80">
-                Every activity, the whole picture. The deepest, most accurate read, and the clearest sign you care.
+                Every activity, the whole picture. The deepest, most accurate read.
+              </p>
+            </button>
+
+            {/* Standard — the middle read */}
+            <button
+              onClick={() => choose('standard')}
+              className="press cursor-pointer rounded-3xl border-[2.5px] border-ink bg-paper-hi px-6 py-4 text-left shadow-chunky-sm"
+            >
+              <span className="kicker text-ink-soft">~10 minutes</span>
+              <span className="display mt-1 block text-xl leading-tight">A generous read</span>
+              <p className="mt-1 text-sm leading-snug text-ink-soft">
+                The essentials, plus their strengths, the words people reach for, and a few kind watch-outs.
               </p>
             </button>
 
