@@ -28,8 +28,8 @@ export default function Done() {
         <Card tone="blue" className="p-7 text-center">
           <div className="text-5xl">🙏</div>
           <h1 className="display mt-3 text-3xl">Thank you.</h1>
-          <p className="mt-2 text-ink">
-            {name ? `${name} is going to feel genuinely seen, thanks to you.` : 'They are going to feel genuinely seen, thanks to you.'}
+          <p className="mt-2 text-paper-hi/90">
+            {name ? `${name} is going to be really glad you did this.` : 'They are going to be really glad you did this.'}
           </p>
         </Card>
 
@@ -58,9 +58,9 @@ export default function Done() {
           </p>
 
           <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs font-bold text-ink">
-            <span className="rounded-full border-2 border-ink bg-paper-hi px-3 py-1">🎁 Free</span>
-            <span className="rounded-full border-2 border-ink bg-paper-hi px-3 py-1">⏱️ Under a minute</span>
-            <span className="rounded-full border-2 border-ink bg-paper-hi px-3 py-1">🔒 They stay anonymous</span>
+            <span className="rounded-full border-2 border-ink bg-paper-hi px-3 py-1">Free</span>
+            <span className="rounded-full border-2 border-ink bg-paper-hi px-3 py-1">Under a minute</span>
+            <span className="rounded-full border-2 border-ink bg-paper-hi px-3 py-1">They stay anonymous</span>
           </div>
 
           <div className="mt-5">
