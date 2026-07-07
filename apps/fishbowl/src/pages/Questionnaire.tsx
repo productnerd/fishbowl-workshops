@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type ReactNode } from 'react'
+import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Question, Session, ResponsibilityTiers, HatScores, CandorAnswers } from '@fishbowl/feedback-core'
@@ -18,7 +18,7 @@ import {
 } from '@fishbowl/feedback-core'
 import { getSession, submitResponse } from '../lib/data'
 import { playQuizTick } from '../lib/sound'
-import { getColleagueSurvey } from '../data/questions'
+import { getColleagueSurvey, type SurveyDepth } from '../data/questions'
 import VirtueSlider from '../components/VirtueSlider'
 import LikertScale from '../components/LikertScale'
 import ScenarioSlider from '../components/ScenarioSlider'
@@ -56,7 +56,7 @@ function compareNudge(mine: number, theirs: number): string | null {
 }
 
 // Locally-saved survey progress, so a closed/reopened tab resumes where it left off.
-// Keyed by link slug. The `seed` is saved too, so the same sampled question set comes back.
+// Keyed by link slug. The chosen `depth` is saved too, so the same question set comes back.
 const progressKey = (slug: string | undefined) => `fishbowl_survey_progress_${slug ?? ''}`
 function readSurveyProgress(slug: string | undefined): Record<string, unknown> {
   try {
@@ -71,7 +71,15 @@ export default function Questionnaire() {
   const navigate = useNavigate()
   const [saved] = useState(() => readSurveyProgress(slug))
   const [session, setSession] = useState<Session | null>(null)
-  const [questions, setQuestions] = useState<Question[]>([])
+  // How much the colleague chose to give: quick (~6-7 min) or full (~13-14 min). Null until
+  // they pick on the screen after the intro. Restored from saved progress so resume matches.
+  const [depth, setDepth] = useState<SurveyDepth | null>(() =>
+    saved.depth === 'quick' || saved.depth === 'full' ? (saved.depth as SurveyDepth) : null
+  )
+  const questions = useMemo<Question[]>(
+    () => (session && depth ? getColleagueSurvey(session.creator_name, (session.responsibilities?.length ?? 0) > 0, depth) : []),
+    [session, depth]
+  )
   const [i, setI] = useState<number>(() => (typeof saved.i === 'number' ? saved.i : 0))
   const [answers, setAnswers] = useState<Record<number, string | number>>(() => (saved.answers as Record<number, string | number>) ?? {})
   const [loading, setLoading] = useState(true)
@@ -107,17 +115,11 @@ export default function Questionnaire() {
     setShowIntro(false)
   }
   const advanceTimer = useRef<number | null>(null)
-  // Sampled-subset seed. Restored from saved progress so the SAME question set comes back
-  // on resume; otherwise fresh per respondent.
-  const seedRef = useRef(typeof saved.seed === 'number' ? saved.seed : Math.floor(Math.random() * 1e9))
 
   useEffect(() => {
     if (!slug) return
     getSession(slug).then((s) => {
-      if (s) {
-        setSession(s)
-        setQuestions(getColleagueSurvey(s.creator_name, seedRef.current, (s.responsibilities?.length ?? 0) > 0))
-      }
+      if (s) setSession(s)
       setLoading(false)
     })
   }, [slug])
@@ -153,14 +155,14 @@ export default function Questionnaire() {
     try {
       localStorage.setItem(
         progressKey(slug),
-        JSON.stringify({ seed: seedRef.current, i, answers, respTiers, respNotes, hats, candor, sdt, belbin, via, johari, nohari, email })
+        JSON.stringify({ depth, i, answers, respTiers, respNotes, hats, candor, sdt, belbin, via, johari, nohari, email })
       )
     } catch {
       /* storage full / disabled */
     }
-  }, [slug, loading, submitting, i, answers, respTiers, respNotes, hats, candor, sdt, belbin, via, johari, nohari, email])
+  }, [slug, loading, submitting, depth, i, answers, respTiers, respNotes, hats, candor, sdt, belbin, via, johari, nohari, email])
 
-  // Safety: if a restored index somehow lands past the (re-sampled) question set, clamp it.
+  // Safety: if a restored index somehow lands past the (depth-based) question set, clamp it.
   useEffect(() => {
     if (questions.length && i > questions.length - 1) setI(questions.length - 1)
   }, [questions.length, i])
@@ -179,6 +181,105 @@ export default function Questionnaire() {
       <Screen>
         <p className="display text-3xl">This link doesn't exist.</p>
       </Screen>
+    )
+  }
+
+  // Intro explainer, then the duration choice. Full is framed as the bigger gift so people
+  // lean toward giving the richer, more accurate read.
+  if (!depth) {
+    const choose = (d: SurveyDepth) => {
+      playQuizTick()
+      setDepth(d)
+    }
+    return (
+      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-5 py-10">
+        {/* First-open explainer for the friend who arrived with no context. */}
+        <AnimatePresence>
+          {showIntro && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 grid place-items-center bg-ink/45 px-5 backdrop-blur-sm"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 18, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                transition={{ duration: 0.24, ease: [0.2, 0.8, 0.2, 1] as const }}
+                className="w-full max-w-sm rounded-3xl border-[2.5px] border-ink bg-paper-hi p-7 text-center shadow-chunky"
+              >
+                <div className="text-5xl">🪞</div>
+                <p className="kicker mt-3 text-pink-deep">you were asked for feedback</p>
+                <h2 className="display mt-1 text-3xl leading-tight">Help {session.creator_name} level-up as a human</h2>
+                <ul className="mx-auto mt-5 flex max-w-xs flex-col gap-3 text-left text-[0.95rem] leading-snug text-ink-soft">
+                  <li className="flex gap-2.5">
+                    <span aria-hidden>🔒</span>
+                    <span>
+                      <span className="font-bold text-ink">Completely anonymous.</span> {session.creator_name} sees the patterns, never who said what.
+                    </span>
+                  </li>
+                  <li className="flex gap-2.5">
+                    <span aria-hidden>💡</span>
+                    <span>
+                      It shows them their <span className="font-bold text-ink">blind spots</span> so they can grow and be easier to work with.
+                    </span>
+                  </li>
+                  <li className="flex gap-2.5">
+                    <span aria-hidden>⏱️</span>
+                    <span>
+                      You pick <span className="font-bold text-ink">how deep to go</span> next. Just answer honestly.
+                    </span>
+                  </li>
+                </ul>
+                <button
+                  onClick={dismissIntro}
+                  className="press mt-7 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-pink sc-pink px-5 py-3.5 font-display text-lg font-black text-ink shadow-chunky-sm"
+                >
+                  Got it, let&rsquo;s go →
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+          <p className="kicker text-pink-deep">before you start</p>
+          <h1 className="display mt-2 text-4xl leading-tight">How much time do you have for {session.creator_name}?</h1>
+          <p className="serif mt-3 leading-snug text-ink-soft">
+            The more you share, the richer and more accurate their mirror. Going all in is the biggest gift you can give them.
+          </p>
+
+          <div className="mt-7 flex flex-col gap-4">
+            {/* Full — the hero */}
+            <button
+              onClick={() => choose('full')}
+              className="press relative cursor-pointer rounded-3xl border-[2.5px] border-ink bg-pink sc-pink px-6 py-5 text-left shadow-chunky"
+            >
+              <span className="absolute -top-3 right-5 rounded-full border-2 border-ink bg-paper-hi px-3 py-0.5 text-xs font-black uppercase tracking-wide text-pink-deep">
+                ♥ the most love
+              </span>
+              <span className="kicker text-ink/70">~13 to 14 minutes</span>
+              <span className="display mt-1 block text-2xl leading-tight">Go all in</span>
+              <p className="mt-1.5 text-[0.95rem] leading-snug text-ink/80">
+                Every activity, the whole picture. The deepest, most accurate read, and the clearest sign you care.
+              </p>
+            </button>
+
+            {/* Quick — secondary */}
+            <button
+              onClick={() => choose('quick')}
+              className="press cursor-pointer rounded-3xl border-[2.5px] border-ink bg-paper-hi px-6 py-4 text-left shadow-chunky-sm"
+            >
+              <span className="kicker text-ink-soft">~6 to 7 minutes</span>
+              <span className="display mt-1 block text-xl leading-tight">Keep it short</span>
+              <p className="mt-1 text-sm leading-snug text-ink-soft">
+                The essentials: their character, the core ratings, and your honest words.
+              </p>
+            </button>
+          </div>
+        </motion.div>
+      </div>
     )
   }
 
@@ -255,56 +356,6 @@ export default function Questionnaire() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-5">
-      {/* First-open explainer for the friend who arrived with no context. */}
-      <AnimatePresence>
-        {showIntro && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 grid place-items-center bg-ink/45 px-5 backdrop-blur-sm"
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 18, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.98 }}
-              transition={{ duration: 0.24, ease: [0.2, 0.8, 0.2, 1] as const }}
-              className="w-full max-w-sm rounded-3xl border-[2.5px] border-ink bg-paper-hi p-7 text-center shadow-chunky"
-            >
-              <div className="text-5xl">🪞</div>
-              <p className="kicker mt-3 text-pink-deep">you were asked for feedback</p>
-              <h2 className="display mt-1 text-3xl leading-tight">Help {session.creator_name} level-up as a human</h2>
-              <ul className="mx-auto mt-5 flex max-w-xs flex-col gap-3 text-left text-[0.95rem] leading-snug text-ink-soft">
-                <li className="flex gap-2.5">
-                  <span aria-hidden>🔒</span>
-                  <span>
-                    <span className="font-bold text-ink">Completely anonymous.</span> {session.creator_name} sees the patterns, never who said what.
-                  </span>
-                </li>
-                <li className="flex gap-2.5">
-                  <span aria-hidden>💡</span>
-                  <span>
-                    It shows them their <span className="font-bold text-ink">blind spots</span> so they can grow and be easier to work with.
-                  </span>
-                </li>
-                <li className="flex gap-2.5">
-                  <span aria-hidden>⏱️</span>
-                  <span>
-                    About <span className="font-bold text-ink">3 minutes</span>. Just answer honestly.
-                  </span>
-                </li>
-              </ul>
-              <button
-                onClick={dismissIntro}
-                className="press mt-7 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-pink sc-pink px-5 py-3.5 font-display text-lg font-black text-ink shadow-chunky-sm"
-              >
-                Got it, let&rsquo;s go →
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* progress */}
       <div className="sticky top-0 z-10 -mx-5 px-5 pb-3 pt-5">
         <div className="mb-2 flex items-center justify-between">

@@ -170,30 +170,16 @@ const withName = (q: Question, name: string): Question => ({
   sectionDescription: q.sectionDescription.replace(/\{name\}/g, name),
 })
 
-// Per-respondent colleague survey: every colleague answers CORE (no `pool`);
-// POOLED_PER_VISIT pooled modules are sampled by a fresh seed so the survey stays
-// ~18–22 items while full coverage accrues across responses. The aggregation
-// tolerates missing answers, so no single colleague needs to answer everything.
-const POOLED_PER_VISIT = 4
+export type SurveyDepth = 'quick' | 'full'
 
-function hashStr(s: string): number {
-  let h = 2166136261
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i)
-    h = Math.imul(h, 16777619)
-  }
-  return h >>> 0
-}
+// The colleague chooses how much to give. Everyone answers CORE (no `pool`). The QUICK
+// survey adds only the light At-Work rating modules (~6 to 7 min); the FULL survey adds
+// every deeper framework activity too (~13 to 14 min). Aggregation tolerates missing
+// answers, so quick-takers and full-takers mix freely.
+const QUICK_POOLS = new Set(['comp_a', 'comp_b'])
 
-export function getColleagueSurvey(name: string, seed: number, hasResponsibilities: boolean): Question[] {
+export function getColleagueSurvey(name: string, hasResponsibilities: boolean, depth: SurveyDepth): Question[] {
   const usable = questions.filter((q) => q.type !== 'responsibilities' || hasResponsibilities)
-  const pools = [...new Set(usable.filter((q) => q.pool).map((q) => q.pool as string))]
-  const sampled = new Set(
-    pools
-      .map((p) => ({ p, h: hashStr(`${seed}:${p}`) }))
-      .sort((a, b) => a.h - b.h)
-      .slice(0, POOLED_PER_VISIT)
-      .map((x) => x.p)
-  )
-  return usable.filter((q) => !q.pool || sampled.has(q.pool)).map((q) => withName(q, name))
+  const keep = (q: Question) => depth === 'full' || !q.pool || QUICK_POOLS.has(q.pool)
+  return usable.filter(keep).map((q) => withName(q, name))
 }
