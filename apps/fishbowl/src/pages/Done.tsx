@@ -5,6 +5,9 @@ import { getSession } from '../lib/data'
 import Card from '../components/Card'
 import Button from '../components/Button'
 
+// A few character cut-outs to tease the personality match ("which one are you?").
+const CHAR_TEASE = ['ENFP', 'ESFJ', 'ESTP']
+
 export default function Done() {
   const navigate = useNavigate()
   const { slug } = useParams<{ slug: string }>()
@@ -19,25 +22,53 @@ export default function Done() {
   }, [slug])
 
   return (
-    <div className="grid min-h-dvh place-items-center px-5">
-      <motion.div initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={{ ease: [0.2, 0.8, 0.2, 1] as const }} className="w-full max-w-md">
-        <Card tone="blue" className="p-10 text-center">
-          <div className="text-6xl">🙏</div>
-          <h1 className="display mt-4 text-4xl">Thank you.</h1>
-          <p className="mt-3 text-lg text-ink">
+    <div className="mx-auto grid min-h-dvh w-full max-w-md place-items-center px-5 py-8">
+      <motion.div initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ ease: [0.2, 0.8, 0.2, 1] as const }} className="w-full">
+        {/* Thank you, spoken to the person they just helped. */}
+        <Card tone="blue" className="p-7 text-center">
+          <div className="text-5xl">🙏</div>
+          <h1 className="display mt-3 text-3xl">Thank you.</h1>
+          <p className="mt-2 text-ink">
             {name ? `${name} is going to feel genuinely seen, thanks to you.` : 'They are going to feel genuinely seen, thanks to you.'}
           </p>
         </Card>
 
-        {/* Their turn: nudge the respondent to get their own honest mirror. */}
-        <Card tone="paper" className="mt-5 p-7 text-center">
-          <p className="serif text-xl font-semibold text-ink">Curious how your people see you?</p>
+        {/* Their turn: reciprocity flip + a taste of the actual reward. */}
+        <Card tone="paper" className="mt-4 p-7 text-center">
+          <div className="mb-4 flex h-24 items-end justify-center">
+            {CHAR_TEASE.map((t, k) => (
+              <motion.img
+                key={t}
+                src={`${import.meta.env.BASE_URL}characters/${t}.webp`}
+                alt=""
+                aria-hidden
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 + k * 0.08, ease: [0.2, 0.8, 0.2, 1] as const }}
+                className="h-24 w-auto object-contain object-bottom drop-shadow-[3px_4px_0_rgba(42,36,32,0.16)]"
+                style={{ marginLeft: k ? '-1rem' : 0, zIndex: k }}
+              />
+            ))}
+          </div>
+
+          <p className="kicker text-pink-deep">okay, your turn</p>
+          <h2 className="display mt-1 text-3xl leading-tight">Which one are you?</h2>
+          <p className="mt-2 leading-snug text-ink/85">
+            You just gave {name ?? 'them'} their mirror. Now get yours: a playful, wrapped-style read of how your people really see you.
+          </p>
+
+          <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs font-bold text-ink">
+            <span className="rounded-full border-2 border-ink bg-paper-hi px-3 py-1">🎁 Free</span>
+            <span className="rounded-full border-2 border-ink bg-paper-hi px-3 py-1">⏱️ Under a minute</span>
+            <span className="rounded-full border-2 border-ink bg-paper-hi px-3 py-1">🔒 They stay anonymous</span>
+          </div>
+
           <div className="mt-5">
             <Button variant="pink" onClick={() => navigate('/create')} className="!text-lg">
               Create my Fishbowl →
             </Button>
           </div>
-          <p className="mt-3 text-sm text-ink-soft">It takes less than a minute.</p>
+          <p className="mt-3 text-sm text-ink-soft">Just share one link with your team.</p>
         </Card>
       </motion.div>
     </div>
