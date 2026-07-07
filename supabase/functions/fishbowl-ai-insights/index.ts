@@ -54,7 +54,7 @@ const QUESTIONS: Q[] = [
   { id: 21, type: 'freetext', dimension: 'growth', text: 'What is one thing that would make {name} even more effective?' },
   { id: 22, type: 'freetext', dimension: 'message', text: 'If {name} could read one thing from this feedback, what should it be?' },
   { id: 32, type: 'freetext', dimension: 'aura', text: "In plain words, what's {name}'s vibe or aura?" },
-  { id: 33, type: 'freetext', dimension: 'first_impression', text: 'What was your first impression of {name}?' },
+  { id: 33, type: 'freetext', dimension: 'first_impression', text: 'How does {name} come across in terms of first impression?' },
 ]
 
 const VIRTUES = QUESTIONS.filter((q) => q.type === 'virtue')
@@ -159,17 +159,30 @@ Deno.serve(async (req) => {
       return { dimension: q.dimension, statement: q.text.replace(/\{name\}/g, name), average: round(avg, 1) }
     })
 
+    // Scenarios are a 7-point situational spectrum (1 = deficient extreme, 4 = the
+    // balanced move, 7 = excessive extreme). Older responses stored the picked option
+    // string; map those to a representative position so both aggregate together.
+    const scenarioTendency = (pos: number): Tendency => (pos < 3 ? 'deficient' : pos <= 5 ? 'balanced' : 'excessive')
     const scenarioStats = SCENARIOS.map((q) => {
-      const tally: Record<Tendency, number> = { deficient: 0, balanced: 0, excessive: 0 }
-      const counts: Record<string, number> = {}
-      for (const r of responses as any[]) {
-        const v = val(r, q.id)
-        if (typeof v !== 'string' || !v) continue
-        counts[v] = (counts[v] || 0) + 1
-        const t = q.optionTendencies?.[v]
-        if (t) tally[t]++
+      const optFor = (t: Tendency) => (q.options || []).find((o) => q.optionTendencies?.[o] === t) || ''
+      const toPos = (v: unknown): number | null => {
+        if (typeof v === 'number') return v >= 1 && v <= 7 ? v : null
+        if (typeof v === 'string') {
+          const t = q.optionTendencies?.[v]
+          return t === 'deficient' ? 2 : t === 'balanced' ? 4 : t === 'excessive' ? 6 : null
+        }
+        return null
       }
-      const winner = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || ''
+      const tally: Record<Tendency, number> = { deficient: 0, balanced: 0, excessive: 0 }
+      const positions: number[] = []
+      for (const r of responses as any[]) {
+        const pos = toPos(val(r, q.id))
+        if (pos == null) continue
+        positions.push(pos)
+        tally[scenarioTendency(pos)]++
+      }
+      const mu = positions.length ? mean(positions) : 4
+      const winner = optFor(scenarioTendency(mu))
       return { dimension: q.dimension, prompt: q.text.replace(/\{name\}/g, name), winner, tally }
     })
 

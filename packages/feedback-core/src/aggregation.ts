@@ -15,6 +15,14 @@ export function classifyTendency(mu: number): Tendency {
   return 'excessive'
 }
 
+// Same idea for the 7-point situational sliders (1 = deficient extreme, 4 = the
+// balanced move, 7 = excessive extreme).
+export function scenarioTendency(pos: number): Tendency {
+  if (pos < 3) return 'deficient'
+  if (pos <= 5) return 'balanced'
+  return 'excessive'
+}
+
 // 1 = perfectly balanced (mu=5); 0 = an extreme pole (mu=1 or 9).
 export function balanceScore(mu: number): number {
   return 1 - Math.abs(mu - 5) / 4
@@ -70,14 +78,23 @@ export function aggregateResponses(
         scores,
       }
     } else if (q.type === 'scenario') {
+      // Now a 7-point situational spectrum. Legacy responses stored the picked option
+      // string; map those to a representative position so old and new aggregate together.
+      const optFor = (t: Tendency) => q.options?.find((o) => q.optionTendencies?.[o] === t) ?? ''
+      const toPos = (val: string | number): number | null => {
+        if (typeof val === 'number') return val >= 1 && val <= 7 ? val : null
+        const t = q.optionTendencies?.[val]
+        return t === 'deficient' ? 2 : t === 'balanced' ? 4 : t === 'excessive' ? 6 : null
+      }
       const counts: Record<string, number> = {}
       const tendencyTally: Record<Tendency, number> = { deficient: 0, balanced: 0, excessive: 0 }
       for (const r of responses) {
-        const val = r.answers[q.id] as string
-        if (!val) continue
-        counts[val] = (counts[val] || 0) + 1
-        const t = q.optionTendencies?.[val]
-        if (t) tendencyTally[t] += 1
+        const pos = toPos(r.answers[q.id])
+        if (pos == null) continue
+        const t = scenarioTendency(pos)
+        tendencyTally[t] += 1
+        const label = optFor(t)
+        if (label) counts[label] = (counts[label] || 0) + 1
       }
       const winner = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]
       scenarioResults[q.id] = {

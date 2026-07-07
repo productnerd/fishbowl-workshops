@@ -21,7 +21,7 @@ import { playQuizTick } from '../lib/sound'
 import { getColleagueSurvey } from '../data/questions'
 import VirtueSlider from '../components/VirtueSlider'
 import LikertScale from '../components/LikertScale'
-import ScenarioChoice from '../components/ScenarioChoice'
+import ScenarioSlider from '../components/ScenarioSlider'
 import FreeText from '../components/FreeText'
 import TierTagger from '../components/TierTagger'
 import HatsTagger from '../components/HatsTagger'
@@ -367,7 +367,14 @@ export default function Questionnaire() {
               <LikertScale value={(a as number) ?? null} onChange={handleSelect} lowLabel={q.lowLabel || 'Disagree'} highLabel={q.highLabel || 'Agree'} />
             )}
             {q.type === 'scenario' && q.options && (
-              <ScenarioChoice options={q.options} selected={(a as string) ?? null} onSelect={handleSelect} />
+              <ScenarioSlider
+                id={`q${q.id}`}
+                value={(a as number) ?? null}
+                onChange={handleSelect}
+                deficientLabel={q.options.find((o) => q.optionTendencies?.[o] === 'deficient') ?? q.options[0]}
+                balancedLabel={q.options.find((o) => q.optionTendencies?.[o] === 'balanced') ?? q.options[1]}
+                excessiveLabel={q.options.find((o) => q.optionTendencies?.[o] === 'excessive') ?? q.options[2]}
+              />
             )}
             {q.type === 'freetext' && <FreeText value={(a as string) || ''} onChange={set} maxLength={q.maxLength} placeholder={q.placeholder} />}
             {q.type === 'responsibilities' && (

@@ -124,6 +124,9 @@ export const questions: Question[] = [
   { id: 15, type: 'likert', dimension: 'mentoring', pool: 'comp_b', scoring: 'higher-is-best', section: 'At Work', sectionDescription: 'How much do you agree?', text: '{name} helps others grow and shares knowledge generously.', lowLabel: 'Disagree', highLabel: 'Agree' },
   { id: 16, type: 'likert', dimension: 'prioritization', pool: 'comp_b', scoring: 'higher-is-best', section: 'At Work', sectionDescription: 'How much do you agree?', text: '{name} focuses on what matters most.', lowLabel: 'Disagree', highLabel: 'Agree' },
 
+  // ── Vibe: a quick gut read, right after the ratings (freetext, synthesized) ──
+  { id: 32, type: 'freetext', dimension: 'aura', section: 'First Impressions', sectionDescription: 'Quick gut read. Stays anonymous.', text: "In plain words, what's {name}'s vibe or aura?", placeholder: 'e.g. calm and sharp, warm chaos energy…', maxLength: 120 },
+
   // ── In the Moment: 3 scenarios ──
   { id: 17, type: 'scenario', dimension: 'conflict_style', section: 'In the Moment', sectionDescription: 'Pick what feels most true.', text: "When {name} disagrees with a teammate's approach, they usually…", options: ['Avoid it and let it slide', 'Raise it directly and hear them out', 'Push hard until they win'], optionTendencies: { 'Avoid it and let it slide': 'deficient', 'Raise it directly and hear them out': 'balanced', 'Push hard until they win': 'excessive' } },
   { id: 18, type: 'scenario', dimension: 'deadline_style', pool: 'scenarios', section: 'In the Moment', sectionDescription: 'Pick what feels most true.', text: 'Facing a slipping deadline, {name} tends to…', options: ['Quietly hope it works out', 'Flag it early and re-plan', 'Pull all-nighters and burn out'], optionTendencies: { 'Quietly hope it works out': 'deficient', 'Flag it early and re-plan': 'balanced', 'Pull all-nighters and burn out': 'excessive' } },
@@ -157,9 +160,8 @@ export const questions: Question[] = [
   { id: 21, type: 'freetext', dimension: 'growth', section: 'In Their Words', sectionDescription: 'A few honest words. Stays anonymous.', text: 'What is one thing that would make {name} even more effective?' },
   { id: 22, type: 'freetext', dimension: 'message', section: 'In Their Words', sectionDescription: 'A few honest words. Stays anonymous.', text: 'If {name} could read one thing from this feedback, what should it be?' },
 
-  // ── First Impressions: quick gut reads (freetext, synthesized, never shown verbatim) ──
-  { id: 32, type: 'freetext', dimension: 'aura', section: 'First Impressions', sectionDescription: 'Quick gut read. Stays anonymous.', text: "In plain words, what's {name}'s vibe or aura?", placeholder: 'e.g. calm and sharp, warm chaos energy…', maxLength: 120 },
-  { id: 33, type: 'freetext', dimension: 'first_impression', section: 'First Impressions', sectionDescription: 'Quick gut read. Stays anonymous.', text: 'What was your first impression of {name}?', placeholder: 'When you first started working together…' },
+  // ── First impression: a quick gut read (freetext, synthesized, never shown verbatim) ──
+  { id: 33, type: 'freetext', dimension: 'first_impression', section: 'First Impressions', sectionDescription: 'Quick gut read. Stays anonymous.', text: 'How does {name} come across in terms of first impression?', placeholder: 'When you first started working together…' },
 ]
 
 const withName = (q: Question, name: string): Question => ({
