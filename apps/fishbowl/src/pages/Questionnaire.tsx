@@ -273,7 +273,7 @@ export default function Questionnaire() {
             >
               <div className="text-5xl">🪞</div>
               <p className="kicker mt-3 text-pink-deep">you were asked for feedback</p>
-              <h2 className="display mt-1 text-3xl leading-tight">Help {session.creator_name} see themselves</h2>
+              <h2 className="display mt-1 text-3xl leading-tight">Help {session.creator_name} level-up as a human</h2>
               <ul className="mx-auto mt-5 flex max-w-xs flex-col gap-3 text-left text-[0.95rem] leading-snug text-ink-soft">
                 <li className="flex gap-2.5">
                   <span aria-hidden>🔒</span>
