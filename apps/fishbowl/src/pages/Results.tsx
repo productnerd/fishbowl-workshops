@@ -1049,11 +1049,11 @@ export default function Results() {
     bare: true,
     node: (
       <div
-        className="flex min-h-[86vh] flex-col justify-center rounded-[2rem] border-[2.5px] border-ink px-8 py-16 text-center text-paper-hi shadow-chunky"
+        className="relative flex min-h-[86vh] flex-col justify-center rounded-[2rem] border-[2.5px] border-ink px-10 py-16 text-center text-paper-hi shadow-chunky sm:px-16"
         style={{ backgroundColor: ACTS[act].color }}
       >
-        <p className="kicker text-paper-hi/60">chapter {act - 1} of 6</p>
-        <h2 className="display mt-4 text-[clamp(2.6rem,9vw,4.2rem)] leading-[0.95]">{ACTS[act].title}</h2>
+        <p className="kicker absolute inset-x-0 top-10 text-center text-paper-hi/60">chapter {act - 1}</p>
+        <h2 className="display text-[clamp(2.6rem,9vw,4.2rem)] leading-[0.95]">{ACTS[act].title}</h2>
         <p className="mx-auto mt-6 max-w-md text-lg leading-relaxed text-paper-hi/80">{ACTS[act].line}</p>
       </div>
     ),
@@ -1518,8 +1518,9 @@ export default function Results() {
         </button>
       )}
 
-      {/* Skip straight to the full read — floats at the screen's bottom-right until you reach it */}
-      {hasSelf && (synthesis || synthesisLoading) && fullReadIdxRef.current >= 0 && cur < fullReadIdxRef.current && (
+      {/* Skip straight to the full read — offered only on the chapter covers, where the
+          reader is already between sections and a jump feels natural */}
+      {cards[cur]?.breather && hasSelf && (synthesis || synthesisLoading) && fullReadIdxRef.current >= 0 && cur < fullReadIdxRef.current && (
         <button
           onClick={() => { playClick(); setIdx(fullReadIdxRef.current) }}
           className="press fixed bottom-3 right-2 z-30 cursor-pointer rounded-full border-2 border-ink bg-paper-hi/90 px-4 py-2.5 font-display text-sm font-black text-ink shadow-chunky-sm backdrop-blur-sm sm:bottom-5 sm:right-5"
