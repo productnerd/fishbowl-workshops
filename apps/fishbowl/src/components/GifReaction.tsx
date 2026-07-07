@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 
-// A reaction GIF the report AI chose for a text-heavy slide. Loads public/gifs/<name>.gif
-// and quietly renders nothing if the name is empty or the file is missing, so the feature
-// ships dormant until real GIFs are dropped in. One per slide; the deck caps the total.
+// A reaction the report AI chose for a text-heavy slide. Loads public/gifs/<name>.mp4
+// (the GIFs are shipped as tiny looping muted videos, ~100x smaller than real GIFs) and
+// quietly renders nothing if the name is empty or the file is missing, so the feature ships
+// dormant until real files are dropped in. One per slide; the deck caps the total.
 export default function GifReaction({ name }: { name?: string | null }) {
   const [failed, setFailed] = useState(false)
   const reduce = useReducedMotion()
@@ -18,11 +19,13 @@ export default function GifReaction({ name }: { name?: string | null }) {
       viewport={{ once: true, amount: 0.4 }}
       transition={reduce ? { duration: 0.2 } : { type: 'spring', stiffness: 320, damping: 20 }}
     >
-      <img
-        src={`${import.meta.env.BASE_URL}gifs/${name}.gif`}
-        alt=""
+      <video
+        src={`${import.meta.env.BASE_URL}gifs/${name}.mp4`}
+        autoPlay
+        loop
+        muted
+        playsInline
         aria-hidden
-        loading="lazy"
         onError={() => setFailed(true)}
         className="max-h-52 w-auto max-w-[220px] rounded-2xl border-[2.5px] border-ink object-contain shadow-chunky-sm"
       />

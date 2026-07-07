@@ -1,24 +1,35 @@
 # Reaction GIFs
 
-Drop the files in **this folder** (`apps/fishbowl/public/gifs/`). Source from Giphy or
-anywhere; keep them small and tasteful (ideally under ~1.5 MB, roughly square or landscape).
+The reactions are served as **tiny looping muted mp4 videos** in this folder
+(`apps/fishbowl/public/gifs/<name>_N.mp4`), roughly 100x smaller than real GIFs while looking
+identical. Source clips are picked as GIFs and converted to mp4 (see below).
 
 ## Naming: two variants per emotion
 
-A single report **never shows the same gif file twice**. So each emotion gets up to two
-visual variants, named with a `_1` / `_2` suffix:
+A single report **never shows the same clip twice**. So each emotion has up to two visual
+variants, suffixed `_1` / `_2`:
 
-- `<name>_1.gif` — **required** (used the first time an emotion comes up)
-- `<name>_2.gif` — **optional** (used only if the same emotion comes up a second time)
+- `<name>_1.mp4` — used the first time an emotion comes up
+- `<name>_2.mp4` — used only if the same emotion comes up a second time
 
-Example: `excitement_1.gif` and `excitement_2.gif`. The AI references the emotion by its base
-name (`excitement`); the app picks `_1` the first time and `_2` the second. A third use of the
-same emotion is dropped. If you only make `_1`, a rare repeat just shows nothing (safe).
+Example: `excitement_1.mp4` and `excitement_2.mp4`. The AI references the emotion by its base
+name (`excitement`); the app plays `_1` the first time and `_2` the second. A third use of the
+same emotion is dropped. A missing file is silently skipped (safe).
+
+## Adding or replacing one
+
+Pick a GIF, then convert it to a small looping mp4:
+
+```
+ffmpeg -i in.gif -vf "fps=20,scale=w=320:h=320:force_original_aspect_ratio=decrease:flags=lanczos,scale=trunc(iw/2)*2:trunc(ih/2)*2" -c:v libx264 -crf 30 -pix_fmt yuv420p -an -movflags +faststart <name>_1.mp4
+```
+
+Then drop `<name>_1.mp4` (and optionally `_2`) in this folder.
 
 How it works: the AI may append a `{{gif:NAME}}` tag to a text-heavy slide, picking only from
-the base names below. The app shows **at most one gif per slide** and **10 per report**, and
-**never the same file twice**. The prompt says firmly: **if no gif truly fits, add none.**
-Anything missing is silently skipped, so nothing appears or breaks until you add files.
+the base names below. The app shows **at most one per slide** and **10 per report**, and
+**never the same clip twice**. The prompt says firmly: **if no reaction truly fits, add none.**
+Anything missing is silently skipped.
 
 Canonical list also lives in `packages/feedback-core/src/gifs.ts`.
 
