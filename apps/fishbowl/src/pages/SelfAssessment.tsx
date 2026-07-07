@@ -80,10 +80,32 @@ function BackButton({ onClick }: { onClick: () => void }) {
   )
 }
 
+// Local in-progress snapshot so a closed/reopened tab resumes exactly where it left off
+// (covers mid-quiz + the ungated flow, which the server-side resume does not).
+const selfProgressKey = (slug: string | undefined) => `fishbowl_self_progress_${slug ?? ''}`
+function readSelfProgress(slug: string | undefined): Record<string, any> {
+  try {
+    return JSON.parse(localStorage.getItem(selfProgressKey(slug)) || '{}') || {}
+  } catch {
+    return {}
+  }
+}
+function clearSelfProgress(slug: string | undefined) {
+  try {
+    localStorage.removeItem(selfProgressKey(slug))
+  } catch {
+    /* ignore */
+  }
+}
+
 export default function SelfAssessment() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
-  const [phase, setPhase] = useState<Phase>('checking')
+  const [savedSelf] = useState(() => readSelfProgress(slug))
+  // A local snapshot means an in-progress run on THIS device; it takes precedence over the
+  // server-side resume below (it's more granular, and covers the mid-quiz / no-auth cases).
+  const hasLocal = typeof savedSelf.phase === 'string' && savedSelf.phase !== 'checking'
+  const [phase, setPhase] = useState<Phase>(() => (hasLocal ? (savedSelf.phase as Phase) : 'checking'))
 
   // Verify the bearer actually OWNS this slug before letting them self-assess. A
   // bearer for a different session can't save here, so we'd otherwise let them
@@ -95,7 +117,7 @@ export default function SelfAssessment() {
     // them to spin up their own Fishbowl (carrying the read over) rather than asking.
     if (!getSubjectAuth()) {
       setAuthed(false)
-      setPhase('depth')
+      if (!hasLocal) setPhase('depth') // a local snapshot already restored the phase
       return
     }
     let cancelled = false
@@ -103,7 +125,7 @@ export default function SelfAssessment() {
       if (cancelled) return
       setAuthed(r.authed)
       if (!r.authed) {
-        setPhase('depth')
+        if (!hasLocal) setPhase('depth')
         return
       }
       const s = r.self
@@ -111,9 +133,13 @@ export default function SelfAssessment() {
       // Already finished it? Don't let them redo it; bounce them straight to their
       // dashboard (replace, so Back doesn't land them back on the self-assessment).
       if (s && s.completed) {
+        clearSelfProgress(slug)
         goDashboard(true)
         return
       }
+      // A local in-progress snapshot wins: it already restored the state + phase, and is
+      // more up-to-date than the server (which only saves at phase boundaries).
+      if (hasLocal) return
       // Resume an in-progress (not yet completed) self-assessment where they left off.
       if (s && s.big_five && s.mbti && !s.completed && typeof sp.progress === 'string') {
         setAnswers(s.ocean_answers ?? {})
@@ -142,22 +168,22 @@ export default function SelfAssessment() {
       cancelled = true
     }
   }, [slug])
-  const [energizerTags, setEnergizerTags] = useState<EnergizerTags>({})
-  const [selfVirtues, setSelfVirtues] = useState<VirtueScores>({})
-  const [vIdx, setVIdx] = useState(0)
-  const [responsibilities, setResponsibilities] = useState<string[]>([''])
-  const [respTiers, setRespTiers] = useState<ResponsibilityTiers>({})
+  const [energizerTags, setEnergizerTags] = useState<EnergizerTags>(() => (savedSelf.energizerTags as EnergizerTags) ?? {})
+  const [selfVirtues, setSelfVirtues] = useState<VirtueScores>(() => (savedSelf.selfVirtues as VirtueScores) ?? {})
+  const [vIdx, setVIdx] = useState<number>(() => (typeof savedSelf.vIdx === 'number' ? savedSelf.vIdx : 0))
+  const [responsibilities, setResponsibilities] = useState<string[]>(() => (savedSelf.responsibilities as string[]) ?? [''])
+  const [respTiers, setRespTiers] = useState<ResponsibilityTiers>(() => (savedSelf.respTiers as ResponsibilityTiers) ?? {})
   // Optional "deeper read" self inputs (name-neutral frameworks).
-  const [fwIdx, setFwIdx] = useState(0)
-  const [selfHats, setSelfHats] = useState<HatScores>({})
-  const [selfBelbin, setSelfBelbin] = useState<Record<string, number>>({})
-  const [selfVia, setSelfVia] = useState<string[]>([])
-  const [selfJohari, setSelfJohari] = useState<string[]>([])
-  const [selfNohari, setSelfNohari] = useState<string[]>([])
+  const [fwIdx, setFwIdx] = useState<number>(() => (typeof savedSelf.fwIdx === 'number' ? savedSelf.fwIdx : 0))
+  const [selfHats, setSelfHats] = useState<HatScores>(() => (savedSelf.selfHats as HatScores) ?? {})
+  const [selfBelbin, setSelfBelbin] = useState<Record<string, number>>(() => (savedSelf.selfBelbin as Record<string, number>) ?? {})
+  const [selfVia, setSelfVia] = useState<string[]>(() => (savedSelf.selfVia as string[]) ?? [])
+  const [selfJohari, setSelfJohari] = useState<string[]>(() => (savedSelf.selfJohari as string[]) ?? [])
+  const [selfNohari, setSelfNohari] = useState<string[]>(() => (savedSelf.selfNohari as string[]) ?? [])
   // Free-text reflections (optional, private to the subject) — add colour + voice.
-  const [aspireWords, setAspireWords] = useState('')
-  const [selfBlindspot, setSelfBlindspot] = useState('')
-  const [selfManual, setSelfManual] = useState('')
+  const [aspireWords, setAspireWords] = useState<string>(() => (typeof savedSelf.aspiration === 'string' ? savedSelf.aspiration : ''))
+  const [selfBlindspot, setSelfBlindspot] = useState<string>(() => (typeof savedSelf.blindspot === 'string' ? savedSelf.blindspot : ''))
+  const [selfManual, setSelfManual] = useState<string>(() => (typeof savedSelf.manual === 'string' ? savedSelf.manual : ''))
 
   const [authed, setAuthed] = useState(false)
 
@@ -178,6 +204,7 @@ export default function SelfAssessment() {
   // stamped server-side during the awaited save, so it reads as done with no race.
   const routeAfter = async (knownEmail?: string | null) => {
     if (!slug) return
+    clearSelfProgress(slug) // finished, so drop the resume snapshot
     localStorage.setItem(`fishbowl_self_nudge_seen_${slug}`, '1')
     const session = await getSession(slug)
     const mine = readMine()
@@ -203,8 +230,8 @@ export default function SelfAssessment() {
   }
 
   // ── depth ──
-  const [depthIdx, setDepthIdx] = useState(1) // default middle (Standard)
-  const [depth, setDepth] = useState<SelfDepth>(DEPTHS[1])
+  const [depthIdx, setDepthIdx] = useState<number>(() => (typeof savedSelf.depthIdx === 'number' ? savedSelf.depthIdx : 1)) // default middle (Standard)
+  const [depth, setDepth] = useState<SelfDepth>(() => (savedSelf.depth as SelfDepth) ?? DEPTHS[1])
   // Big Five block (depth-scaled) + the fixed dimension block. The dimension items are
   // always asked so every dimension gets signal regardless of depth; scoreBigFive ignores
   // them (it only reads the ocean_* ids), so the Big Five core is unaffected.
@@ -214,13 +241,32 @@ export default function SelfAssessment() {
   )
 
   // ── quiz ──
-  const [i, setI] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, number>>({})
-  const [bigFive, setBigFive] = useState<BigFiveScores | null>(null)
-  const [mbti, setMbti] = useState<MbtiType | null>(null)
+  const [i, setI] = useState<number>(() => (typeof savedSelf.i === 'number' ? savedSelf.i : 0))
+  const [answers, setAnswers] = useState<Record<string, number>>(() => (savedSelf.answers as Record<string, number>) ?? {})
+  const [bigFive, setBigFive] = useState<BigFiveScores | null>(() => (savedSelf.bigFive as BigFiveScores) ?? null)
+  const [mbti, setMbti] = useState<MbtiType | null>(() => (savedSelf.mbti as MbtiType) ?? null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(false)
   const [confirmSkip, setConfirmSkip] = useState(false)
+
+  // Persist the whole in-progress state locally (from the quiz onward), so closing and
+  // reopening the tab resumes exactly here. Cleared when the self-read is finished.
+  useEffect(() => {
+    if (!slug || phase === 'checking' || phase === 'needauth' || phase === 'depth') return
+    try {
+      localStorage.setItem(
+        selfProgressKey(slug),
+        JSON.stringify({
+          phase, depthIdx, depth, i, vIdx, fwIdx, answers, bigFive, mbti,
+          selfVirtues, energizerTags, respTiers, responsibilities,
+          selfHats, selfBelbin, selfVia, selfJohari, selfNohari,
+          aspiration: aspireWords, blindspot: selfBlindspot, manual: selfManual,
+        })
+      )
+    } catch {
+      /* storage full / disabled */
+    }
+  }, [slug, phase, depthIdx, depth, i, vIdx, fwIdx, answers, bigFive, mbti, selfVirtues, energizerTags, respTiers, responsibilities, selfHats, selfBelbin, selfVia, selfJohari, selfNohari, aspireWords, selfBlindspot, selfManual])
 
   const q = items[Math.min(i, items.length - 1)]
   const pct = ((i + 1) / items.length) * 100
@@ -317,6 +363,7 @@ export default function SelfAssessment() {
     } catch {
       /* storage unavailable */
     }
+    clearSelfProgress(slug) // read is finished + stashed; no resume snapshot needed
     setSaving(false)
     setPhase('needauth')
   }

@@ -55,27 +55,39 @@ function compareNudge(mine: number, theirs: number): string | null {
   return null
 }
 
+// Locally-saved survey progress, so a closed/reopened tab resumes where it left off.
+// Keyed by link slug. The `seed` is saved too, so the same sampled question set comes back.
+const progressKey = (slug: string | undefined) => `fishbowl_survey_progress_${slug ?? ''}`
+function readSurveyProgress(slug: string | undefined): Record<string, unknown> {
+  try {
+    return JSON.parse(localStorage.getItem(progressKey(slug)) || '{}') || {}
+  } catch {
+    return {}
+  }
+}
+
 export default function Questionnaire() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
+  const [saved] = useState(() => readSurveyProgress(slug))
   const [session, setSession] = useState<Session | null>(null)
   const [questions, setQuestions] = useState<Question[]>([])
-  const [i, setI] = useState(0)
-  const [answers, setAnswers] = useState<Record<number, string | number>>({})
+  const [i, setI] = useState<number>(() => (typeof saved.i === 'number' ? saved.i : 0))
+  const [answers, setAnswers] = useState<Record<number, string | number>>(() => (saved.answers as Record<number, string | number>) ?? {})
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState<string>(() => (typeof saved.email === 'string' ? saved.email : ''))
   const [dir, setDir] = useState(1)
   const [myProfile, setMyProfile] = useState<Record<string, number> | null>(null)
-  const [respTiers, setRespTiers] = useState<ResponsibilityTiers>({})
-  const [respNotes, setRespNotes] = useState<Record<number, string>>({})
-  const [hats, setHats] = useState<HatScores>({})
-  const [candor, setCandor] = useState<CandorAnswers>({})
-  const [sdt, setSdt] = useState<Record<string, number>>({})
-  const [belbin, setBelbin] = useState<Record<string, number>>({})
-  const [via, setVia] = useState<string[]>([])
-  const [johari, setJohari] = useState<string[]>([])
-  const [nohari, setNohari] = useState<string[]>([])
+  const [respTiers, setRespTiers] = useState<ResponsibilityTiers>(() => (saved.respTiers as ResponsibilityTiers) ?? {})
+  const [respNotes, setRespNotes] = useState<Record<number, string>>(() => (saved.respNotes as Record<number, string>) ?? {})
+  const [hats, setHats] = useState<HatScores>(() => (saved.hats as HatScores) ?? {})
+  const [candor, setCandor] = useState<CandorAnswers>(() => (saved.candor as CandorAnswers) ?? {})
+  const [sdt, setSdt] = useState<Record<string, number>>(() => (saved.sdt as Record<string, number>) ?? {})
+  const [belbin, setBelbin] = useState<Record<string, number>>(() => (saved.belbin as Record<string, number>) ?? {})
+  const [via, setVia] = useState<string[]>(() => (saved.via as string[]) ?? [])
+  const [johari, setJohari] = useState<string[]>(() => (saved.johari as string[]) ?? [])
+  const [nohari, setNohari] = useState<string[]>(() => (saved.nohari as string[]) ?? [])
   // First-open explainer: the friend often gets this link with zero context, so we
   // spell out what it is (anonymous, to help the person grow) before the first question.
   // Shown once per link (localStorage-gated).
@@ -95,8 +107,9 @@ export default function Questionnaire() {
     setShowIntro(false)
   }
   const advanceTimer = useRef<number | null>(null)
-  // Fresh per-load seed → this respondent gets a sampled subset of pooled modules.
-  const seedRef = useRef(Math.floor(Math.random() * 1e9))
+  // Sampled-subset seed. Restored from saved progress so the SAME question set comes back
+  // on resume; otherwise fresh per respondent.
+  const seedRef = useRef(typeof saved.seed === 'number' ? saved.seed : Math.floor(Math.random() * 1e9))
 
   useEffect(() => {
     if (!slug) return
@@ -133,6 +146,25 @@ export default function Questionnaire() {
     []
   )
 
+  // Persist progress locally on every change, so closing the tab and reopening the link
+  // resumes exactly where they left off. Cleared on submit.
+  useEffect(() => {
+    if (!slug || loading || submitting) return
+    try {
+      localStorage.setItem(
+        progressKey(slug),
+        JSON.stringify({ seed: seedRef.current, i, answers, respTiers, respNotes, hats, candor, sdt, belbin, via, johari, nohari, email })
+      )
+    } catch {
+      /* storage full / disabled */
+    }
+  }, [slug, loading, submitting, i, answers, respTiers, respNotes, hats, candor, sdt, belbin, via, johari, nohari, email])
+
+  // Safety: if a restored index somehow lands past the (re-sampled) question set, clamp it.
+  useEffect(() => {
+    if (questions.length && i > questions.length - 1) setI(questions.length - 1)
+  }, [questions.length, i])
+
   if (loading) {
     return (
       <Screen>
@@ -160,7 +192,7 @@ export default function Questionnaire() {
   // Discrete answers auto-advance, so they need no Next button; only free-text / the
   // tag grids (or a virtue paused on a nudge) show one.
   const autoAdvances = q.type === 'virtue' || q.type === 'likert' || q.type === 'scenario'
-  const showNext = !isLast && answered && (!autoAdvances || Boolean(nudgeMsg))
+  const showNext = !isLast && answered && !autoAdvances
   const clearAdvance = () => {
     if (advanceTimer.current !== null) {
       window.clearTimeout(advanceTimer.current)
@@ -178,14 +210,16 @@ export default function Questionnaire() {
     playQuizTick()
     set(v)
     if (q.type === 'freetext' || isLast) return
-    // If a live nudge will show, don't auto-advance — let them read it, then tap Next.
+    // Auto-advance on any discrete pick (like the self-flow, no Next button). If a live
+    // "you vs them" nudge will show, linger a beat longer so it can be read, but still
+    // advance on its own.
     const mine = q.dimension ? myProfile?.[q.dimension] : undefined
-    if (q.type === 'virtue' && mine != null && compareNudge(mine, v as number) != null) return
+    const willNudge = q.type === 'virtue' && mine != null && compareNudge(mine, v as number) != null
     clearAdvance()
     advanceTimer.current = window.setTimeout(() => {
       advanceTimer.current = null
       go(1)
-    }, 500)
+    }, willNudge ? 1100 : 340)
   }
   const submit = async () => {
     setSubmitting(true)
@@ -208,6 +242,11 @@ export default function Questionnaire() {
       )
     } catch {
       /* best effort */
+    }
+    try {
+      localStorage.removeItem(progressKey(slug))
+    } catch {
+      /* ignore */
     }
     navigate(`/s/${slug}/done`)
   }

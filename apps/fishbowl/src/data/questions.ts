@@ -8,7 +8,7 @@ export const questions: Question[] = [
   {
     id: 1, type: 'virtue', dimension: 'courage', section: 'Character',
     sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
-    text: 'On facing risk and hard calls, {name} is…',
+    text: 'On facing risk and hard calls, {name}…',
     virtue: {
       name: 'Courage', deficientPole: 'Avoids all risk', excessivePole: 'Recklessly bold',
       deficientTraits: ['Sits on decisions', 'Waits to be told', 'Plays it too safe'],
@@ -19,7 +19,7 @@ export const questions: Question[] = [
   {
     id: 2, type: 'virtue', dimension: 'candor', section: 'Character',
     sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
-    text: 'On directness, {name} is…',
+    text: 'On directness, {name}…',
     virtue: {
       name: 'Candor', deficientPole: 'Evasive', excessivePole: 'Brutally blunt',
       deficientTraits: ['Softens the truth', 'Holds back concerns', 'Hints instead of saying'],
@@ -30,7 +30,7 @@ export const questions: Question[] = [
   {
     id: 3, type: 'virtue', dimension: 'confidence', section: 'Character',
     sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
-    text: 'On self-assurance, {name} is…',
+    text: 'On self-assurance, {name}…',
     virtue: {
       name: 'Confidence', deficientPole: 'Self-deprecating', excessivePole: 'Arrogant',
       deficientTraits: ['Downplays their work', 'Defers too easily', 'Apologizes reflexively'],
@@ -41,7 +41,7 @@ export const questions: Question[] = [
   {
     id: 4, type: 'virtue', dimension: 'drive', section: 'Character',
     sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
-    text: 'On ambition, {name} is…',
+    text: 'On ambition, {name}…',
     virtue: {
       name: 'Drive', deficientPole: 'Complacent', excessivePole: 'Ruthless',
       deficientTraits: ['Coasts on enough', 'Avoids the stretch', 'Lets things slide'],
@@ -52,7 +52,7 @@ export const questions: Question[] = [
   {
     id: 5, type: 'virtue', dimension: 'composure', section: 'Character',
     sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
-    text: 'Under pressure, {name} is…',
+    text: 'Under pressure, {name}…',
     virtue: {
       name: 'Composure', deficientPole: 'A pushover', excessivePole: 'Short-fused',
       deficientTraits: ['Caves under pressure', 'Avoids all conflict', 'Goes along to get along'],
@@ -63,7 +63,7 @@ export const questions: Question[] = [
   {
     id: 6, type: 'virtue', dimension: 'collaboration', section: 'Character',
     sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
-    text: 'On working with others, {name} is…',
+    text: 'On working with others, {name}…',
     virtue: {
       name: 'Collaboration', deficientPole: 'A lone wolf', excessivePole: 'Cannot decide alone',
       deficientTraits: ['Works in a silo', 'Skips the loop-in', 'Hoards the context'],
@@ -74,7 +74,7 @@ export const questions: Question[] = [
   {
     id: 7, type: 'virtue', dimension: 'rigor', section: 'Character',
     sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
-    text: 'On attention to detail, {name} is…',
+    text: 'On attention to detail, {name}…',
     virtue: {
       name: 'Rigor', deficientPole: 'Sloppy', excessivePole: 'Cannot ship',
       deficientTraits: ['Skips the details', 'Ships half-checked', 'Misses the obvious'],
@@ -85,7 +85,7 @@ export const questions: Question[] = [
   {
     id: 8, type: 'virtue', dimension: 'receptiveness', section: 'Character',
     sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
-    text: 'On taking input, {name} is…',
+    text: 'On taking input, {name}…',
     virtue: {
       name: 'Receptiveness', deficientPole: 'Defensive', excessivePole: 'Over-accommodating',
       deficientTraits: ['Bristles at feedback', 'Defends first', 'Dismisses input'],
@@ -96,7 +96,7 @@ export const questions: Question[] = [
   {
     id: 9, type: 'virtue', dimension: 'generosity', section: 'Character',
     sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
-    text: 'On sharing credit and helping, {name} is…',
+    text: 'On sharing credit and helping, {name}…',
     virtue: {
       name: 'Generosity', deficientPole: 'Credit-hoarding', excessivePole: 'Self-sacrificing',
       deficientTraits: ['Takes the credit', 'Slow to help', 'Keeps the spotlight'],
@@ -107,7 +107,7 @@ export const questions: Question[] = [
   {
     id: 10, type: 'virtue', dimension: 'decisiveness', section: 'Character',
     sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
-    text: 'On making decisions, {name} is…',
+    text: 'On making decisions, {name}…',
     virtue: {
       name: 'Decisiveness', deficientPole: 'Indecisive', excessivePole: 'Impulsive',
       deficientTraits: ['Sits on the fence', 'Reopens settled calls', 'Waits for certainty'],
