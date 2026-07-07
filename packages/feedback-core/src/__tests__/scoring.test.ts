@@ -6,7 +6,7 @@ import {
   selectBigFiveItems,
   deriveType,
   scoreDimensions,
-  dimensionEvidence,
+  blendDimensionScores,
   deriveArchetype,
   shadeFor,
   ORIENTATIONS,
@@ -120,21 +120,38 @@ describe('scoreDimensions', () => {
     expect(lo.score).toBe(0)
     expect(lo.band).toBe('Very Low')
   })
-})
 
-describe('dimensionEvidence', () => {
-  it('returns null for an unknown dimension', () => {
-    expect(dimensionEvidence('not-a-dimension', {})).toBeNull()
+  it('rests every dimension on at least 3 items', () => {
+    for (const d of DIMENSIONS) expect(d.items.length, d.key).toBeGreaterThanOrEqual(3)
   })
 
-  it('surfaces the driving statement with the right lean', () => {
-    const agreed = dimensionEvidence('leadership', answersForDimension('leadership', 7))
-    expect(agreed).not.toBeNull()
-    expect(agreed!.lean).toBe('agreed with')
-    expect(agreed!.text.length).toBeGreaterThan(0)
+  it('shrinks toward 50 when few items are answered (one answer cannot swing a score)', () => {
+    const dim = DIMENSIONS.find((d) => d.key === 'leadership')!
+    const one = dim.items[0]
+    const single = scoreDimensions({ [one.id]: one.reverse ? 1 : 7 }).find((d) => d.key === 'leadership')!
+    expect(single.answered).toBe(1)
+    expect(single.score).toBeGreaterThan(50)
+    expect(single.score).toBeLessThanOrEqual(67) // 1/3 confidence caps the swing
+    const full = scoreDimensions(answersForDimension('leadership', 7)).find((d) => d.key === 'leadership')!
+    expect(full.score).toBe(100) // 3+ answers: no shrinkage
+  })
+})
 
-    const pushed = dimensionEvidence('leadership', answersForDimension('leadership', 1))
-    expect(pushed!.lean).toBe('pushed back on')
+describe('blendDimensionScores', () => {
+  it('blends 70/30 with the team signal and rebands', () => {
+    const scores = scoreDimensions(answersForDimension('leadership', 7)) // leadership = 100
+    const out = blendDimensionScores(scores, { leadership: { value: 0, label: 'confidence' } })
+    const lead = out.find((d) => d.key === 'leadership')!
+    expect(lead.score).toBe(70) // 100*0.7 + 0*0.3
+    expect(lead.band).toBe('High')
+    expect(lead.team).toEqual({ value: 0, label: 'confidence' })
+  })
+
+  it('leaves dimensions without a team signal untouched', () => {
+    const scores = scoreDimensions(answersForDimension('leadership', 7))
+    const out = blendDimensionScores(scores, {})
+    expect(out.find((d) => d.key === 'leadership')!.score).toBe(100)
+    expect(out.find((d) => d.key === 'leadership')!.team).toBeUndefined()
   })
 })
 

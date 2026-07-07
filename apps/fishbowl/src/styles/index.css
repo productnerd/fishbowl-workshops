@@ -153,6 +153,8 @@ body::after {
   /* Hue the chunky shadow to match coloured components. */
   .sc-pink { --sc: var(--color-pink-shadow); }
   .sc-navy { --sc: var(--color-navy); }
+  /* For ink-dark elements: an ink shadow vanishes into them, so cast a sand one. */
+  .sc-sand { --sc: var(--color-sand-deep); }
 
   /* Press physics: on press the button travels DOWN with a concave inset shadow
      (the press animation). Hover changes ONLY the shadow (no jump), so releasing

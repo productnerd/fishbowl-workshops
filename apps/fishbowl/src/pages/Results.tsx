@@ -7,6 +7,8 @@ import {
   deriveType,
   deriveArchetype,
   scoreDimensions,
+  blendDimensionScores,
+  type TeamSignal,
   ORIENTATIONS,
   HATS,
   SDT_NEEDS,
@@ -277,7 +279,7 @@ export default function Results() {
     const t = synthesis?.captions?.[key]
     if (!t) return null
     return (
-      <p className="serif mb-5 -mt-1 text-lg italic leading-snug text-pink-deep">
+      <p className="serif mb-5 -mt-1 text-lg italic leading-snug text-ink">
         <Rich text={t} />
       </p>
     )
@@ -458,33 +460,44 @@ export default function Results() {
   const dimScores =
     hasSelf && self?.ocean_answers && Object.keys(self.ocean_answers).length > 0 ? scoreDimensions(self.ocean_answers) : null
   if (dimScores) {
-    // Per-dimension supporting colour: the person's own strongest statement behind the
-    // score, plus the closest related team signal (a virtue the team scored) where one
-    // maps. Not baked into the score, but real evidence that supports it.
-    const DIM_TEAM_VIRTUE: Record<string, string> = {
-      deliberative: 'rigor', detailed: 'ownership', tough: 'candor', nurturing: 'generosity',
-      leadership: 'confidence', composed: 'composure', autonomous: 'ownership',
-      flexible: 'receptiveness', determined: 'drive',
+    // The displayed score blends 70% the person's own read with 30% the team's, wherever
+    // the team gave an honest numeric proxy for the dimension (virtue means 1-9, competency
+    // averages 1-5, thinking-hat reads 1-9, each normalised to 0-100). Dimensions with no
+    // defensible team proxy stay pure self-read and carry no comment.
+    const v = (k: string) => { const x = insights.virtues.find((y) => y.dimension === k); return x ? { value: ((x.mu - 1) / 8) * 100, label: x.name.toLowerCase() } : null }
+    const c = (k: string, label: string) => { const x = insights.competencies.find((y) => y.dimension === k); return x ? { value: ((x.average - 1) / 4) * 100, label } : null }
+    const h = (k: string, label: string) => { const x = insights.hats?.find((y) => y.key === k); return x && x.n > 0 ? { value: ((x.mu - 1) / 8) * 100, label } : null }
+    const TEAM_PROXIES: Record<string, ({ value: number; label: string } | null)[]> = {
+      creative: [h('hat_green', 'creativity')],
+      deliberative: [v('rigor'), h('hat_white', 'facts-first thinking')],
+      detailed: [v('rigor'), c('follow_through', 'follow-through')],
+      tough: [v('candor')],
+      nurturing: [v('generosity'), c('mentoring', 'mentoring')],
+      leadership: [v('confidence')],
+      composed: [v('composure')],
+      autonomous: [c('ownership', 'ownership')],
+      flexible: [v('receptiveness')],
+      determined: [v('drive')],
     }
-    // Evidence is NEW information only: what the team independently read, never a rehash of
-    // the person's own answers. Shown only when the team's read points the SAME way as the
-    // self score (so it corroborates, not contradicts). Nothing shows when nothing is new.
+    const teamSignals: Record<string, TeamSignal | undefined> = {}
+    for (const [key, list] of Object.entries(TEAM_PROXIES)) {
+      const ok = list.filter((x): x is { value: number; label: string } => x != null)
+      if (!ok.length) continue
+      teamSignals[key] = { value: ok.reduce((a, b) => a + b.value, 0) / ok.length, label: ok.map((x) => x.label).join(' + ') }
+    }
+    const blended = blendDimensionScores(dimScores, teamSignals)
+    // One unified line under each blended score; nothing where the score is self-only.
     const dimEvidence: Record<string, string | null> = {}
-    for (const d of dimScores) {
-      const vkey = DIM_TEAM_VIRTUE[d.key]
-      const v = vkey ? insights.virtues.find((x) => x.dimension === vkey) : undefined
-      let teamLine: string | null = null
-      if (v) {
-        if (d.score >= 55 && v.mu >= 6) teamLine = `Your team independently reads you high on ${v.name.toLowerCase()}`
-        else if (d.score <= 45 && v.mu <= 4) teamLine = `Your team independently reads you low on ${v.name.toLowerCase()}`
-      }
-      dimEvidence[d.key] = teamLine
+    for (const d of blended) {
+      if (!d.team) { dimEvidence[d.key] = null; continue }
+      const lvl = d.team.value >= 60 ? 'high' : d.team.value >= 40 ? 'moderate' : 'low'
+      dimEvidence[d.key] = `70% your read, 30% your team's: they read your ${d.team.label} as ${lvl}.`
     }
     ORIENTATIONS.forEach((o, i) => {
       selfCards.push({
         tone: 'paper',
         sec: 1.2 + i * 0.1,
-        node: <DimensionsProfile orientation={o} dims={dimScores.filter((d) => d.orientation === o.key)} evidence={dimEvidence} />,
+        node: <DimensionsProfile orientation={o} dims={blended.filter((d) => d.orientation === o.key)} evidence={dimEvidence} />,
       })
     })
   }
@@ -1145,7 +1158,7 @@ export default function Results() {
           </div>
           <button
             onClick={() => copySummary()}
-            className="press mt-5 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-ink px-5 py-3 font-display font-black text-paper-hi shadow-chunky-sm"
+            className="press mt-5 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-ink px-5 py-3 font-display font-black text-paper-hi shadow-chunky-sm sc-sand"
           >
             {copied ? 'Copied ✓' : 'Copy this read for your AI agent'}
           </button>
@@ -1338,6 +1351,55 @@ export default function Results() {
           >
             {copied ? 'Copied ✓' : 'Copy for your AI agent'}
           </button>
+        </div>
+      ),
+    })
+  }
+
+  // The true last slide: book the rematch. A calendar entry exactly six months from now,
+  // same time, to run the whole mirror again and see what moved.
+  {
+    const start = new Date()
+    start.setMonth(start.getMonth() + 6)
+    const end = new Date(start.getTime() + 30 * 60 * 1000)
+    const stamp = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
+    const title = 'Fishbowl rematch: how far have I come?'
+    const body = `Six months ago your team held up a mirror. Run it again and see what moved. ${window.location.origin}${window.location.pathname}`
+    const gcal = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${stamp(start)}/${stamp(end)}&details=${encodeURIComponent(body)}`
+    const ics = `data:text/calendar;charset=utf-8,${encodeURIComponent(
+      `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Fishbowl//EN\nBEGIN:VEVENT\nUID:fishbowl-rematch-${slug ?? 'me'}\nDTSTAMP:${stamp(new Date())}\nDTSTART:${stamp(start)}\nDTEND:${stamp(end)}\nSUMMARY:${title}\nDESCRIPTION:${body.replace(/\n/g, '\\n')}\nEND:VEVENT\nEND:VCALENDAR`
+    )}`
+    cards.push({
+      tone: 'pink',
+      sec: 7.5,
+      node: (
+        <div className="flex min-h-[52vh] flex-col justify-center text-center">
+          <div className="text-5xl">📆</div>
+          <p className="kicker mt-4 text-ink/70">one last move</p>
+          <h2 className="display mt-1 text-3xl leading-tight">Book the rematch</h2>
+          <p className="mx-auto mt-3 max-w-sm leading-snug text-ink/85">
+            People change slowly, then all at once. Put a note in your calendar for exactly six months from today and run the mirror again to see what moved.
+          </p>
+          <div className="mx-auto mt-6 flex w-full max-w-xs flex-col gap-2.5">
+            <a
+              href={gcal}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => playClick()}
+              className="press cursor-pointer rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3 font-display font-black text-ink shadow-chunky-sm"
+            >
+              Add to Google Calendar
+            </a>
+            <a
+              href={ics}
+              download="fishbowl-rematch.ics"
+              onClick={() => playClick()}
+              className="press cursor-pointer rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3 font-display font-black text-ink shadow-chunky-sm"
+            >
+              Apple / Outlook (.ics)
+            </a>
+          </div>
+          <p className="mt-3 text-xs text-ink/60">{start.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}, same time as now.</p>
         </div>
       ),
     })

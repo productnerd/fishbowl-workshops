@@ -23,9 +23,9 @@ export const DIMENSIONS: { key: string; label: string; orientation: string; item
   { key: 'nurturing', label: 'Nurturing', orientation: 'interpersonal', items: [{ id: 'dim_empathy', reverse: false }, { id: 'ocean_A5', reverse: false }, { id: 'ocean_A2', reverse: false }, { id: 'ocean_A7', reverse: false }] },
   { key: 'leadership', label: 'Leadership', orientation: 'interpersonal', items: [{ id: 'dim_lead_charge', reverse: false }, { id: 'dim_lead_bar', reverse: false }, { id: 'ocean_E5', reverse: false }] },
   { key: 'composed', label: 'Composed', orientation: 'motivational', items: [{ id: 'ocean_N3', reverse: false }, { id: 'ocean_N4', reverse: false }, { id: 'ocean_N6', reverse: false }, { id: 'ocean_N8', reverse: false }, { id: 'ocean_N2', reverse: true }] },
-  { key: 'autonomous', label: 'Autonomous', orientation: 'motivational', items: [{ id: 'dim_auto_accountable', reverse: false }, { id: 'dim_auto_internal', reverse: false }] },
+  { key: 'autonomous', label: 'Autonomous', orientation: 'motivational', items: [{ id: 'dim_auto_accountable', reverse: false }, { id: 'dim_auto_internal', reverse: false }, { id: 'ocean_C1', reverse: false }] },
   { key: 'flexible', label: 'Flexible', orientation: 'motivational', items: [{ id: 'dim_flex_agile', reverse: false }, { id: 'dim_flex_growth', reverse: false }, { id: 'ocean_N3', reverse: false }] },
-  { key: 'determined', label: 'Determined', orientation: 'motivational', items: [{ id: 'dim_determined', reverse: false }, { id: 'ocean_C1', reverse: false }] },
+  { key: 'determined', label: 'Determined', orientation: 'motivational', items: [{ id: 'dim_determined', reverse: false }, { id: 'ocean_C1', reverse: false }, { id: 'ocean_N8', reverse: false }] },
 ]
 
 export function scoreDimensions(answers: Record<string, number>) {
@@ -34,6 +34,9 @@ export function scoreDimensions(answers: Record<string, number>) {
       .map((it) => (typeof answers[it.id] === 'number' ? (it.reverse ? 8 - answers[it.id] : answers[it.id]) : null))
       .filter((v): v is number => v != null)
     const mean = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 4
-    return { key: d.key, label: d.label, orientation: d.orientation, score: Math.round(((mean - 1) / 6) * 100), answered: vals.length }
+    // <3 answered items shrinks toward neutral 50, so one answer can't swing a score.
+    const raw = ((mean - 1) / 6) * 100
+    const confidence = Math.min(vals.length, 3) / 3
+    return { key: d.key, label: d.label, orientation: d.orientation, score: Math.round(50 + (raw - 50) * confidence), answered: vals.length }
   })
 }

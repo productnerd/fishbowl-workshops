@@ -4,7 +4,6 @@
 //
 // Items are answered on the same 1 to 7 self scale. Scoring mirrors scoreBigFive:
 // reverse then 8 minus raw, then mean then (mean minus 1) / 6 times 100.
-import { BIG_FIVE_ITEMS } from './personality'
 
 export type Orientation = 'cognitive' | 'interpersonal' | 'motivational'
 
@@ -86,11 +85,11 @@ export const DIMENSIONS: Dimension[] = [
   { key: 'composed', label: 'Composed', orientation: 'motivational', blurb: 'Staying calm, confident, and controlled under pressure.', items: [
     { id: 'ocean_N3', reverse: false }, { id: 'ocean_N4', reverse: false }, { id: 'ocean_N6', reverse: false }, { id: 'ocean_N8', reverse: false }, { id: 'ocean_N2', reverse: true } ] },
   { key: 'autonomous', label: 'Autonomous', orientation: 'motivational', blurb: 'Independence, self-motivation, and accountability.', items: [
-    { id: 'dim_auto_accountable', reverse: false }, { id: 'dim_auto_internal', reverse: false } ] },
+    { id: 'dim_auto_accountable', reverse: false }, { id: 'dim_auto_internal', reverse: false }, { id: 'ocean_C1', reverse: false } ] },
   { key: 'flexible', label: 'Flexible', orientation: 'motivational', blurb: 'Adaptability, agility, and openness to growth.', items: [
     { id: 'dim_flex_agile', reverse: false }, { id: 'dim_flex_growth', reverse: false }, { id: 'ocean_N3', reverse: false } ] },
   { key: 'determined', label: 'Determined', orientation: 'motivational', blurb: 'Ambition, persistence, and drive to get things done.', items: [
-    { id: 'dim_determined', reverse: false }, { id: 'ocean_C1', reverse: false } ] },
+    { id: 'dim_determined', reverse: false }, { id: 'ocean_C1', reverse: false }, { id: 'ocean_N8', reverse: false } ] },
 ]
 
 export interface DimensionScore {
@@ -107,6 +106,8 @@ const bandOf = (s: number): DimensionScore['band'] =>
   s >= 80 ? 'Very High' : s >= 60 ? 'High' : s >= 40 ? 'Moderate' : s >= 20 ? 'Low' : 'Very Low'
 
 // Score all 12 dimensions from the raw 1–7 answers (Big Five + dimension items pooled).
+// A dimension backed by fewer than 3 answered items shrinks toward the neutral 50, so a
+// single answer can never swing a score to an extreme.
 export function scoreDimensions(answers: Record<string, number>): DimensionScore[] {
   return DIMENSIONS.map((d) => {
     const vals = d.items
@@ -117,31 +118,32 @@ export function scoreDimensions(answers: Record<string, number>): DimensionScore
       })
       .filter((v): v is number => v != null)
     const mean = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 4
-    const score = Math.round(((mean - 1) / 6) * 100)
+    const raw = ((mean - 1) / 6) * 100
+    const confidence = Math.min(vals.length, 3) / 3
+    const score = Math.round(50 + (raw - 50) * confidence)
     return { key: d.key, label: d.label, orientation: d.orientation, blurb: d.blurb, score, band: bandOf(score), answered: vals.length }
   })
 }
 
-// The person's OWN strongest statement behind a dimension's score: the item (from the
-// Big Five or dimension pool) that pulled hardest on this dimension, with whether they
-// agreed with it or pushed back. This is the honest "what you actually said" for a score.
-export function dimensionEvidence(
-  key: string,
-  answers: Record<string, number>
-): { text: string; lean: 'agreed with' | 'pushed back on' } | null {
-  const dim = DIMENSIONS.find((d) => d.key === key)
-  if (!dim) return null
-  let best: { text: string; adj: number; raw: number } | null = null
-  for (const it of dim.items) {
-    const raw = answers[it.id]
-    if (typeof raw !== 'number') continue
-    const adj = it.reverse ? 8 - raw : raw // higher = more of this dimension
-    const src = DIMENSION_ITEMS.find((i) => i.id === it.id) ?? BIG_FIVE_ITEMS.find((i) => i.id === it.id)
-    if (!src) continue
-    // The item that leans furthest from neutral (4) in the dimension's direction.
-    if (!best || Math.abs(adj - 4) > Math.abs(best.adj - 4)) best = { text: src.text, adj, raw }
-  }
-  if (!best) return null
-  // Lean is about their stance on the STATEMENT (raw), not the dimension-adjusted value.
-  return { text: best.text, lean: best.raw >= 4 ? 'agreed with' : 'pushed back on' }
+// A team-side estimate of a dimension (0–100), mapped by the caller from whatever team
+// signals honestly proxy it (virtue means, competency averages, thinking-hat reads).
+export interface TeamSignal {
+  value: number // 0–100
+  label: string // human phrase for the unified comment, e.g. 'candor'
 }
+
+// Blend the self scores with the team's independent read: 70% self, 30% team wherever a
+// team signal exists; self-only (untouched) where none does.
+export function blendDimensionScores(
+  scores: DimensionScore[],
+  team: Record<string, TeamSignal | undefined>,
+  teamWeight = 0.3
+): (DimensionScore & { team?: TeamSignal })[] {
+  return scores.map((d) => {
+    const t = team[d.key]
+    if (!t) return d
+    const score = Math.round(d.score * (1 - teamWeight) + t.value * teamWeight)
+    return { ...d, score, band: bandOf(score), team: t }
+  })
+}
+

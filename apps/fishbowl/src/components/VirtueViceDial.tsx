@@ -16,7 +16,7 @@ export default function VirtueViceDial({ dials, engine }: { dials: Dial[]; engin
 
   return (
     <div>
-      <div className="mb-4 inline-flex items-center gap-2 rounded-full border-[2.5px] border-ink bg-ink px-4 py-2 text-paper-hi shadow-chunky-sm">
+      <div className="mb-4 inline-flex items-center gap-2 rounded-full border-[2.5px] border-ink bg-ink px-4 py-2 text-paper-hi shadow-chunky-sm sc-sand">
         <span className="text-sm font-black">⚙ same engine:</span>
         <span className="serif text-sm italic">{engine.shadow}</span>
         <span className="text-paper-hi/50">·</span>
