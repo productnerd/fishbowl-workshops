@@ -1,9 +1,10 @@
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { getSession } from '../lib/data'
 import Card from '../components/Card'
 import Button from '../components/Button'
+import ReportPreview from '../components/ReportPreview'
 
 // A few character cut-outs to tease the personality match ("which one are you?").
 const CHAR_TEASE = ['ENFP', 'ESFJ', 'ESTP']
@@ -12,6 +13,7 @@ export default function Done() {
   const navigate = useNavigate()
   const { slug } = useParams<{ slug: string }>()
   const [name, setName] = useState<string | null>(null)
+  const [showSample, setShowSample] = useState(false)
 
   // Fetch the receiving party's name so the thank-you can speak to them by name.
   useEffect(() => {
@@ -63,14 +65,59 @@ export default function Done() {
             <span className="rounded-full border-2 border-ink bg-paper-hi px-3 py-1">They stay anonymous</span>
           </div>
 
-          <div className="mt-5">
+          <div className="mt-5 flex flex-col gap-2.5">
             <Button variant="pink" onClick={() => navigate('/create')} className="!text-lg">
               Create my Fishbowl →
             </Button>
+            <button
+              onClick={() => setShowSample(true)}
+              className="press cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-5 py-2.5 font-display font-black text-ink shadow-chunky-sm"
+            >
+              See a sample report
+            </button>
           </div>
           <p className="mt-3 text-sm text-ink-soft">Just share one link with your team.</p>
         </Card>
       </motion.div>
+
+      {/* The same Wrapped-style sample carousel the homepage shows, in a peek-modal. */}
+      <AnimatePresence>
+        {showSample && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowSample(false)}
+            className="fixed inset-0 z-50 overflow-y-auto bg-ink/60 px-4 py-8 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.97 }}
+              transition={{ duration: 0.24, ease: [0.2, 0.8, 0.2, 1] as const }}
+              onClick={(e) => e.stopPropagation()}
+              className="mx-auto max-w-md"
+            >
+              <div className="mb-3 flex items-center justify-between">
+                <p className="kicker text-paper-hi">a sample report</p>
+                <button
+                  onClick={() => setShowSample(false)}
+                  aria-label="Close"
+                  className="press grid h-10 w-10 cursor-pointer place-items-center rounded-full border-[2.5px] border-ink bg-paper-hi text-lg font-black text-ink shadow-chunky-sm"
+                >
+                  ✕
+                </button>
+              </div>
+              <ReportPreview />
+              <div className="mt-5">
+                <Button variant="pink" onClick={() => navigate('/create')} className="!w-full !text-lg">
+                  Create my Fishbowl →
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
