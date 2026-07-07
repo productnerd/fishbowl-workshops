@@ -73,8 +73,8 @@ describe('allocateGifs', () => {
 })
 
 describe('vocabulary', () => {
-  it('has 20 unique reactions including the requested anchors', () => {
-    expect(GIF_NAMES).toHaveLength(20)
+  it('has 30 unique reactions including the requested anchors', () => {
+    expect(GIF_NAMES).toHaveLength(30)
     for (const anchor of ['excitement', 'high_five', 'blow_kiss', 'mock_angry']) {
       expect(GIF_NAMES).toContain(anchor)
     }

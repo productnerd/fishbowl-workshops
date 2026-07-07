@@ -28,6 +28,17 @@ export const GIF_REACTIONS: GifReaction[] = [
   { name: 'chefs_kiss', when: "Punctuating a standout strength or perfectly-put praise; 'that, right there, is great.'", category: 'playful' },
   { name: 'facepalm', when: "Comedic self-recognition on a relatable watch-out; the kindly-framed 'oh no, that IS me' moment.", category: 'playful' },
   { name: 'mind_blown', when: 'A surprising insight or reveal that genuinely reframes how the team sees them.', category: 'playful' },
+  // playful, extra helping (cheeky + witty)
+  { name: 'mic_drop', when: 'A bold, perfectly-landed truth or standout point; the confident "boom, done" flourish.', category: 'playful' },
+  { name: 'slow_clap', when: 'A well-played moment; a building, tongue-in-cheek round of applause for a clever move.', category: 'playful' },
+  { name: 'eye_roll', when: 'An affectionate, playful eye-roll at an endearing and very predictable habit.', category: 'playful' },
+  { name: 'smirk', when: 'A knowing, self-satisfied little smirk; a cheeky "you know exactly what you did".', category: 'playful' },
+  { name: 'finger_guns', when: 'A cheeky finger-guns "hey, you"; smooth, self-assured charm on a strength.', category: 'playful' },
+  { name: 'sunglasses', when: 'An effortlessly-cool shades drop; a witty "deal with it" flex on something they pull off easily.', category: 'playful' },
+  { name: 'popcorn', when: 'Grabbing the popcorn to watch it all unfold; a witty "ooh, this is getting good".', category: 'playful' },
+  { name: 'sip_tea', when: 'A cheeky observational aside sipped over tea; a playful "just saying" about a pattern.', category: 'playful' },
+  { name: 'plot_twist', when: 'A witty reframe or unexpected-trait reveal; the dramatic "plot twist!" beat.', category: 'playful' },
+  { name: 'shrug', when: 'A wry, playful "what can you do" shrug; light acceptance of a lovable quirk.', category: 'playful' },
   // growth
   { name: 'you_got_this', when: 'Kicking off the action plan or a growth goal; a confident nod that says the reader is ready.', category: 'growth' },
   { name: 'deep_breath', when: 'Right before a heavier watch-out; signals pause, reset, and read this with calm.', category: 'growth' },

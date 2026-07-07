@@ -53,6 +53,26 @@ Canonical list also lives in `packages/feedback-core/src/gifs.ts`. Filenames mus
   *Feeling: relatable "that IS me" on a watch-out. Search: "facepalm", "oh no".*
 - **`mind_blown.gif`** — head/hands exploding, mind-blown gesture near the temples.
   *Feeling: a surprising reframe. Search: "mind blown", "mind explosion".*
+- **`mic_drop.gif`** — someone dropping a microphone and walking off, done.
+  *Feeling: "boom, done" after a bold truth lands. Search: "mic drop".*
+- **`slow_clap.gif`** — a slow, building, tongue-in-cheek clap (Leo DiCaprio slow clap reads perfectly).
+  *Feeling: "well played." Search: "slow clap", "sarcastic clap".*
+- **`eye_roll.gif`** — a big, fond, exaggerated eye-roll to camera.
+  *Feeling: affectionate "oh, of course you did." Search: "eye roll", "playful eye roll".*
+- **`smirk.gif`** — a slow, knowing, self-satisfied little smirk.
+  *Feeling: "you know exactly what you did." Search: "smirk", "smug smile".*
+- **`finger_guns.gif`** — double finger-guns pointed at camera with a wink/click.
+  *Feeling: smooth, cheeky "hey, you." Search: "finger guns".*
+- **`sunglasses.gif`** — sunglasses sliding down onto the face, deal-with-it style.
+  *Feeling: an effortless "deal with it" flex. Search: "deal with it", "sunglasses drop".*
+- **`popcorn.gif`** — someone eating popcorn intently, watching drama unfold (Michael Jackson popcorn works).
+  *Feeling: "ooh, this is getting good." Search: "eating popcorn", "popcorn gif".*
+- **`sip_tea.gif`** — a slow, pointed sip of tea, eyebrows up (Kermit sipping tea reads great).
+  *Feeling: cheeky "just saying." Search: "sipping tea", "but thats none of my business".*
+- **`plot_twist.gif`** — a dramatic gasp / "plot twist!" reveal beat.
+  *Feeling: a witty unexpected reframe. Search: "plot twist", "dramatic gasp".*
+- **`shrug.gif`** — a big "what can you do" shrug, palms up (the shruggie in motion).
+  *Feeling: wry acceptance of a lovable quirk. Search: "shrug", "i dont know shrug".*
 
 ## Growth (encouragement and gentle watch-outs, always kind)
 
