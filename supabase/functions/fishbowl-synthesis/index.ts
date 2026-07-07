@@ -9,6 +9,7 @@
 // Required secret: ANTHROPIC_API_KEY.
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
+import { gifPromptBlock } from './gifs.ts'
 
 const MODEL = 'claude-opus-4-8'
 
@@ -209,7 +210,7 @@ Never put a double-quote character (") inside any string value. If you quote a w
 === FORMATTING FOR SCANNABILITY (important) ===
 Write in SHORT paragraphs, 2 to 4 sentences each. Separate paragraphs with the exact token ¶¶ (two pilcrows) and put NO actual line breaks anywhere in the JSON. NEVER write a wall of text; if a paragraph runs past ~4 sentences, split it with ¶¶. Keep sentences short and punchy.
 Wrap the few most important phrases per paragraph in **bold** (the claims someone should catch while skimming). Use *italic* for framework names, playful asides, and soft emphasis. Never bold or italicize a whole sentence. The title and section headings have no bold or italic.
-
+${gifPromptBlock('portrait, any of the sections[].body, and howYouComeAcross')}
 === OUTPUT (JSON only, no code fences, no prose outside the JSON) ===
 {
   "title": "a short, evocative title for this person's read (<= 6 words, no bold, no dashes)",

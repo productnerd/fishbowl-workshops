@@ -12,6 +12,7 @@
 
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
+import { gifPromptBlock } from './gifs.ts'
 
 const THRESHOLD = 3
 const MODEL = 'claude-opus-4-8'
@@ -354,7 +355,7 @@ The most practical part of the whole report and the single most useful screen, s
 === THE LETTER (goodVibes) ===
 This is a short letter written TO you FROM your colleagues, in their collective voice ("we", "us"), speaking to "you". Warm, sincere, a little vulnerable: the things they feel but maybe never said out loud, and wish they had. Pure gratitude and affection, zero criticism or growth talk, no "but". Draw ONLY on the positives the team gave (what they appreciate, your strengths, the warm words they picked, how you lift people, AND the "aura / vibe" and "first impression" free-text, which is exactly how you come across and belongs in this letter) and turn them into heartfelt, specific lines, not a list. Celebrate how you make them FEEL and how you show up WITH them, more than what you produce. Warm strengths (sharp, funny, steady, reliable) belong here when they read as affection, not a review. 4 to 6 sentences. Separate into at most two short paragraphs using the token ¶¶ (two pilcrows), never real line breaks. Do NOT write a greeting or a signature (those are added around your text). **bold** 2 to 3 of the most tender phrases.
 ALWAYS also write a P.S. (returned separately as "postscript"): one short standalone line, under 20 words, the most emotional, humane, sweet, playful and witty note of all. A single tender or funny aside they would scribble at the very bottom, grounded in something real about you. No signature, no ¶¶.
-
+${gifPromptBlock('goodVibes (the team letter) and firstImpression')}
 === OUTPUT (JSON only, no code fences) ===
 {
   "headline": "<=12 words, the meta-finding across everything. No bold, no dashes.",

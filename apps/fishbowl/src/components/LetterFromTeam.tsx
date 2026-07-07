@@ -1,10 +1,11 @@
+import { stripGifTokens } from '@fishbowl/feedback-core'
 import Rich from './Rich'
 
 // A letter from the team: their good-vibes note (goodVibes) narrated as a handwritten
 // letter on skeuomorphic stationery. Rendered "bare" (no card chrome) so the paper itself
 // is the object. Paragraphs are split on the ¶¶ sentinel the model uses.
 export default function LetterFromTeam({ name, body, words, postscript }: { name: string; body: string; words: string[]; postscript?: string }) {
-  const paras = body.split(/¶+/).map((p) => p.trim()).filter(Boolean)
+  const paras = body.split(/¶+/).map((p) => stripGifTokens(p)).filter(Boolean)
   const ps = words.slice(0, 5)
 
   // Faint ruled lines under the handwriting.
@@ -46,7 +47,7 @@ export default function LetterFromTeam({ name, body, words, postscript }: { name
           </p>
 
           {postscript ? (
-            <p className="handwritten mt-3 text-base leading-snug text-pink-deep">P.S. {postscript}</p>
+            <p className="handwritten mt-3 text-base leading-snug text-pink-deep">P.S. {stripGifTokens(postscript)}</p>
           ) : ps.length >= 3 ? (
             <p className="handwritten mt-3 text-base leading-snug text-pink-deep">
               P.S. the words we keep coming back to for you: {ps.join(', ')}.

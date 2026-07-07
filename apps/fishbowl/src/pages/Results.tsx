@@ -58,9 +58,10 @@ import OneOnOne from '../components/OneOnOne'
 import StickyNote from '../components/StickyNote'
 import JohariWindow from '../components/JohariWindow'
 import WatchoutsDeck from '../components/WatchoutsDeck'
-import { WEAKNESSES } from '@fishbowl/feedback-core'
+import { WEAKNESSES, allocateGifs, stripGifTokens } from '@fishbowl/feedback-core'
 import InfoTip from '../components/InfoTip'
 import Rich from '../components/Rich'
+import GifReaction from '../components/GifReaction'
 
 // Map every scenario option to its tendency (deficient / balanced / excessive) so a
 // room's verdict matches the exact behaviour the team picked.
@@ -282,6 +283,22 @@ export default function Results() {
     )
   }
 
+  // Reaction GIFs: the report AI may append a {{gif:NAME}} token to a text-heavy field.
+  // Allocate them once here, in deck order, so "one per slide" and the 10-per-report cap
+  // are deterministic regardless of which slides the reader has visited. Rich strips the
+  // tokens from the prose; each slide renders its allocated gif via GifReaction.
+  // The full read (portrait + all sections) is ONE swipeable slide, so it gets ONE gif at
+  // most: scan the portrait and every section body for the first valid token.
+  const fullReadText = [synthesis?.portrait, ...(synthesis?.sections ?? []).map((s) => s.body)]
+    .filter(Boolean)
+    .join('\n\n')
+  const gif = allocateGifs([
+    ['firstImpression', insights.firstImpression],
+    ['howYouComeAcross', synthesis?.howYouComeAcross],
+    ['letter', insights.goodVibes],
+    ['fullread', fullReadText],
+  ])
+
   const cards: Slide[] = [
     {
       tone: 'pink',
@@ -487,6 +504,7 @@ export default function Results() {
           <div className="text-[1.05rem] leading-relaxed text-ink">
             <Rich text={insights.firstImpression} />
           </div>
+          <GifReaction name={gif.firstImpression} />
         </div>
       ),
     })
@@ -505,6 +523,7 @@ export default function Results() {
           <div className="text-[1.05rem] leading-relaxed text-paper-hi/95">
             <Rich text={synthesis.howYouComeAcross} />
           </div>
+          <GifReaction name={gif.howYouComeAcross} />
         </div>
       ),
     })
@@ -1054,7 +1073,12 @@ export default function Results() {
       tone: 'ink',
       bare: true,
       sec: 5.1,
-      node: <LetterFromTeam name={session.creator_name} body={insights.goodVibes} words={vibeWords} postscript={insights.postscript} />,
+      node: (
+        <>
+          <LetterFromTeam name={session.creator_name} body={insights.goodVibes} words={vibeWords} postscript={insights.postscript} />
+          <GifReaction name={gif.letter} />
+        </>
+      ),
     })
   }
 
@@ -1093,7 +1117,7 @@ export default function Results() {
   // right before the action plan.
   if (hasSelf && (synthesis || synthesisLoading)) {
     const para = (text: string) =>
-      text.split('\n\n').filter(Boolean).map((p, i) => (
+      stripGifTokens(text).split('\n\n').filter(Boolean).map((p, i) => (
         <p key={i} className="mt-4 leading-relaxed text-ink first:mt-0">
           <Rich text={p} />
         </p>
@@ -1107,6 +1131,7 @@ export default function Results() {
           <p className="kicker mb-1 text-blue-deep">the full read</p>
           <h2 className="display mb-5 text-3xl leading-tight">{synthesis.title}</h2>
           <div className="mb-7 text-[1.05rem]">{para(synthesis.portrait)}</div>
+          <GifReaction name={gif.fullread} />
           <div className="flex flex-col gap-4">
             {synthesis.sections.map((s, i) => (
               <div key={i} className="rounded-2xl border-[2.5px] border-ink bg-sand p-5 shadow-chunky-sm">
