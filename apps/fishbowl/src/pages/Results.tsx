@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, MotionConfig, useReducedMotion } from 'framer-motion'
 import {
   REQUIRED_RESPONSES,
   deriveType,
@@ -33,7 +33,8 @@ import WorkManual from '../components/WorkManual'
 import DimensionsProfile from '../components/DimensionsProfile'
 import VirtueGauge from '../components/VirtueGauge'
 import StatBar from '../components/StatBar'
-import { playClick } from '../lib/sound'
+import { playClick, playQuizTick, playChime, playPaper, playWarm, playTurn } from '../lib/sound'
+import { PRESETS, rowItem, heroReveal, coverChild, type MotionPreset } from '../lib/motion'
 import PersonalityCard, { SideCharacter } from '../components/PersonalityCard'
 import LockedCard from '../components/LockedCard'
 import RelinkPrompt from '../components/RelinkPrompt'
@@ -104,6 +105,10 @@ type Slide = {
   sec?: number
   breather?: boolean
   fullRead?: boolean
+  // Entry choreography preset (lib/motion.ts); defaults to the classy 'rise'.
+  motion?: MotionPreset
+  // Optional entry sound, fired shortly after the slide mounts on user navigation.
+  sound?: () => void
 }
 
 // The seven acts. The breather before each act (2..7) announces it as a full-bleed chapter
@@ -120,6 +125,9 @@ const ACTS: Record<number, { title: string; line: string; color: string }> = {
 export default function Results() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
+  // Reduced motion swaps every preset for a pure fade (the 'veil'); MotionConfig below
+  // strips transforms from opted-in children without per-component checks.
+  const reduce = useReducedMotion()
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [pct, setPct] = useState<Record<string, number>>({})
@@ -319,6 +327,8 @@ export default function Results() {
     {
       tone: 'paper',
       sec: 1.5,
+      motion: 'stagger',
+      sound: playQuizTick,
       node: (
         <div>
           <p className="kicker mb-2 text-pink-deep">where you shine · your top 5</p>
@@ -330,6 +340,7 @@ export default function Results() {
     {
       tone: 'paper',
       sec: 2.05,
+      motion: 'stagger',
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">
@@ -339,16 +350,32 @@ export default function Results() {
           <h2 className="display mb-4 text-3xl">The ten virtues</h2>
           {cap('virtues')}
           <div className="flex flex-col gap-4">
-            {insights.virtues.map((v) => (
-              <VirtueGauge
-                key={v.dimension}
-                name={v.name}
-                mu={v.mu}
-                deficientPole={v.deficientPole}
-                excessivePole={v.excessivePole}
-                self={selfVirtues?.[v.dimension]}
-              />
+            {/* First five cascade individually; the rest land as one group (stagger cap). */}
+            {insights.virtues.slice(0, 5).map((v) => (
+              <motion.div variants={rowItem} key={v.dimension}>
+                <VirtueGauge
+                  name={v.name}
+                  mu={v.mu}
+                  deficientPole={v.deficientPole}
+                  excessivePole={v.excessivePole}
+                  self={selfVirtues?.[v.dimension]}
+                />
+              </motion.div>
             ))}
+            {insights.virtues.length > 5 && (
+              <motion.div variants={rowItem} className="flex flex-col gap-4">
+                {insights.virtues.slice(5).map((v) => (
+                  <VirtueGauge
+                    key={v.dimension}
+                    name={v.name}
+                    mu={v.mu}
+                    deficientPole={v.deficientPole}
+                    excessivePole={v.excessivePole}
+                    self={selfVirtues?.[v.dimension]}
+                  />
+                ))}
+              </motion.div>
+            )}
           </div>
           {selfVirtues && Object.keys(selfVirtues).length > 0 && (
             <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-ink-soft">
@@ -369,11 +396,13 @@ export default function Results() {
     {
       tone: 'blue',
       sec: 2.1,
+      motion: 'drumroll',
+      sound: playChime,
       node: (
         <div className="flex min-h-[55vh] flex-col justify-center">
           <p className="kicker text-paper-hi/80">most balanced</p>
           {pct[mostBalanced.dimension] != null && (
-            <p className="display mt-2 text-7xl text-paper-hi">top {pct[mostBalanced.dimension]}%</p>
+            <motion.p variants={heroReveal} className="display mt-2 text-7xl text-paper-hi">top {pct[mostBalanced.dimension]}%</motion.p>
           )}
           <p className="serif mt-1 text-3xl text-paper-hi">on {mostBalanced.name}</p>
           <p className="mt-5 text-lg leading-relaxed text-paper-hi/90">
@@ -385,13 +414,16 @@ export default function Results() {
     {
       tone: 'paper',
       sec: 2.2,
+      motion: 'stagger',
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">at work</p>
           <h2 className="display mb-5 text-3xl">How they rate you</h2>
           <div className="flex flex-col gap-4">
             {insights.competencies.map((c) => (
-              <StatBar key={c.dimension} label={c.statement} value={c.average} percent={pct[c.dimension]} />
+              <motion.div variants={rowItem} key={c.dimension}>
+                <StatBar label={c.statement} value={c.average} percent={pct[c.dimension]} />
+              </motion.div>
             ))}
           </div>
         </div>
@@ -438,6 +470,7 @@ export default function Results() {
     {
       tone: 'paper',
       sec: 1.1,
+      motion: 'pop',
       // On wide screens the character stands in the margin to the right of this
       // card (only once the subject has self-assessed, never for the locked teaser).
       ...(hasSelf && selfMbti?.character ? { character: { type: selfMbti.type, name: selfMbti.character } } : {}),
@@ -497,6 +530,7 @@ export default function Results() {
       selfCards.push({
         tone: 'paper',
         sec: 1.2 + i * 0.1,
+        motion: 'gauge',
         node: <DimensionsProfile orientation={o} dims={blended.filter((d) => d.orientation === o.key)} evidence={dimEvidence} />,
       })
     })
@@ -561,14 +595,16 @@ export default function Results() {
     ? {
         tone: 'ink',
         sec: 1.6,
+      motion: 'drumroll',
+      sound: playChime,
         node: (
           <div className="flex min-h-[55vh] flex-col justify-center text-center">
             <p className="kicker text-blue">
               your Jungian archetype
               <InfoTip text="The 12 archetypes Mark & Pearson distilled from Jung. We read it from how you and your team already answered, earned, not self-claimed. Every archetype has a bright side and a shadow. A fun lens, not a test." />
             </p>
-            <p className="display mt-3 text-[clamp(2.6rem,8vw,4rem)] text-paper-hi">{archetype.name}</p>
-            <p className="serif mt-2 text-lg text-paper-hi/80">{archetype.essence}</p>
+            <motion.p variants={heroReveal} className="display mt-3 text-[clamp(2.6rem,8vw,4rem)] text-paper-hi">{archetype.name}</motion.p>
+            <motion.p variants={rowItem} className="serif mt-2 text-lg text-paper-hi/80">{archetype.essence}</motion.p>
             <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-paper-hi/70">
               Archetypes are twelve universal characters (the Hero, the Sage, the Caregiver, and nine more) that recur across every culture&rsquo;s stories. We never ask which you are; we read it from how you and your team actually answered.
             </p>
@@ -578,7 +614,7 @@ export default function Results() {
                 {archWhy}
               </p>
             )}
-            <div className="mt-6 grid grid-cols-2 gap-3 text-left">
+            <motion.div variants={rowItem} className="mt-6 grid grid-cols-2 gap-3 text-left">
               {/* Light: a bright, warm panel that glows against the near-black card. */}
               <div className="rounded-2xl border-2 border-[#e8c86a] bg-paper-hi p-3 shadow-[0_0_22px_rgba(240,196,25,0.28)]">
                 <p className="kicker text-[#a9781f]">☀ Light</p>
@@ -589,7 +625,7 @@ export default function Results() {
                 <p className="kicker text-paper-hi/45">☾ Shadow</p>
                 <p className="mt-1 text-sm leading-snug text-paper-hi/60">{archetype.shadow}</p>
               </div>
-            </div>
+            </motion.div>
             <p className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-paper-hi/60">
               With a touch of <span className="font-semibold text-paper-hi/85">{archetype.runnerUp}</span>, who {runnerUpLine}.
               {archetype.fromSelf ? '' : ' Take your self-read to sharpen this.'}
@@ -612,6 +648,7 @@ export default function Results() {
     const respCard: Slide = {
       tone: 'paper',
       sec: 2.3,
+      motion: 'stagger',
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -650,6 +687,7 @@ export default function Results() {
     fwCards.push({
       tone: 'paper',
       sec: 3.0,
+      motion: 'ink',
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">
@@ -696,6 +734,7 @@ export default function Results() {
     fwCards.push({
       tone: 'sand',
       sec: 3.2,
+      motion: 'stagger',
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">
@@ -731,6 +770,7 @@ export default function Results() {
     fwCards.push({
       tone: 'paper',
       sec: 3.3,
+      motion: 'pop',
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -780,6 +820,7 @@ export default function Results() {
     fwCards.push({
       tone: 'paper',
       sec: 4.1,
+      motion: 'stagger',
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -855,6 +896,7 @@ export default function Results() {
     cards.splice(cards.length - 1, 0, {
       tone: 'paper',
       sec: 4.4,
+      motion: 'gauge',
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -896,6 +938,7 @@ export default function Results() {
     fourRoomsCard = {
       tone: 'sand',
       sec: 3.4,
+      motion: 'stagger',
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">
@@ -1047,14 +1090,22 @@ export default function Results() {
     tone: 'blue', // unused (bare); kept to satisfy the Slide type
     breather: true,
     bare: true,
+    motion: 'wash',
+    sound: playTurn,
     node: (
       <div
         className="relative flex min-h-[86vh] flex-col justify-center rounded-[2rem] border-[2.5px] border-ink px-10 py-16 text-center text-paper-hi shadow-chunky sm:px-16"
         style={{ backgroundColor: ACTS[act].color }}
       >
-        <p className="kicker absolute inset-x-0 top-10 text-center text-paper-hi/60">chapter {act - 1}</p>
-        <h2 className="display text-[clamp(2.6rem,9vw,4.2rem)] leading-[0.95]">{ACTS[act].title}</h2>
-        <p className="mx-auto mt-6 max-w-md text-lg leading-relaxed text-paper-hi/80">{ACTS[act].line}</p>
+        <motion.p variants={coverChild} custom={0} className="kicker absolute inset-x-0 top-10 text-center text-paper-hi/60">
+          chapter {act - 1}
+        </motion.p>
+        <motion.h2 variants={coverChild} custom={1} className="display text-[clamp(2.6rem,9vw,4.2rem)] leading-[0.95]">
+          {ACTS[act].title}
+        </motion.h2>
+        <motion.p variants={coverChild} custom={2} className="mx-auto mt-6 max-w-md text-lg leading-relaxed text-paper-hi/80">
+          {ACTS[act].line}
+        </motion.p>
       </div>
     ),
   })
@@ -1066,17 +1117,19 @@ export default function Results() {
     cards.push({
       tone: 'sand',
       sec: 5.0,
+      motion: 'stagger',
+      sound: playWarm,
       node: (
         <div>
           <p className="kicker mb-5 text-pink-deep">what they appreciate</p>
           <ul className="flex flex-col gap-4">
             {insights.appreciations.map((a, i) => (
-              <li key={i} className="flex gap-3 text-xl leading-relaxed">
+              <motion.li variants={rowItem} key={i} className="flex gap-3 text-xl leading-relaxed">
                 <span className="text-pink-deep">❤</span>
                 <span>
                   <Rich text={a} />
                 </span>
-              </li>
+              </motion.li>
             ))}
           </ul>
         </div>
@@ -1089,6 +1142,8 @@ export default function Results() {
       tone: 'ink',
       bare: true,
       sec: 5.1,
+      motion: 'tilt',
+      sound: playPaper,
       node: (
         <>
           <LetterFromTeam name={session.creator_name} body={insights.goodVibes} words={vibeWords} postscript={insights.postscript} />
@@ -1141,6 +1196,7 @@ export default function Results() {
     cards.push({
       tone: 'paper',
       sec: 6.1,
+      motion: 'veil',
       fullRead: true,
       node: synthesis ? (
         <div>
@@ -1189,6 +1245,8 @@ export default function Results() {
       tone: 'paper',
       bare: true,
       sec: 6.2,
+      motion: 'tilt',
+      sound: playPaper,
       node: <WorkManual name={session.creator_name} manual={workManual} />,
     })
   }
@@ -1214,6 +1272,8 @@ export default function Results() {
     cards.push({
       tone: 'pink',
       sec: 7.0,
+      motion: 'stagger',
+      sound: playQuizTick,
       node: (
         <div>
           <p className="kicker mb-1 text-ink/70">your move</p>
@@ -1240,6 +1300,7 @@ export default function Results() {
     cards.push({
       tone: 'paper',
       sec: 7.1,
+      motion: 'stagger',
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">
@@ -1260,6 +1321,8 @@ export default function Results() {
       tone: 'sand',
       bare: true,
       sec: 7.2,
+      motion: 'tilt',
+      sound: playPaper,
       node: (
         <div className="text-center">
           <p className="kicker mb-1 text-pink-deep">stick it on your monitor</p>
@@ -1372,6 +1435,7 @@ export default function Results() {
     cards.push({
       tone: 'pink',
       sec: 7.5,
+      motion: 'pop',
       node: (
         <div className="flex min-h-[52vh] flex-col justify-center text-center">
           <div className="text-5xl">📆</div>
@@ -1434,12 +1498,21 @@ export default function Results() {
   // Clamp for the card we actually render: idx can briefly sit out of range while the
   // deck is still assembling (self/synthesis load in), which would otherwise crash.
   const cur = Math.min(Math.max(idx, 0), total - 1)
-  const go = (d: number) => {
+  // All navigation funnels through here: the click, the slide change, and the incoming
+  // slide's entry sound (delayed so it reads as the slide answering the click; drumroll
+  // slides hold until their 300ms reveal). Sounds fire only on user navigation, never on
+  // the initial mount, keeping autoplay policies happy.
+  const navTo = (next: number) => {
     playClick()
-    setIdx((i) => Math.min(Math.max(i + d, 0), total - 1))
+    const dest = Math.min(Math.max(next, 0), total - 1)
+    setIdx(dest)
+    const s = cards[dest]?.sound
+    if (s && dest !== cur) window.setTimeout(s, cards[dest]?.motion === 'drumroll' ? 300 : 140)
   }
+  const go = (d: number) => navTo(cur + d)
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col px-5 py-6">
       {showEntryModal && <EntryModal onTakeNow={goSelf} onLater={dismissModal} />}
       {/* exit to home — a faded ✕ fixed to the screen's top-right corner, sharpens on hover */}
@@ -1458,7 +1531,7 @@ export default function Results() {
             c.breather ? null : (
               <button
                 key={i}
-                onClick={() => setIdx(i)}
+                onClick={() => navTo(i)}
                 className={`h-2 flex-1 cursor-pointer rounded-full border border-ink ${i <= cur ? 'bg-ink' : 'bg-paper-hi'}`}
               />
             )
@@ -1470,10 +1543,10 @@ export default function Results() {
         <AnimatePresence mode="wait">
           <motion.div
             key={idx}
-            initial={{ opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -24 }}
-            transition={{ duration: 0.32, ease: [0.2, 0.8, 0.2, 1] as const }}
+            variants={PRESETS[reduce ? 'veil' : (cards[cur].motion ?? 'rise')]}
+            initial="hidden"
+            animate="show"
+            exit="exit"
             className={
               cards[cur].wide
                 ? 'w-full lg:relative lg:left-1/2 lg:w-[min(84vw,1040px)] lg:shrink-0 lg:-translate-x-1/2'
@@ -1522,12 +1595,13 @@ export default function Results() {
           reader is already between sections and a jump feels natural */}
       {cards[cur]?.breather && hasSelf && (synthesis || synthesisLoading) && fullReadIdxRef.current >= 0 && cur < fullReadIdxRef.current && (
         <button
-          onClick={() => { playClick(); setIdx(fullReadIdxRef.current) }}
+          onClick={() => navTo(fullReadIdxRef.current)}
           className="press fixed bottom-3 right-2 z-30 cursor-pointer rounded-full border-2 border-ink bg-paper-hi/90 px-4 py-2.5 font-display text-sm font-black text-ink shadow-chunky-sm backdrop-blur-sm sm:bottom-5 sm:right-5"
         >
           Skip to final report →
         </button>
       )}
     </div>
+    </MotionConfig>
   )
 }

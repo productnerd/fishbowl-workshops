@@ -97,5 +97,85 @@ export function playStart() {
   blip(1046.5, 0.06, 0.28, 0.17)
 }
 
+// A short noise burst through a bandpass filter — reads as a soft paper slip. Shared by
+// playPaper (alone) and playTurn (layered under a low sweep).
+function paperNoise(peak: number, decay: number, at = 0) {
+  const c = audio()
+  if (!c) return
+  const t = c.currentTime + at
+  const len = Math.ceil(c.sampleRate * 0.12)
+  const buf = c.createBuffer(1, len, c.sampleRate)
+  const data = buf.getChannelData(0)
+  for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1
+  const src = c.createBufferSource()
+  src.buffer = buf
+  const bp = c.createBiquadFilter()
+  bp.type = 'bandpass'
+  bp.frequency.setValueAtTime(1800, t)
+  bp.Q.setValueAtTime(0.8, t)
+  const g = c.createGain()
+  g.gain.setValueAtTime(0.0001, t)
+  g.gain.exponentialRampToValueAtTime(peak, t + 0.008)
+  g.gain.exponentialRampToValueAtTime(0.0001, t + decay)
+  src.connect(bp).connect(g).connect(c.destination)
+  src.start(t)
+  src.stop(t + 0.13)
+}
+
+// ── Report-deck entry sounds (see lib/motion.ts). All quiet, warm, one per slide max. ──
+
+// The payoff chime: G5 rising to D6, same bell voice as the quiz ticks. Fired at a
+// drumroll reveal moment; used on at most a couple of slides in the whole deck.
+export function playChime() {
+  blip(783.99, 0.05, 0.22)
+  blip(1174.66, 0.04, 0.3, 0.09)
+}
+
+// A soft paper slip, for skeuomorphic objects settling (the letter, the sticky note).
+export function playPaper() {
+  paperNoise(0.035, 0.12)
+}
+
+// A soft major-third dyad (G4 + B4) that blooms rather than strikes: the warm act's
+// single emotional cue.
+export function playWarm() {
+  const c = audio()
+  if (!c) return
+  const t = c.currentTime
+  for (const [freq, peak] of [[392, 0.04], [493.88, 0.03]] as const) {
+    const at = freq === 392 ? 0 : 0.02
+    const g = c.createGain()
+    g.gain.setValueAtTime(0.0001, t + at)
+    g.gain.exponentialRampToValueAtTime(peak, t + at + 0.02)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + at + 0.35)
+    const o = c.createOscillator()
+    o.type = 'sine'
+    o.frequency.setValueAtTime(freq, t + at)
+    o.connect(g).connect(c.destination)
+    o.start(t + at)
+    o.stop(t + at + 0.37)
+  }
+}
+
+// A muted page turn for the chapter covers: playClick's shape moved down and stretched,
+// with a whisper of paper noise on top.
+export function playTurn() {
+  const c = audio()
+  if (!c) return
+  const t = c.currentTime
+  const osc = c.createOscillator()
+  const gain = c.createGain()
+  osc.type = 'triangle'
+  osc.frequency.setValueAtTime(240, t)
+  osc.frequency.exponentialRampToValueAtTime(150, t + 0.16)
+  gain.gain.setValueAtTime(0.0001, t)
+  gain.gain.exponentialRampToValueAtTime(0.04, t + 0.008)
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.17)
+  osc.connect(gain).connect(c.destination)
+  osc.start(t)
+  osc.stop(t + 0.18)
+  paperNoise(0.025, 0.06)
+}
+
 // Back-compat: existing imports of playTick are non-quiz UI interactions.
 export const playTick = playClick
