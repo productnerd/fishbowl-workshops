@@ -86,22 +86,32 @@ export function stripGifTokens(text: string | null | undefined): string {
     .trim()
 }
 
-// Given [key, rawText] slots in deck order, pick the first valid gif token per slot while
-// honoring the per-report cap. Returns { key: gifName } only for slots that earned one, so
-// "one per slide" and the global cap are deterministic regardless of render/navigation order.
+// Two visual variants per emotion live on disk as <name>_1.gif and <name>_2.gif, so the
+// same feeling can appear at most twice in a report but NEVER as the identical file.
+export const VARIANTS_PER_GIF = 2
+
+// Given [key, rawText] slots in deck order, pick the first valid gif token per slot and hand
+// back the concrete file to render (<emotion>_<variant>). Rules, all deterministic regardless
+// of render/navigation order: one gif per slot, the same emotion at most VARIANTS_PER_GIF
+// times (each time a different variant, so no file ever repeats), and at most `max` gifs in
+// the whole report. Only slots that earned a gif appear in the result.
 export function allocateGifs(
   slots: Array<[string, string | null | undefined]>,
   max: number = MAX_GIFS_PER_REPORT
 ): Record<string, string> {
   const out: Record<string, string> = {}
-  let budget = max
+  const usedPerEmotion: Record<string, number> = {}
+  let total = 0
   for (const [key, text] of slots) {
-    if (budget <= 0) break
-    const g = firstGifToken(text)
-    if (g) {
-      out[key] = g
-      budget--
-    }
+    if (total >= max) break
+    const emotion = firstGifToken(text)
+    if (!emotion) continue
+    const used = usedPerEmotion[emotion] ?? 0
+    if (used >= VARIANTS_PER_GIF) continue // both variants of this emotion already spent
+    const variant = used + 1
+    out[key] = `${emotion}_${variant}`
+    usedPerEmotion[emotion] = variant
+    total++
   }
   return out
 }

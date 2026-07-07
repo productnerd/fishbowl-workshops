@@ -1,88 +1,67 @@
 # Reaction GIFs
 
-Drop one file per reaction in **this folder** (`apps/fishbowl/public/gifs/`), named exactly
-`<name>.gif` (lowercase, as listed below). Source them from Giphy or anywhere; keep them
-small and tasteful (ideally under ~1.5 MB, roughly square or landscape).
+Drop the files in **this folder** (`apps/fishbowl/public/gifs/`). Source from Giphy or
+anywhere; keep them small and tasteful (ideally under ~1.5 MB, roughly square or landscape).
 
-How it works: the report AI may append a `{{gif:NAME}}` tag to a text-heavy slide, picking
-only from this list. The client shows **at most one gif per slide** and **10 per report**.
-The prompt tells the AI in strong terms: **if no gif truly fits the moment, add none** (that
-is the default; gifs are meant to be rare and special). Any name without a file is silently
-skipped, so nothing appears or breaks until you add files.
+## Naming: two variants per emotion
 
-Canonical list also lives in `packages/feedback-core/src/gifs.ts`. Filenames must match exactly.
+A single report **never shows the same gif file twice**. So each emotion gets up to two
+visual variants, named with a `_1` / `_2` suffix:
+
+- `<name>_1.gif` — **required** (used the first time an emotion comes up)
+- `<name>_2.gif` — **optional** (used only if the same emotion comes up a second time)
+
+Example: `excitement_1.gif` and `excitement_2.gif`. The AI references the emotion by its base
+name (`excitement`); the app picks `_1` the first time and `_2` the second. A third use of the
+same emotion is dropped. If you only make `_1`, a rare repeat just shows nothing (safe).
+
+How it works: the AI may append a `{{gif:NAME}}` tag to a text-heavy slide, picking only from
+the base names below. The app shows **at most one gif per slide** and **10 per report**, and
+**never the same file twice**. The prompt says firmly: **if no gif truly fits, add none.**
+Anything missing is silently skipped, so nothing appears or breaks until you add files.
+
+Canonical list also lives in `packages/feedback-core/src/gifs.ts`.
 
 ---
 
-## Warm (affection, gratitude, celebration of the person)
+## Warm (affection, gratitude, celebrating the person)
 
-- **`high_five.gif`** — two people slapping a triumphant high-five, or a solo enthusiastic
-  high-five to camera. *Feeling: "we did that together." Search: "high five", "nailed it".*
-- **`blow_kiss.gif`** — someone blowing a kiss toward the camera, hand sweeping from lips.
-  *Feeling: affectionate sign-off on the team letter. Search: "blowing a kiss", "mwah".*
-- **`standing_ovation.gif`** — a crowd or a person rising to their feet, applauding hard.
-  *Feeling: full-hearted applause for the whole person. Search: "standing ovation", "applause".*
-- **`warm_hug.gif`** — two characters wrapping into a big, cozy hug (Pooh/Baymax-style warmth
-  reads well). *Feeling: comfort and belonging. Search: "warm hug", "big hug".*
-- **`heart_hands.gif`** — hands forming a heart shape, or hearts floating up from the chest.
-  *Feeling: "the team adores you." Search: "heart hands", "finger heart", "love you".*
-- **`happy_tears.gif`** — someone tearing up with a smile, dabbing a joyful tear, touched.
-  *Feeling: a line that makes them feel truly seen. Search: "happy tears", "so touched".*
+- **`high_five`** — a triumphant high-five — "we did that together". *Search: "high five", "nailed it".*
+- **`blow_kiss`** — blowing a kiss to camera. *Search: "blowing a kiss", "mwah".*
+- **`standing_ovation`** — rising to their feet, applauding hard. *Search: "standing ovation".*
+- **`warm_hug`** — a big cozy hug (Pooh / Baymax warmth). *Search: "warm hug", "big hug".*
+- **`heart_hands`** — hands forming a heart / floating hearts. *Search: "heart hands", "finger heart".*
+- **`happy_tears`** — tearing up with a smile, touched. *Search: "happy tears", "so touched".*
 
 ## Hype (energy, reveals, arrival)
 
-- **`excitement.gif`** — bouncing, arms up, giddy can't-sit-still excitement.
-  *Feeling: opening / first big positive beat. Search: "so excited", "excited jump".*
-- **`drumroll.gif`** — hands drumming fast on a table/drum, building suspense.
-  *Feeling: the beat right before a reveal. Search: "drumroll", "suspense".*
-- **`ta_da.gif`** — a magician-style reveal with jazz hands / sparkles, "ta-da!".
-  *Feeling: the reveal lands with a flourish. Search: "ta da", "tada reveal", "jazz hands".*
-- **`confetti.gif`** — confetti and streamers bursting, party-popper going off.
-  *Feeling: milestone / "look how far you've come." Search: "confetti", "celebration".*
+- **`excitement`** — bouncing, arms up, giddy excitement. *Search: "so excited", "excited jump".*
+- **`drumroll`** — hands drumming fast, building suspense. *Search: "drumroll", "suspense".*
+- **`ta_da`** — a magician-style reveal, jazz hands / sparkles. *Search: "ta da", "tada reveal".*
+- **`confetti`** — confetti bursting / party popper. *Search: "confetti", "celebration".*
 
-## Playful (light humor, self-aware, cheeky, never mean)
+## Playful (cheeky, witty, self-aware — never mean)
 
-- **`mock_angry.gif`** — a cute, obviously-not-serious angry pout or tiny fist shake (a kitten
-  or cartoon works best). *Feeling: teasing "okay, we need to talk" framed with love.
-  Search: "cute angry", "mock angry", "grr playful".*
-- **`wink.gif`** — an exaggerated, knowing wink to camera.
-  *Feeling: a cheeky inside-joke aside. Search: "wink", "cheeky wink".*
-- **`chefs_kiss.gif`** — fingers-to-lips chef's kiss, then flung open.
-  *Feeling: "that, right there, is perfect." Search: "chefs kiss", "perfect".*
-- **`facepalm.gif`** — a hand slapping the forehead in gentle "oh no" self-recognition.
-  *Feeling: relatable "that IS me" on a watch-out. Search: "facepalm", "oh no".*
-- **`mind_blown.gif`** — head/hands exploding, mind-blown gesture near the temples.
-  *Feeling: a surprising reframe. Search: "mind blown", "mind explosion".*
-- **`mic_drop.gif`** — someone dropping a microphone and walking off, done.
-  *Feeling: "boom, done" after a bold truth lands. Search: "mic drop".*
-- **`slow_clap.gif`** — a slow, building, tongue-in-cheek clap (Leo DiCaprio slow clap reads perfectly).
-  *Feeling: "well played." Search: "slow clap", "sarcastic clap".*
-- **`eye_roll.gif`** — a big, fond, exaggerated eye-roll to camera.
-  *Feeling: affectionate "oh, of course you did." Search: "eye roll", "playful eye roll".*
-- **`smirk.gif`** — a slow, knowing, self-satisfied little smirk.
-  *Feeling: "you know exactly what you did." Search: "smirk", "smug smile".*
-- **`finger_guns.gif`** — double finger-guns pointed at camera with a wink/click.
-  *Feeling: smooth, cheeky "hey, you." Search: "finger guns".*
-- **`sunglasses.gif`** — sunglasses sliding down onto the face, deal-with-it style.
-  *Feeling: an effortless "deal with it" flex. Search: "deal with it", "sunglasses drop".*
-- **`popcorn.gif`** — someone eating popcorn intently, watching drama unfold (Michael Jackson popcorn works).
-  *Feeling: "ooh, this is getting good." Search: "eating popcorn", "popcorn gif".*
-- **`sip_tea.gif`** — a slow, pointed sip of tea, eyebrows up (Kermit sipping tea reads great).
-  *Feeling: cheeky "just saying." Search: "sipping tea", "but thats none of my business".*
-- **`plot_twist.gif`** — a dramatic gasp / "plot twist!" reveal beat.
-  *Feeling: a witty unexpected reframe. Search: "plot twist", "dramatic gasp".*
-- **`shrug.gif`** — a big "what can you do" shrug, palms up (the shruggie in motion).
-  *Feeling: wry acceptance of a lovable quirk. Search: "shrug", "i dont know shrug".*
+- **`mock_angry`** — a cute, obviously-not-serious angry pout. *Search: "cute angry", "grr playful".*
+- **`wink`** — an exaggerated knowing wink. *Search: "wink", "cheeky wink".*
+- **`chefs_kiss`** — fingers-to-lips chef's kiss. *Search: "chefs kiss", "perfect".*
+- **`facepalm`** — hand-to-forehead "oh no". *Search: "facepalm", "oh no".*
+- **`mind_blown`** — head/hands exploding, mind-blown. *Search: "mind blown".*
+- **`mic_drop`** — dropping the mic and walking off. *Search: "mic drop".*
+- **`slow_clap`** — a slow, building, tongue-in-cheek clap (Leo). *Search: "slow clap", "sarcastic clap".*
+- **`eye_roll`** — a big, fond, exaggerated eye-roll. *Search: "eye roll", "playful eye roll".*
+- **`smirk`** — a slow, knowing, self-satisfied smirk. *Search: "smirk", "smug smile".*
+- **`finger_guns`** — double finger-guns at camera. *Search: "finger guns".*
+- **`sunglasses`** — shades sliding on, deal-with-it. *Search: "deal with it", "sunglasses drop".*
+- **`popcorn`** — eating popcorn, watching drama (MJ popcorn). *Search: "eating popcorn".*
+- **`sip_tea`** — a pointed sip of tea, brows up (Kermit). *Search: "sipping tea", "none of my business".*
+- **`plot_twist`** — a dramatic gasp / "plot twist!". *Search: "plot twist", "dramatic gasp".*
+- **`shrug`** — a big "what can you do" shrug (the shruggie). *Search: "shrug", "i dont know shrug".*
 
-## Growth (encouragement and gentle watch-outs, always kind)
+## Growth (encouragement + gentle watch-outs — always kind)
 
-- **`you_got_this.gif`** — a supportive thumbs-up, fist-pump, or "you can do it" cheer.
-  *Feeling: kicking off the action plan. Search: "you got this", "you can do it".*
-- **`deep_breath.gif`** — a calming, slow inhale/exhale, shoulders dropping (yoga/breathe).
-  *Feeling: pause and reset before a heavier note. Search: "deep breath", "breathe", "calm down".*
-- **`note_to_self.gif`** — someone quickly scribbling a note / tapping their temple to remember.
-  *Feeling: "write this one down." Search: "taking notes", "note to self", "writing fast".*
-- **`chin_up.gif`** — a reassuring pat on the back or gentle "chin up" lift.
-  *Feeling: one habit does not define you. Search: "chin up", "it's okay", "pat on the back".*
-- **`playful_side_eye.gif`** — a slow, knowing side-eye glance to camera, eyebrow slightly up.
-  *Feeling: a warm teasing callout of a recurring habit. Search: "side eye", "suspicious look".*
+- **`you_got_this`** — supportive thumbs-up / fist-pump cheer. *Search: "you got this".*
+- **`deep_breath`** — a calming slow inhale/exhale. *Search: "deep breath", "breathe".*
+- **`note_to_self`** — quickly scribbling a note / tapping temple. *Search: "taking notes", "note to self".*
+- **`chin_up`** — a reassuring pat on the back / "chin up". *Search: "chin up", "pat on the back".*
+- **`playful_side_eye`** — a slow, knowing side-eye glance. *Search: "side eye", "suspicious look".*

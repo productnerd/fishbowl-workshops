@@ -51,24 +51,32 @@ describe('firstGifToken case-insensitivity', () => {
 })
 
 describe('allocateGifs', () => {
-  it('assigns the first valid token per slot', () => {
+  it('assigns the first valid token per slot as variant _1', () => {
     const out = allocateGifs([
       ['a', 'hi {{gif:high_five}}'],
       ['b', 'no gif here'],
       ['c', 'yay {{gif:confetti}}'],
     ])
-    expect(out).toEqual({ a: 'high_five', c: 'confetti' })
+    expect(out).toEqual({ a: 'high_five_1', c: 'confetti_1' })
   })
-  it('honors the per-report cap in slot order', () => {
-    const many: Array<[string, string]> = Array.from({ length: 14 }, (_, i) => [`s${i}`, '{{gif:excitement}}'])
-    const out = allocateGifs(many)
+  it('never repeats a file: a repeated emotion steps to the next variant, then stops', () => {
+    const out = allocateGifs([
+      ['a', '{{gif:excitement}}'],
+      ['b', '{{gif:excitement}}'],
+      ['c', '{{gif:excitement}}'],
+    ])
+    expect(out).toEqual({ a: 'excitement_1', b: 'excitement_2' }) // 3rd dropped: only 2 variants exist
+    const vals = Object.values(out)
+    expect(new Set(vals).size).toBe(vals.length) // every rendered file is unique
+  })
+  it('honors the per-report cap across distinct emotions', () => {
+    const emotions = ['excitement', 'high_five', 'blow_kiss', 'confetti', 'wink', 'facepalm', 'shrug', 'smirk', 'mic_drop', 'popcorn', 'ta_da', 'drumroll']
+    const out = allocateGifs(emotions.map((g, i): [string, string] => [`s${i}`, `{{gif:${g}}}`]))
     expect(Object.keys(out)).toHaveLength(MAX_GIFS_PER_REPORT)
-    expect(out.s0).toBe('excitement')
-    expect(out.s10).toBeUndefined() // 11th slot dropped by the cap
   })
   it('skips invalid names without spending budget', () => {
     const out = allocateGifs([['a', '{{gif:bogus}}'], ['b', '{{gif:wink}}']], 1)
-    expect(out).toEqual({ b: 'wink' })
+    expect(out).toEqual({ b: 'wink_1' })
   })
 })
 
