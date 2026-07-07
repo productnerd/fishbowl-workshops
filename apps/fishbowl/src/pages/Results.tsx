@@ -7,7 +7,6 @@ import {
   deriveType,
   deriveArchetype,
   scoreDimensions,
-  dimensionEvidence,
   ORIENTATIONS,
   HATS,
   SDT_NEEDS,
@@ -105,14 +104,15 @@ type Slide = {
   fullRead?: boolean
 }
 
-// The seven acts. The breather before each act (2..7) announces it; act 1 needs none.
-const ACTS: Record<number, { title: string; line: string }> = {
-  2: { title: 'How the team sees you', line: "Enough about your own read. Here's the mirror your colleagues hold up." },
-  3: { title: 'How you operate', line: 'Not just who you are, but how you actually move through a workday.' },
-  4: { title: 'Where the gaps are', line: 'The honest part: what you might not see, and what you quietly undersell.' },
-  5: { title: 'The warm part', line: 'Set the analysis down for a second. This is what they wanted you to hear.' },
-  6: { title: 'Putting it together', line: 'Every thread from the last few minutes, woven into one read.' },
-  7: { title: 'What to do with it', line: "Insight is nice. Here's how to actually use it this week." },
+// The seven acts. The breather before each act (2..7) announces it as a full-bleed chapter
+// cover, each in its own colour so it clearly reads as a section break, not another card.
+const ACTS: Record<number, { title: string; line: string; color: string }> = {
+  2: { title: 'How the team sees you', line: "Enough about your own read. Here's the mirror your colleagues hold up.", color: '#1366ac' },
+  3: { title: 'How you operate', line: 'Not just who you are, but how you actually move through a workday.', color: '#2f9e7a' },
+  4: { title: 'Where the gaps are', line: 'The honest part: what you might not see, and what you quietly undersell.', color: '#c9683f' },
+  5: { title: 'The warm part', line: 'Set the analysis down for a second. This is what they wanted you to hear.', color: '#a83f6f' },
+  6: { title: 'Putting it together', line: 'Every thread from the last few minutes, woven into one read.', color: '#6b4e9e' },
+  7: { title: 'What to do with it', line: "Insight is nice. Here's how to actually use it this week.", color: '#2a2420' },
 }
 
 export default function Results() {
@@ -466,20 +466,19 @@ export default function Results() {
       leadership: 'confidence', composed: 'composure', autonomous: 'ownership',
       flexible: 'receptiveness', determined: 'drive',
     }
-    const ans = self!.ocean_answers
-    const dimEvidence: Record<string, { self: string | null; team: string | null }> = {}
+    // Evidence is NEW information only: what the team independently read, never a rehash of
+    // the person's own answers. Shown only when the team's read points the SAME way as the
+    // self score (so it corroborates, not contradicts). Nothing shows when nothing is new.
+    const dimEvidence: Record<string, string | null> = {}
     for (const d of dimScores) {
-      const ev = dimensionEvidence(d.key, ans)
       const vkey = DIM_TEAM_VIRTUE[d.key]
       const v = vkey ? insights.virtues.find((x) => x.dimension === vkey) : undefined
-      // Only surface the team signal when it points the SAME way as the score (so it
-      // supports it, rather than contradicting it, which would just read as confusing).
       let teamLine: string | null = null
       if (v) {
-        if (d.score >= 55 && v.mu >= 6) teamLine = `Your team reads high on ${v.name.toLowerCase()}`
-        else if (d.score <= 45 && v.mu <= 4) teamLine = `Your team reads low on ${v.name.toLowerCase()}`
+        if (d.score >= 55 && v.mu >= 6) teamLine = `Your team independently reads you high on ${v.name.toLowerCase()}`
+        else if (d.score <= 45 && v.mu <= 4) teamLine = `Your team independently reads you low on ${v.name.toLowerCase()}`
       }
-      dimEvidence[d.key] = { self: ev ? `You ${ev.lean}: “${ev.text}”` : null, team: teamLine }
+      dimEvidence[d.key] = teamLine
     }
     ORIENTATIONS.forEach((o, i) => {
       selfCards.push({
@@ -1032,13 +1031,17 @@ export default function Results() {
   // A breather / chapter divider that separates the acts. Marked `breather` so it is left
   // out of the breadcrumb count and the breadcrumbs hide while it is on screen.
   const makeBreather = (act: number): Slide => ({
-    tone: 'blue',
+    tone: 'blue', // unused (bare); kept to satisfy the Slide type
     breather: true,
+    bare: true,
     node: (
-      <div className="flex min-h-[58vh] flex-col justify-center text-center text-paper-hi">
-        <p className="kicker text-paper-hi/70">the next part</p>
-        <h2 className="display mt-3 text-[clamp(2.3rem,7vw,3.4rem)] leading-tight">{ACTS[act].title}</h2>
-        <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-paper-hi/85">{ACTS[act].line}</p>
+      <div
+        className="flex min-h-[86vh] flex-col justify-center rounded-[2rem] border-[2.5px] border-ink px-8 py-16 text-center text-paper-hi shadow-chunky"
+        style={{ backgroundColor: ACTS[act].color }}
+      >
+        <p className="kicker text-paper-hi/60">chapter {act - 1} of 6</p>
+        <h2 className="display mt-4 text-[clamp(2.6rem,9vw,4.2rem)] leading-[0.95]">{ACTS[act].title}</h2>
+        <p className="mx-auto mt-6 max-w-md text-lg leading-relaxed text-paper-hi/80">{ACTS[act].line}</p>
       </div>
     ),
   })
