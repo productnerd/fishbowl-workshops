@@ -54,7 +54,7 @@ export const questions: Question[] = [
     sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
     text: 'Under pressure, {name}…',
     virtue: {
-      name: 'Composure', deficientPole: 'A pushover', excessivePole: 'Short-fused',
+      name: 'Composure', deficientPole: 'Pushover', excessivePole: 'Short-fused',
       deficientTraits: ['Caves under pressure', 'Avoids all conflict', 'Goes along to get along'],
       virtueTraits: ['Stays cool under fire', 'Holds the line calmly', 'Picks battles well'],
       excessiveTraits: ['Snaps when stressed', 'Quick to anger', 'Spreads the tension'],
@@ -65,7 +65,7 @@ export const questions: Question[] = [
     sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
     text: 'On working with others, {name}…',
     virtue: {
-      name: 'Collaboration', deficientPole: 'A lone wolf', excessivePole: 'Cannot decide alone',
+      name: 'Collaboration', deficientPole: 'Lone wolf', excessivePole: 'Cannot decide alone',
       deficientTraits: ['Works in a silo', 'Skips the loop-in', 'Hoards the context'],
       virtueTraits: ['Pulls people in', 'Shares the work', 'Decides when needed'],
       excessiveTraits: ['Needs consensus for all', 'Stalls without buy-in', 'Cannot move solo'],
@@ -76,7 +76,7 @@ export const questions: Question[] = [
     sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
     text: 'On attention to detail, {name}…',
     virtue: {
-      name: 'Rigor', deficientPole: 'Sloppy', excessivePole: 'Cannot ship',
+      name: 'Rigor', deficientPole: 'Sloppy', excessivePole: 'Nitpicky, cannot ship',
       deficientTraits: ['Skips the details', 'Ships half-checked', 'Misses the obvious'],
       virtueTraits: ['Catches what matters', 'Right level of polish', 'Knows when it is done'],
       excessiveTraits: ['Polishes forever', 'Nitpicks endlessly', 'Perfect over shipped'],
@@ -98,7 +98,7 @@ export const questions: Question[] = [
     sectionDescription: 'Place {name} between two extremes. The middle is the virtue.',
     text: 'On sharing credit and helping, {name}…',
     virtue: {
-      name: 'Generosity', deficientPole: 'Credit-hoarding', excessivePole: 'Self-sacrificing',
+      name: 'Generosity', deficientPole: 'Credit-hoarding', excessivePole: 'Self-sacrificing to a fault',
       deficientTraits: ['Takes the credit', 'Slow to help', 'Keeps the spotlight'],
       virtueTraits: ['Shares the credit', 'Lifts others up', 'Helps within reason'],
       excessiveTraits: ['Gives until depleted', 'Cannot say no', 'Neglects own work'],
