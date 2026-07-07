@@ -1,4 +1,6 @@
+import { motion } from 'framer-motion'
 import { shadeFor, type DimensionScore, type OrientationMeta } from '@fishbowl/feedback-core'
+import { rowItem, dialSweep } from '../lib/motion'
 
 // One orientation's card: its dimensions as donut dials with label, band, and a short
 // neutral descriptor (the % + band carry how strongly it applies).
@@ -9,7 +11,7 @@ function Dial({ score, color }: { score: number; color: string }) {
   return (
     <svg viewBox="0 0 64 64" className="h-16 w-16 shrink-0" role="img" aria-label={`${score} percent`}>
       <circle cx="32" cy="32" r={r} fill="none" stroke="#e2d4b6" strokeWidth="7" />
-      <circle
+      <motion.circle
         cx="32"
         cy="32"
         r={r}
@@ -18,7 +20,8 @@ function Dial({ score, color }: { score: number; color: string }) {
         strokeWidth="7"
         strokeLinecap="round"
         strokeDasharray={c}
-        strokeDashoffset={off}
+        variants={dialSweep(c)}
+        custom={off}
         transform="rotate(-90 32 32)"
       />
       <text x="32" y="37" textAnchor="middle" className="display" fontSize="17" fontWeight="800" fill={color}>
@@ -50,7 +53,7 @@ export default function DimensionsProfile({
           const color = shadeFor(orientation, d.score)
           const ev = evidence?.[d.key]
           return (
-            <div key={d.key} className="flex items-center gap-4 rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3.5 shadow-chunky-sm">
+            <motion.div key={d.key} variants={rowItem} className="flex items-center gap-4 rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3.5 shadow-chunky-sm">
               <Dial score={d.score} color={color} />
               <div className="min-w-0">
                 <p className="serif text-lg font-black leading-tight text-ink">{d.label}</p>
@@ -61,7 +64,7 @@ export default function DimensionsProfile({
                   </p>
                 )}
               </div>
-            </div>
+            </motion.div>
           )
         })}
       </div>

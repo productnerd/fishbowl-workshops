@@ -1,4 +1,12 @@
+import { motion, type Variants } from 'framer-motion'
+
 type Point = { label: string; self: number; team: number }
+
+// Each labelled point pops in with a small ripple once the slide's rise lands.
+const pointPop: Variants = {
+  hidden: { opacity: 0, scale: 0.8 },
+  show: (i: number = 0) => ({ opacity: 1, scale: 1, transition: { duration: 0.35, ease: 'easeOut', delay: 0.15 + i * 0.05 } }),
+}
 
 // Blind spots vs hidden strengths. Each trait is a dot: x = how the team rates you,
 // y = how you rate yourself. The dashed diagonal is perfect agreement. Dots above it
@@ -22,7 +30,7 @@ export default function BlindSpotQuadrant({ points }: { points: Point[] }) {
         <rect x={O} y={O} width={S} height={S} fill="#f5eedc" stroke="#2a2420" strokeOpacity={0.25} />
         <line x1={O} y1={bottom} x2={bottom} y2={O} stroke="#2a2420" strokeOpacity={0.35} strokeWidth={1.4} strokeDasharray="4 4" />
 
-        {points.map((p) => {
+        {points.map((p, i) => {
           const diff = p.self - p.team
           const kind = diff >= MARGIN ? 'blind' : diff <= -MARGIN ? 'hidden' : 'aligned'
           const color = kind === 'blind' ? BLIND : kind === 'hidden' ? HIDDEN : ALIGNED
@@ -30,14 +38,14 @@ export default function BlindSpotQuadrant({ points }: { points: Point[] }) {
           const y = fy(p.self)
           const right = x < 128
           return (
-            <g key={p.label}>
+            <motion.g key={p.label} variants={pointPop} custom={i} style={{ transformBox: 'fill-box', transformOrigin: 'center' }}>
               <circle cx={x} cy={y} r={kind === 'aligned' ? 4.5 : 6} fill={color} stroke="#2a2420" strokeWidth={kind === 'aligned' ? 0 : 1.5} />
               {kind !== 'aligned' && (
                 <text x={right ? x + 9 : x - 9} y={y + 3} textAnchor={right ? 'start' : 'end'} fontSize={9.5} fontWeight={600} fill="#5a4f45">
                   {p.label}
                 </text>
               )}
-            </g>
+            </motion.g>
           )
         })}
 

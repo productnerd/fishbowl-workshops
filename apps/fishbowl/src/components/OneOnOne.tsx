@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { rowItem } from '../lib/motion'
 
 // Talking points to bring to a routine 1:1 with your manager, so the report's
 // weaknesses/gaps actually get actioned. Each is an "Ask" (a question) or a "Share".
@@ -30,24 +32,45 @@ export default function OneOnOne({ items }: { items: string[] }) {
     )
   }
 
+  const rowClass = 'flex items-start gap-3 rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3.5 shadow-chunky-sm'
+  const row = (t: string) => {
+    const { isAsk, body } = parse(t)
+    return (
+      <>
+        <span
+          className={`mt-0.5 shrink-0 rounded-full border-2 border-ink px-2.5 py-1 text-[10px] font-black tracking-wide ${
+            isAsk ? 'bg-blue text-paper-hi' : 'bg-pink text-ink'
+          }`}
+        >
+          {isAsk ? 'ASK' : 'SHARE'}
+        </span>
+        <span className="leading-snug text-ink">{body}</span>
+      </>
+    )
+  }
+
+  // Cap the 'stagger' cascade at 6 rows; any tail lands together as one final child.
+  const rows = items.filter(Boolean)
+  const head = rows.slice(0, 6)
+  const tail = rows.slice(6)
+
   return (
     <div>
       <ul className="flex flex-col gap-3">
-        {items.filter(Boolean).map((t, i) => {
-          const { isAsk, body } = parse(t)
-          return (
-            <li key={i} className="flex items-start gap-3 rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3.5 shadow-chunky-sm">
-              <span
-                className={`mt-0.5 shrink-0 rounded-full border-2 border-ink px-2.5 py-1 text-[10px] font-black tracking-wide ${
-                  isAsk ? 'bg-blue text-paper-hi' : 'bg-pink text-ink'
-                }`}
-              >
-                {isAsk ? 'ASK' : 'SHARE'}
-              </span>
-              <span className="leading-snug text-ink">{body}</span>
-            </li>
-          )
-        })}
+        {head.map((t, i) => (
+          <motion.li key={i} variants={rowItem} className={rowClass}>
+            {row(t)}
+          </motion.li>
+        ))}
+        {tail.length > 0 && (
+          <motion.li variants={rowItem} className="flex flex-col gap-3">
+            {tail.map((t, i) => (
+              <div key={i} className={rowClass}>
+                {row(t)}
+              </div>
+            ))}
+          </motion.li>
+        )}
       </ul>
 
       <button

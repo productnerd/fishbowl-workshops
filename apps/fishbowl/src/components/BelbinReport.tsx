@@ -1,4 +1,6 @@
+import { motion } from 'framer-motion'
 import { BELBIN_ROLES, CLUSTER_TONE } from '@fishbowl/feedback-core'
+import { rowItem } from '../lib/motion'
 
 type TeamRole = { key: string; name: string; cluster: string; teamShare: number; n: number }
 
@@ -58,57 +60,69 @@ export default function BelbinReport({
           }, 0)
       : null
 
+  // One role's card; shared by the animated head rows and the grouped tail.
+  const roleCard = (r: TeamRole, i: number) => {
+    const tone = CLUSTER_TONE[r.cluster] ?? 'blue'
+    const s = selfShare(r.key)
+    const signature = i < 3 && (teamHasData ? r.teamShare > 0 : (s ?? 0) > 0)
+    const shownShare = teamHasData ? r.teamShare : s ?? 0
+    return (
+      <div
+        key={r.key}
+        className={`rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3 ${signature ? 'shadow-chunky-sm' : ''}`}
+      >
+        <div className="mb-1.5 flex items-baseline justify-between gap-2">
+          <span className="flex items-center gap-2 text-sm font-semibold text-ink">
+            <span className={`inline-block h-3 w-3 rounded-full border-2 border-ink ${TONE_DOT[tone]}`} />
+            {r.name}
+            {signature && <span className="kicker text-pink-deep">signature</span>}
+          </span>
+          <span className="font-mono text-xs font-semibold text-ink-soft">{Math.round(shownShare * 100)}%</span>
+        </div>
+        <div className="relative h-4 rounded-full border-2 border-ink bg-paper-hi">
+          {teamHasData ? (
+            <>
+              <div
+                className={`absolute left-0 top-0 h-full rounded-full ${TONE_BAR[tone]} ${signature ? '' : 'opacity-70'}`}
+                style={{ width: `${(r.teamShare / maxShare) * 100}%` }}
+                title={`team ${Math.round(r.teamShare * 100)}%`}
+              />
+              {typeof s === 'number' && (
+                <div
+                  className="absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-pink sc-pink"
+                  style={{ left: `${Math.min(100, (s / maxShare) * 100)}%` }}
+                  title={`you ${Math.round(s * 100)}%`}
+                />
+              )}
+            </>
+          ) : (
+            <div
+              className="absolute left-0 top-0 h-full rounded-full bg-pink"
+              style={{ width: `${((s ?? 0) / maxShare) * 100}%` }}
+              title={`you ${Math.round((s ?? 0) * 100)}%`}
+            />
+          )}
+        </div>
+        <p className="mt-1.5 text-xs text-ink-soft">{shortOf(r.key)}</p>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-3">
       {!teamHasData && self && (
         <p className="text-xs text-ink-soft">Your own allocation. Your team hasn't been asked about these yet.</p>
       )}
-      {rows.map((r, i) => {
-        const tone = CLUSTER_TONE[r.cluster] ?? 'blue'
-        const s = selfShare(r.key)
-        const signature = i < 3 && (teamHasData ? r.teamShare > 0 : (s ?? 0) > 0)
-        const shownShare = teamHasData ? r.teamShare : s ?? 0
-        return (
-          <div
-            key={r.key}
-            className={`rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3 ${signature ? 'shadow-chunky-sm' : ''}`}
-          >
-            <div className="mb-1.5 flex items-baseline justify-between gap-2">
-              <span className="flex items-center gap-2 text-sm font-semibold text-ink">
-                <span className={`inline-block h-3 w-3 rounded-full border-2 border-ink ${TONE_DOT[tone]}`} />
-                {r.name}
-                {signature && <span className="kicker text-pink-deep">signature</span>}
-              </span>
-              <span className="font-mono text-xs font-semibold text-ink-soft">{Math.round(shownShare * 100)}%</span>
-            </div>
-            <div className="relative h-4 rounded-full border-2 border-ink bg-paper-hi">
-              {teamHasData ? (
-                <>
-                  <div
-                    className={`absolute left-0 top-0 h-full rounded-full ${TONE_BAR[tone]} ${signature ? '' : 'opacity-70'}`}
-                    style={{ width: `${(r.teamShare / maxShare) * 100}%` }}
-                    title={`team ${Math.round(r.teamShare * 100)}%`}
-                  />
-                  {typeof s === 'number' && (
-                    <div
-                      className="absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-pink sc-pink"
-                      style={{ left: `${Math.min(100, (s / maxShare) * 100)}%` }}
-                      title={`you ${Math.round(s * 100)}%`}
-                    />
-                  )}
-                </>
-              ) : (
-                <div
-                  className="absolute left-0 top-0 h-full rounded-full bg-pink"
-                  style={{ width: `${((s ?? 0) / maxShare) * 100}%` }}
-                  title={`you ${Math.round((s ?? 0) * 100)}%`}
-                />
-              )}
-            </div>
-            <p className="mt-1.5 text-xs text-ink-soft">{shortOf(r.key)}</p>
-          </div>
-        )
-      })}
+      {rows.slice(0, 6).map((r, i) => (
+        <motion.div key={r.key} variants={rowItem}>
+          {roleCard(r, i)}
+        </motion.div>
+      ))}
+      {rows.length > 6 && (
+        <motion.div variants={rowItem} className="flex flex-col gap-3">
+          {rows.slice(6).map((r, i) => roleCard(r, i + 6))}
+        </motion.div>
+      )}
 
       <div className="mt-1 flex flex-wrap gap-4 text-xs font-semibold text-ink-soft">
         {teamHasData &&

@@ -1,3 +1,6 @@
+import { motion } from 'framer-motion'
+import { needleSlide } from '../lib/motion'
+
 type Dial = { def: string; exc: string; score: number }
 
 // "Virtue into vice": the golden-mean virtues the team scores toward an extreme,
@@ -40,8 +43,18 @@ export default function VirtueViceDial({ dials, engine }: { dials: Dial[]; engin
               <rect x={px(4.2)} y={y - 4} width={px(5.8) - px(4.2)} height={8} fill="#2f9e7a" opacity={0.34} />
               {/* centre notch */}
               <line x1={px(5)} y1={y - 7} x2={px(5)} y2={y + 7} stroke="#2a2420" strokeOpacity={0.4} strokeWidth={1} />
-              {/* needle */}
-              <circle cx={px(score)} cy={y} r={6.5} fill={excess || deficient ? '#d9734a' : '#2f9e7a'} stroke="#2a2420" strokeWidth={2} />
+              {/* needle: starts at the centre notch and glides to the score */}
+              <motion.circle
+                cx={px(5)}
+                cy={y}
+                r={6.5}
+                fill={excess || deficient ? '#d9734a' : '#2f9e7a'}
+                stroke="#2a2420"
+                strokeWidth={2}
+                variants={needleSlide}
+                custom={px(score)}
+                style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+              />
               {/* pole labels — under the bar at each end so neither can clip */}
               <text x={x0} y={labelY} textAnchor="start" fontSize={10} fontWeight={deficient ? 800 : 600} fill={deficient ? '#d9734a' : '#5a4f45'}>
                 {d.def}

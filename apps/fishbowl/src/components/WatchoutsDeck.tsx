@@ -1,3 +1,6 @@
+import { motion } from 'framer-motion'
+import { rowItem } from '../lib/motion'
+
 type TeamWatchout = { word: string; count: number }
 
 // The team's most-named watch-outs, ranked like the strengths deck. Team picks
@@ -34,10 +37,11 @@ export default function WatchoutsDeck({
             {top.map((t, i) => {
               const youToo = selfSet?.has(t.word)
               return (
-                <div
+                <motion.div
                   key={t.word}
+                  variants={rowItem}
                   className="card-3d mx-auto w-[94%] bg-paper-hi p-4 text-ink"
-                  style={{ transform: `rotate(${fan[i] ?? 0}deg)` }}
+                  style={{ rotate: `${fan[i] ?? 0}deg` }}
                 >
                   <div className="flex items-baseline justify-between gap-2">
                     <p className="min-w-0 break-words font-display text-2xl font-black leading-tight text-ink">{t.word}</p>
@@ -56,7 +60,7 @@ export default function WatchoutsDeck({
                       </span>
                     )}
                   </div>
-                </div>
+                </motion.div>
               )
             })}
           </div>
@@ -64,7 +68,7 @@ export default function WatchoutsDeck({
       )}
 
       {selfSet && (
-        <div className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-4 shadow-chunky-sm">
+        <motion.div variants={rowItem} className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-4 shadow-chunky-sm">
           <div className="mb-2 flex items-baseline justify-between gap-2">
             <p className="font-serif text-lg font-black text-ink">What you own</p>
             <p className="text-xs font-semibold text-ink-soft">
@@ -87,7 +91,7 @@ export default function WatchoutsDeck({
               {teamHasData ? 'Nothing extra, everything you owned, they saw too.' : 'You didn’t pick any.'}
             </p>
           )}
-        </div>
+        </motion.div>
       )}
     </div>
   )

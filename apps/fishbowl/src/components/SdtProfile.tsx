@@ -1,4 +1,6 @@
+import { motion } from 'framer-motion'
 import { SDT_NEEDS, SDT_TOTAL } from '@fishbowl/feedback-core'
+import { rowItem } from '../lib/motion'
 
 type TeamNeed = { key: string; label: string; meanPoints: number; n: number }
 
@@ -25,8 +27,9 @@ export default function SdtProfile({ team }: { team: TeamNeed[] }) {
           const isTop = i === 0
           const pct = Math.round((r.meanPoints / SDT_TOTAL) * 100)
           return (
-            <div
+            <motion.div
               key={r.key}
+              variants={rowItem}
               className={`rounded-2xl border-[2.5px] border-ink p-3 shadow-chunky-sm ${
                 isTop ? 'bg-pink sc-pink' : 'bg-paper-hi'
               }`}
@@ -44,7 +47,7 @@ export default function SdtProfile({ team }: { team: TeamNeed[] }) {
               <p className="mt-1.5 text-xs text-ink-soft">
                 {stem(r.key)} <span className="font-semibold text-ink-soft">· {pct}% of the tank</span>
               </p>
-            </div>
+            </motion.div>
           )
         })}
       </div>

@@ -1,4 +1,18 @@
+import { motion, type Variants } from 'framer-motion'
+
 type Cluster = { label: string; words: string[] }
+
+// Each visible star twinkles in with a small ripple once the slide's rise lands.
+const starPop: Variants = {
+  hidden: { opacity: 0, scale: 0.6 },
+  show: (i: number = 0) => ({ opacity: 1, scale: 1, transition: { duration: 0.32, ease: 'easeOut', delay: 0.12 + i * 0.04 } }),
+}
+
+// The group-name legend fades in as one unit after the stars.
+const legendFade: Variants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { duration: 0.3, ease: 'easeOut', delay: 0.4 } },
+}
 
 // Distinct hues for the named sub-constellations, chosen to read clearly on the night sky.
 const CLUSTER_COLORS = ['#e7b24e', '#ef9dbf'] // gold, pink
@@ -71,21 +85,22 @@ export default function Constellation({ words, clusters }: { words: string[]; cl
         })}
 
         {/* Stars + word labels */}
-        {words.map((w) => {
+        {words.map((w, i) => {
           const p = posOf.get(w)
           if (!p) return null
           return (
-            <g key={w}>
+            <motion.g key={w} variants={starPop} custom={i} style={{ transformBox: 'fill-box', transformOrigin: 'center' }}>
               <circle cx={p.x} cy={p.y} r={p.inC ? 3.6 : 2.6} fill={p.color} opacity={p.inC ? 1 : 0.8} />
               <text x={p.x} y={p.y - 6} fontSize={9} fontWeight={p.inC ? 600 : 400} fill={p.inC ? '#f6eed6' : '#bccbd6'} textAnchor="middle">
                 {w}
               </text>
-            </g>
+            </motion.g>
           )
         })}
 
         {/* Group-name legend: one coloured, italic-serif chip per named group, packed into a
             centred row so they never overlap and never read as just another star word. */}
+        <motion.g variants={legendFade}>
         {(() => {
           const chipW = (label: string) => label.length * 4.6 + 15
           const gap = 7
@@ -106,6 +121,7 @@ export default function Constellation({ words, clusters }: { words: string[]; cl
             )
           })
         })()}
+        </motion.g>
       </svg>
     </div>
   )

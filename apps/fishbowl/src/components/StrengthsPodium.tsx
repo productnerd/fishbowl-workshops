@@ -1,4 +1,6 @@
+import { motion } from 'framer-motion'
 import Rich from './Rich'
+import { rowItem } from '../lib/motion'
 
 // Team-named strengths, ranked. Visual weight = rank: #1 is a big card, #2/#3 medium,
 // #4/#5 compact rows — a "podium" without literal bars, so all five fit and stay
@@ -19,7 +21,7 @@ export default function StrengthsPodium({ strengths }: { strengths: { label: str
   return (
     <div className="flex flex-col gap-3">
       {s[0] && (
-        <div className="rounded-2xl border-[2.5px] border-ink bg-sand p-5 shadow-chunky-sm">
+        <motion.div variants={rowItem} className="rounded-2xl border-[2.5px] border-ink bg-sand p-5 shadow-chunky-sm">
           <div className="flex items-center gap-3">
             <Badge n={1} size="lg" />
             <p className="serif text-2xl font-black leading-tight text-ink">{s[0].label}</p>
@@ -27,12 +29,12 @@ export default function StrengthsPodium({ strengths }: { strengths: { label: str
           <p className="mt-2.5 leading-relaxed text-ink-soft">
             <Rich text={s[0].blurb} />
           </p>
-        </div>
+        </motion.div>
       )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {[s[1], s[2]].filter(Boolean).map((x, i) => (
-          <div key={i} className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-4 shadow-chunky-sm">
+          <motion.div key={i} variants={rowItem} className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-4 shadow-chunky-sm">
             <div className="flex items-center gap-2.5">
               <Badge n={i + 2} size="md" />
               <p className="serif text-lg font-black leading-tight text-ink">{x.label}</p>
@@ -40,17 +42,17 @@ export default function StrengthsPodium({ strengths }: { strengths: { label: str
             <p className="mt-2 text-sm leading-snug text-ink-soft">
               <Rich text={x.blurb} />
             </p>
-          </div>
+          </motion.div>
         ))}
       </div>
 
       {(s[3] || s[4]) && (
         <div className="flex flex-col gap-2">
           {[s[3], s[4]].filter(Boolean).map((x, i) => (
-            <div key={i} className="flex items-center gap-3 rounded-xl border-2 border-ink/60 bg-paper-hi/70 px-3.5 py-2.5">
+            <motion.div key={i} variants={rowItem} className="flex items-center gap-3 rounded-xl border-2 border-ink/60 bg-paper-hi/70 px-3.5 py-2.5">
               <Badge n={i + 4} size="sm" />
               <p className="serif font-bold text-ink">{x.label}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}

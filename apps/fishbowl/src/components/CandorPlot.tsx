@@ -1,4 +1,13 @@
+import { motion, type Variants } from 'framer-motion'
 import { candorQuadrant } from '@fishbowl/feedback-core'
+
+// The self point (and its connector) pops in after the slide's rise has landed.
+// Only ever activates inside the deck; on the Landing preview there is no parent
+// variant context, so these render statically.
+const selfPop: Variants = {
+  hidden: { opacity: 0, scale: 0.7 },
+  show: { opacity: 1, scale: 1, transition: { type: 'spring', stiffness: 400, damping: 18, delay: 0.3 } },
+}
 
 // Riso 2×2 Care × Challenge plot. x = Challenge Directly, y = Care Personally,
 // both 1–9 with a midpoint of 5. Quadrants are tinted (top-right Radical Candor =
@@ -62,7 +71,9 @@ export default function CandorPlot({
         {/* dashed connector between self and team */}
         {hasSelf && (
           <svg className="pointer-events-none absolute inset-0 h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-            <line
+            <motion.line
+              variants={selfPop}
+              style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
               x1={selfX}
               y1={selfY}
               x2={teamX}
@@ -76,7 +87,8 @@ export default function CandorPlot({
 
         {/* self point — pink hollow */}
         {hasSelf && (
-          <div
+          <motion.div
+            variants={selfPop}
             className="absolute z-10 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[2.5px] border-pink-deep bg-paper-hi"
             style={{ left: `${selfX}%`, top: `${selfY}%` }}
             title={`you · ${selfQ!.name}`}

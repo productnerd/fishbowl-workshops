@@ -1,4 +1,9 @@
+import { motion } from 'framer-motion'
 import { HATS, type HatScores } from '@fishbowl/feedback-core'
+import { chartShape, chartDot } from '../lib/motion'
+
+// SVG children that scale must transform about their own centre, not the SVG's 0,0.
+const CENTER = { transformBox: 'fill-box', transformOrigin: 'center' } as const
 
 type TeamHat = { key: string; mu: number; n: number }
 
@@ -66,22 +71,22 @@ export default function HatsRadar({ team, self }: { team: TeamHat[]; self: HatSc
           const [x, y] = at(a.ux, a.uy, R)
           return <line key={a.hat.key} x1={c} y1={c} x2={x} y2={y} stroke={HUE[a.hat.key] ?? '#2a2420'} strokeOpacity={0.3} strokeWidth={1.2} />
         })}
-        {teamPoly && <polygon points={teamPoly} fill="#1366ac" fillOpacity={0.16} stroke="#1366ac" strokeWidth={2.5} strokeLinejoin="round" />}
-        {selfPoly && <polygon points={selfPoly} fill="#efa6c1" fillOpacity={0.22} stroke="#a83f6f" strokeWidth={2.5} strokeLinejoin="round" />}
+        {teamPoly && <motion.polygon variants={chartShape} style={CENTER} points={teamPoly} fill="#1366ac" fillOpacity={0.16} stroke="#1366ac" strokeWidth={2.5} strokeLinejoin="round" />}
+        {selfPoly && <motion.polygon variants={chartShape} style={CENTER} points={selfPoly} fill="#efa6c1" fillOpacity={0.22} stroke="#a83f6f" strokeWidth={2.5} strokeLinejoin="round" />}
         {/* vertex dots */}
         {teamPoly &&
-          axes.map((a) => {
+          axes.map((a, i) => {
             const v = teamMap.get(a.hat.key)
             if (typeof v !== 'number') return null
             const [x, y] = at(a.ux, a.uy, rad(v))
-            return <circle key={`t${a.hat.key}`} cx={x} cy={y} r={3.2} fill="#1366ac" />
+            return <motion.circle key={`t${a.hat.key}`} variants={chartDot} custom={i} style={CENTER} cx={x} cy={y} r={3.2} fill="#1366ac" />
           })}
         {self &&
-          axes.map((a) => {
+          axes.map((a, i) => {
             const v = self[a.hat.key]
             if (typeof v !== 'number') return null
             const [x, y] = at(a.ux, a.uy, rad(v))
-            return <circle key={`s${a.hat.key}`} cx={x} cy={y} r={3.2} fill="#a83f6f" />
+            return <motion.circle key={`s${a.hat.key}`} variants={chartDot} custom={i} style={CENTER} cx={x} cy={y} r={3.2} fill="#a83f6f" />
           })}
         {/* per-hat axis marker + coloured label */}
         {axes.map((a) => {

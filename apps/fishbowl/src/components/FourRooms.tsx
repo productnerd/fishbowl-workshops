@@ -1,3 +1,6 @@
+import { motion } from 'framer-motion'
+import { rowItem } from '../lib/motion'
+
 type Room = { label: string; behavior: string; verdict: 'balanced' | 'off'; hatLabel: string; hatColor: string }
 
 // "A day in four rooms": the same person across four situations (a meeting, conflict,
@@ -12,8 +15,9 @@ export default function FourRooms({ rooms }: { rooms: Room[] }) {
         // Balanced rooms feel green (calm), off-balance rooms feel amber (watch out).
         const accent = off ? '#c9683f' : '#2f9e7a'
         return (
-          <div
+          <motion.div
             key={i}
+            variants={rowItem}
             className="rounded-2xl border-[2.5px] p-3.5 shadow-chunky-sm"
             style={{ borderColor: accent, backgroundColor: off ? 'rgba(201,104,63,0.10)' : 'rgba(47,158,122,0.12)' }}
           >
@@ -28,7 +32,7 @@ export default function FourRooms({ rooms }: { rooms: Room[] }) {
             >
               {off ? '⚠ off-balance' : '✓ balanced'}
             </span>
-          </div>
+          </motion.div>
         )
       })}
     </div>

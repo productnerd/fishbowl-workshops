@@ -1,3 +1,11 @@
+import { motion, type Variants } from 'framer-motion'
+
+// The hot-end markers (team endpoint + hat chips) pop in after the slide's rise lands.
+const pop: Variants = {
+  hidden: { opacity: 0, scale: 0.7 },
+  show: { opacity: 1, scale: 1, transition: { duration: 0.35, ease: 'easeOut', delay: 0.2 } },
+}
+
 // Heat of the moment: composure drawn against rising pressure. The team's line bends
 // toward snapping (short-fused) or caving (pushover) as heat climbs, positioned by the
 // conflict tendency; your own line stays flat because you don't feel it happening. Two
@@ -36,12 +44,12 @@ export default function HeatCurve({
         <line x1={x0} y1={y(selfBand)} x2={x1} y2={y(selfBand)} stroke="#a83f6f" strokeWidth={2} strokeDasharray="4 3" />
         {/* team bending curve */}
         <path d={teamPath} fill="none" stroke="#2a2420" strokeWidth={2.6} />
-        <circle cx={x1} cy={y(endBand)} r={4.5} fill="#2a2420" />
+        <motion.circle cx={x1} cy={y(endBand)} r={4.5} fill="#2a2420" variants={pop} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
         {/* hat chips at the hot end */}
-        <g>
+        <motion.g variants={pop} style={{ transformBox: 'fill-box', transformOrigin: 'center' }}>
           <circle cx={x1 - 34} cy={y(endBand) - 16} r={6} fill="#e0607d" stroke="#2a2420" strokeWidth={1.5} />
           <circle cx={x1 - 18} cy={y(endBand) - 16} r={6} fill="#333333" stroke="#2a2420" strokeWidth={1.5} />
-        </g>
+        </motion.g>
         <text x={(x0 + x1) / 2} y={yBot + 24} fontSize={10} fontWeight={600} fill="#5a4f45" textAnchor="middle">pressure rising →</text>
       </svg>
       <div className="mt-1 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] font-semibold text-ink-soft">
