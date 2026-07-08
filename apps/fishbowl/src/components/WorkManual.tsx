@@ -1,13 +1,36 @@
+import { useRef, useState } from 'react'
 import type { WorkManual as WorkManualData } from '../lib/self'
+import { playClick } from '../lib/sound'
 
 // "[Name]'s Work Manual" — the operating instructions a thoughtful person hands a new
 // teammate. Typed-manual aesthetic (Special Elite), grounded first-person lines from a
 // focused AI call. Rendered bare (no Card chrome) so the page reads like a real document.
 export default function WorkManual({ name, manual }: { name: string; manual: WorkManualData }) {
   const first = name.split(/\s+/)[0] || name
+  const paperRef = useRef<HTMLDivElement>(null)
+  const [saving, setSaving] = useState(false)
+
+  // Snapshot just the document (the button lives outside the ref) into a shareable PNG.
+  const download = async () => {
+    if (!paperRef.current || saving) return
+    playClick()
+    setSaving(true)
+    try {
+      const { toPng } = await import('html-to-image')
+      const url = await toPng(paperRef.current, { pixelRatio: 2, backgroundColor: '#f5eedc', cacheBust: true })
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `how-to-work-with-${first.toLowerCase()}.png`
+      a.click()
+    } catch {
+      /* best effort */
+    }
+    setSaving(false)
+  }
+
   return (
     <div className="mx-auto w-full max-w-xl">
-      <div className="rounded-sm border border-ink/25 bg-paper-hi px-6 py-7 shadow-[0_1px_0_rgba(42,36,32,0.15),0_18px_40px_-24px_rgba(42,36,32,0.5)] sm:px-9 sm:py-9">
+      <div ref={paperRef} className="rounded-sm border border-ink/25 bg-paper-hi px-6 py-7 shadow-[0_1px_0_rgba(42,36,32,0.15),0_18px_40px_-24px_rgba(42,36,32,0.5)] sm:px-9 sm:py-9">
         {/* masthead */}
         <div className="typewriter">
           <p className="text-[0.62rem] uppercase tracking-[0.34em] text-ink-soft">Operating Manual</p>
@@ -47,6 +70,14 @@ export default function WorkManual({ name, manual }: { name: string; manual: Wor
           </p>
         </div>
       </div>
+
+      <button
+        onClick={download}
+        disabled={saving}
+        className="press mt-5 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3 font-display font-black text-ink shadow-chunky-sm disabled:opacity-60"
+      >
+        {saving ? 'Saving…' : '⬇ Download as image to share'}
+      </button>
     </div>
   )
 }

@@ -1094,7 +1094,7 @@ export default function Results() {
     sound: playTurn,
     node: (
       <div
-        className="relative flex min-h-[86vh] flex-col justify-center rounded-[2rem] border-[2.5px] border-ink px-10 py-16 text-center text-paper-hi shadow-chunky sm:px-16"
+        className="relative flex min-h-[calc(100dvh-3rem)] flex-col justify-center rounded-[2rem] border-[2.5px] border-ink px-10 py-16 text-center text-paper-hi shadow-chunky sm:px-16"
         style={{ backgroundColor: ACTS[act].color }}
       >
         <motion.p variants={coverChild} custom={0} className="kicker absolute inset-x-0 top-10 text-center text-paper-hi/60">
@@ -1548,14 +1548,18 @@ export default function Results() {
             animate="show"
             exit="exit"
             className={
-              cards[cur].wide
-                ? 'w-full lg:relative lg:left-1/2 lg:w-[min(84vw,1040px)] lg:shrink-0 lg:-translate-x-1/2'
-                : 'w-full'
+              cards[cur].breather
+                ? // chapter covers break the max-w container to fill the viewport, minus a
+                  // uniform gutter so the sky still frames them
+                  'relative left-1/2 w-[calc(100vw-3rem)] -translate-x-1/2'
+                : cards[cur].wide
+                  ? 'w-full lg:relative lg:left-1/2 lg:w-[min(84vw,1040px)] lg:shrink-0 lg:-translate-x-1/2'
+                  : 'w-full'
             }
           >
             {cards[cur].bare ? (
               // No card chrome — the node IS the object (e.g. the letter paper, the post-it).
-              <div className="max-h-[88vh] overflow-y-auto">{cards[cur].node}</div>
+              <div className={cards[cur].breather ? '' : 'max-h-[88vh] overflow-y-auto'}>{cards[cur].node}</div>
             ) : (
               <Card tone={cards[cur].tone} className="max-h-[88vh] overflow-y-auto p-7 sm:p-9">
                 {cards[cur].node}

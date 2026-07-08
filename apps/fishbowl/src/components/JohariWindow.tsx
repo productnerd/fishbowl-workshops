@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { johariQuadrants } from '@fishbowl/feedback-core'
 
 type TeamCount = { word: string; count: number }
@@ -24,40 +24,34 @@ function Chip({ word, count, tone, dense }: { word: string; count?: number; tone
   )
 }
 
-// A single pane of the 2×2 window.
+// A single pane of the 2×2 window. Each pane settles in on its own beat (Open, then Blind
+// Spot, then Hidden) so the window builds itself rather than the blind box alone popping.
 function Pane({
   kicker,
   caption,
-  reveal = false,
+  index = 0,
   children,
 }: {
   kicker: string
   caption: string
-  reveal?: boolean
+  index?: number
   children: React.ReactNode
 }) {
-  const inner = (
-    <div className="flex h-full flex-col gap-2 p-4">
+  const reduce = useReducedMotion()
+  return (
+    <motion.div
+      className="flex h-full flex-col gap-2 p-4"
+      initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: 8 }}
+      animate={reduce ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.42, ease: [0.2, 0.8, 0.2, 1], delay: reduce ? 0 : 0.12 + index * 0.14 }}
+    >
       <div>
         <p className="kicker text-ink-soft">{kicker}</p>
         <p className="text-xs text-ink-soft">{caption}</p>
       </div>
       <div className="flex flex-wrap content-start gap-1.5">{children}</div>
-    </div>
+    </motion.div>
   )
-  if (reveal) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.15 }}
-        className="h-full"
-      >
-        {inner}
-      </motion.div>
-    )
-  }
-  return inner
 }
 
 // Johari Window report viz. teamCounts = per-adjective tally from the colleague
@@ -107,14 +101,14 @@ export default function JohariWindow({
   return (
     <div className="card-3d overflow-hidden bg-paper-hi p-0">
       <div className="grid grid-cols-2 divide-x-[3px] divide-ink border-b-[3px] border-ink [&>*]:min-h-[8.5rem]">
-        <Pane kicker="Open" caption="You both see it">
+        <Pane kicker="Open" caption="You both see it" index={0}>
           {open.length ? (
             open.map((w) => <Chip key={w} word={w} count={countOf(w)} tone="striped" dense={dense} />)
           ) : (
             <span className="text-xs text-ink-soft">No overlap yet.</span>
           )}
         </Pane>
-        <Pane kicker="Blind Spot" caption="Your team sees it, you didn't" reveal>
+        <Pane kicker="Blind Spot" caption="Your team sees it, you didn't" index={1}>
           {blind.length ? (
             blind.map((w) => <Chip key={w} word={w} count={countOf(w)} tone="pink" dense={dense} />)
           ) : (
@@ -123,7 +117,7 @@ export default function JohariWindow({
         </Pane>
       </div>
       <div className="[&>*]:min-h-[8.5rem]">
-        <Pane kicker="Hidden" caption="You see it, they didn't">
+        <Pane kicker="Hidden" caption="You see it, they didn't" index={2}>
           {hidden.length ? (
             hidden.map((w) => <Chip key={w} word={w} tone="blue" dense={dense} />)
           ) : (

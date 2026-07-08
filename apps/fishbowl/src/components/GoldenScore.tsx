@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+import { motion, useMotionValue, useTransform, useReducedMotion, animate } from 'framer-motion'
 import type { Golden } from '../lib/goldenScore'
 
 // A dartboard for the golden mean: the gold centre is the virtuous middle, the rim is
@@ -8,11 +10,25 @@ import type { Golden } from '../lib/goldenScore'
 const CX = 150
 const CY = 112
 const R = 94
+const RUN = 3 // seconds: the whole reveal (ticker, ring, and every dot) lands together
 
 export default function GoldenScore({ golden }: { golden: Golden }) {
+  const reduce = useReducedMotion()
   const g = golden.score / 100
   const N = golden.items.length
   const avgR = (1 - g) * R
+
+  // The number ticks up like a speedometer, easing out as it settles on the score.
+  const count = useMotionValue(reduce ? golden.score : 0)
+  const shown = useTransform(count, (v) => Math.round(v))
+  useEffect(() => {
+    if (reduce) {
+      count.set(golden.score)
+      return
+    }
+    const controls = animate(count, golden.score, { duration: RUN, ease: [0.16, 1, 0.3, 1] })
+    return () => controls.stop()
+  }, [golden.score, reduce, count])
 
   const dots = golden.items.map((it, i) => {
     const rad = (1 - it.goodness) * R
@@ -33,8 +49,8 @@ export default function GoldenScore({ golden }: { golden: Golden }) {
         </p>
 
         <div className="flex items-baseline gap-3">
-          <span className="display text-7xl leading-none" style={{ color: '#b8892a' }}>
-            {golden.score}
+          <span className="display text-7xl leading-none tabular-nums" style={{ color: '#b8892a' }}>
+            <motion.span>{shown}</motion.span>
           </span>
           <span className="kicker text-ink-soft">out of 100</span>
         </div>
@@ -77,12 +93,37 @@ export default function GoldenScore({ golden }: { golden: Golden }) {
           {/* The golden mean: dead centre */}
           <circle cx={CX} cy={CY} r={5} fill="#8f6a1c" />
 
-          {/* Your average distance from the mean = the score */}
-          <circle cx={CX} cy={CY} r={avgR} fill="none" stroke="#2a2420" strokeWidth={2} strokeDasharray="5 4" strokeOpacity={0.85} />
+          {/* Your average distance from the mean = the score. The ring closes in from the
+              rim to your reading over the same 3s the number climbs (the speedometer needle). */}
+          <motion.circle
+            cx={CX}
+            cy={CY}
+            fill="none"
+            stroke="#2a2420"
+            strokeWidth={2}
+            strokeDasharray="5 4"
+            strokeOpacity={0.85}
+            initial={{ r: reduce ? avgR : R }}
+            animate={{ r: avgR }}
+            transition={{ duration: reduce ? 0 : RUN, ease: [0.16, 1, 0.3, 1] }}
+          />
 
-          {/* Each dimension */}
-          {dots.map((d) => (
-            <circle key={d.key} cx={d.x} cy={d.y} r={5} fill={d.color} stroke="#2a2420" strokeOpacity={0.55} strokeWidth={1} />
+          {/* Each dimension, popped in one by one so the last lands right on the 3s mark */}
+          {dots.map((d, i) => (
+            <motion.circle
+              key={d.key}
+              cx={d.x}
+              cy={d.y}
+              r={5}
+              fill={d.color}
+              stroke="#2a2420"
+              strokeOpacity={0.55}
+              strokeWidth={1}
+              style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0 }}
+              animate={reduce ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+              transition={{ delay: reduce ? 0 : (i / Math.max(1, N - 1)) * (RUN - 0.3), duration: reduce ? 0.2 : 0.32, ease: 'backOut' }}
+            />
           ))}
 
           {/* Rim + centre labels */}
