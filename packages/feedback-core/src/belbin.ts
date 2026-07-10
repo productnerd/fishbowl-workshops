@@ -27,8 +27,9 @@ export const BELBIN_ROLES: BelbinRole[] = [
   { key: 'resource_investigator', name: 'Resource Investigator', cluster: 'People', short: 'Outgoing, enthusiastic, communicative; explores opportunities and contacts.' },
 ]
 
-// Total chips each respondent allocates across the nine roles.
-export const BELBIN_TOTAL = 30
+// Total chips each respondent allocates across the nine roles. Matches the "Spend 20
+// chips" the question shows the respondent.
+export const BELBIN_TOTAL = 20
 
 // Cluster → riso ink. Thinking=blue and Action=pink are the brand pair; People
 // needs a third ink. The theme has no warm-yellow/ochre token, so the warmest

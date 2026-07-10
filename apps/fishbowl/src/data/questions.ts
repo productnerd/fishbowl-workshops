@@ -178,6 +178,13 @@ export type SurveyDepth = 'quick' | 'standard' | 'full'
 const QUICK_POOLS = new Set(['comp_a', 'comp_b'])
 const STANDARD_POOLS = new Set(['comp_a', 'comp_b', 'scenarios', 'via', 'johari', 'nohari'])
 
+// Trimmed from the colleague survey to cut its load (the survey audit): the 3 scenarios
+// were invisible to every AI report, four of the six At-Work agree-scales just restated
+// the virtue sliders, and the first-impression free-text fed a single slide. Kept in the
+// `questions` array for the self flow + report label lookups; only the colleague survey
+// skips them. Keeps At-Work 11 (delivery) + 14 (responsiveness) as the two distinct bars.
+const COLLEAGUE_SKIP = new Set([17, 18, 19, 33, 12, 13, 15, 16])
+
 // Presentation order for the colleague survey (by id): lead with the rich, engaging
 // framework activities (the two spend-20-points allocations and the word/adjective
 // pickers), keep the plain agree-scales for the back so it opens strong and coasts out.
@@ -186,15 +193,16 @@ const STANDARD_POOLS = new Set(['comp_a', 'comp_b', 'scenarios', 'via', 'johari'
 const COLLEAGUE_ORDER = [
   29, 30, 27, 28, 25, 26, // strengths, word portrait, spend-20 (feelings + roles), hats, candor
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, // the ten Character virtue sliders
-  17, 18, 19, // in-the-moment scenarios
   24, 31, // responsibilities, watch-outs
-  32, 33, // vibe, first impression
+  32, // vibe
   20, // the free-text reflection
-  11, 12, 13, 14, 15, 16, // easiest: the At-Work agree scales, at the back
+  11, 14, // easiest: the two kept At-Work agree scales, at the back
 ]
 
 export function getColleagueSurvey(name: string, hasResponsibilities: boolean, depth: SurveyDepth): Question[] {
-  const usable = questions.filter((q) => q.type !== 'responsibilities' || hasResponsibilities)
+  const usable = questions.filter(
+    (q) => (q.type !== 'responsibilities' || hasResponsibilities) && !COLLEAGUE_SKIP.has(q.id),
+  )
   const pools = depth === 'full' ? null : depth === 'standard' ? STANDARD_POOLS : QUICK_POOLS
   const keep = (q: Question) => !q.pool || pools === null || pools.has(q.pool)
   const rank = (id: number) => {
