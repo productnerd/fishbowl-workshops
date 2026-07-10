@@ -69,9 +69,12 @@
 
 @layer base {
   * { box-sizing: border-box; }
-  /* The palette is designed for light only — tell browsers so their auto/night dark
-     modes don't invert or dim the pool + paper into the muddy look some phones showed. */
-  :root { color-scheme: light; }
+  /* The palette is designed for light only. `only light` is the strong opt-out: it tells
+     the browser to render light AND to skip its automatic dark/night adjustments, which
+     were inverting dark ink text to washed-out cream and turning the cream tiles muddy
+     brown on some phones (e.g. Samsung Internet dark mode) while leaving the pool image
+     bright — the exact mismatch vs. Mac/iPhone. */
+  :root { color-scheme: only light; }
   html, body, #root { margin: 0; padding: 0; min-height: 100dvh; }
   body {
     background-color: var(--color-paper);
@@ -116,8 +119,10 @@ body::after {
   .display {
     font-family: var(--font-display);
     font-weight: 900;
-    line-height: 0.9;
-    letter-spacing: -0.025em;
+    /* !important so 95% line-height wins over Tailwind text-size utilities (text-4xl etc.
+       set their own line-height, which otherwise overrides this). */
+    line-height: 0.95 !important;
+    letter-spacing: 1px;
     font-variation-settings: "opsz" 144, "SOFT" 60, "WONK" 1;
   }
   .serif {

@@ -155,10 +155,9 @@ export const questions: Question[] = [
   { id: 30, type: 'johari', dimension: 'johari', pool: 'johari', section: 'In a Word', sectionDescription: 'Pick 5 to 10 that fit.', text: 'Which words describe {name}?' },
   { id: 31, type: 'nohari', dimension: 'nohari', pool: 'nohari', section: 'Watch-outs', sectionDescription: 'Pick a few that fit. Anonymous, and meant kindly.', text: 'Which of these are watch-outs for {name}?' },
 
-  // ── In Their Words: 3 free-text (synthesized, never shown verbatim) ──
+  // ── In Their Words: 2 free-text (synthesized, never shown verbatim) ──
   { id: 20, type: 'freetext', dimension: 'appreciation', section: 'In Their Words', sectionDescription: 'A few honest words. Stays anonymous.', text: 'What do you most appreciate about working with {name}?' },
   { id: 21, type: 'freetext', dimension: 'growth', section: 'In Their Words', sectionDescription: 'A few honest words. Stays anonymous.', text: 'What is one thing that would make {name} even more effective?' },
-  { id: 22, type: 'freetext', dimension: 'message', section: 'In Their Words', sectionDescription: 'A few honest words. Stays anonymous.', text: 'If {name} could read one thing from this feedback, what should it be?' },
 
   // ── First impression: a quick gut read (freetext, synthesized, never shown verbatim) ──
   { id: 33, type: 'freetext', dimension: 'first_impression', section: 'First Impressions', sectionDescription: 'Quick gut read. Stays anonymous.', text: 'How does {name} come across in terms of first impression?', placeholder: 'When you first started working together…' },
@@ -180,9 +179,31 @@ export type SurveyDepth = 'quick' | 'standard' | 'full'
 const QUICK_POOLS = new Set(['comp_a', 'comp_b'])
 const STANDARD_POOLS = new Set(['comp_a', 'comp_b', 'scenarios', 'via', 'johari', 'nohari'])
 
+// Presentation order for the colleague survey (by id): lead with the rich, engaging
+// framework activities (the two spend-20-points allocations and the word/adjective
+// pickers), keep the plain agree-scales for the back so it opens strong and coasts out.
+// Only affects the colleague flow; the source `questions` order is untouched for other
+// consumers. Any id missing here falls to the end.
+const COLLEAGUE_ORDER = [
+  29, 30, 27, 28, 25, 26, // strengths, word portrait, spend-20 (feelings + roles), hats, candor
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, // the ten Character virtue sliders
+  17, 18, 19, // in-the-moment scenarios
+  24, 31, // responsibilities, watch-outs
+  32, 33, // vibe, first impression
+  20, 21, // the free-text reflections
+  11, 12, 13, 14, 15, 16, // easiest: the At-Work agree scales, at the back
+]
+
 export function getColleagueSurvey(name: string, hasResponsibilities: boolean, depth: SurveyDepth): Question[] {
   const usable = questions.filter((q) => q.type !== 'responsibilities' || hasResponsibilities)
   const pools = depth === 'full' ? null : depth === 'standard' ? STANDARD_POOLS : QUICK_POOLS
   const keep = (q: Question) => !q.pool || pools === null || pools.has(q.pool)
-  return usable.filter(keep).map((q) => withName(q, name))
+  const rank = (id: number) => {
+    const i = COLLEAGUE_ORDER.indexOf(id)
+    return i === -1 ? COLLEAGUE_ORDER.length : i
+  }
+  return usable
+    .filter(keep)
+    .sort((a, b) => rank(a.id) - rank(b.id))
+    .map((q) => withName(q, name))
 }

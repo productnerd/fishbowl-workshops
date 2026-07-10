@@ -516,12 +516,17 @@ export default function Questionnaire() {
       )}
 
       {/* nav — Back lives up in the header; here we only float the forward action
-          (most discrete screens auto-advance and show nothing here) */}
-      {(isLast || showNext) && (
+          (most discrete screens auto-advance and show nothing here). Free-text is
+          optional: it always shows a Skip that flips to Next / Submit once text is typed. */}
+      {(isLast || showNext || q.type === 'freetext') && (
         <div className="sticky bottom-0 -mx-5 flex justify-end px-5 pb-5 pt-3">
           {isLast ? (
-            <Button variant="blue" onClick={submit} disabled={!answered || submitting}>
-              {submitting ? 'Sending…' : 'Submit ✓'}
+            <Button variant="blue" onClick={submit} disabled={(!answered && q.type !== 'freetext') || submitting}>
+              {submitting ? 'Sending…' : answered ? 'Submit ✓' : 'Skip & submit ✓'}
+            </Button>
+          ) : q.type === 'freetext' && !answered ? (
+            <Button variant="paper" onClick={() => go(1)}>
+              Skip →
             </Button>
           ) : (
             <Button variant="pink" onClick={() => go(1)} disabled={!answered}>
