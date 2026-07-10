@@ -152,7 +152,7 @@ export const questions: Question[] = [
   { id: 27, type: 'sdt', dimension: 'sdt', pool: 'sdt', section: 'After Working Together', sectionDescription: 'Spend 20 points on how it feels.', text: 'After working with {name}, you feel…' },
   { id: 28, type: 'belbin', dimension: 'belbin', pool: 'belbin', section: 'Team Role', sectionDescription: 'Spend 20 chips on the roles they play.', text: 'What role does {name} play on the team?' },
   { id: 29, type: 'via', dimension: 'via', pool: 'via', section: 'Signature Strengths', sectionDescription: 'Pick the 5 that fit best.', text: "{name}'s top character strengths" },
-  { id: 30, type: 'johari', dimension: 'johari', pool: 'johari', section: 'In a Word', sectionDescription: 'Pick 5 to 10 that fit.', text: 'Which words describe {name}?' },
+  { id: 30, type: 'johari', dimension: 'johari', pool: 'johari', section: 'In a Word', sectionDescription: 'Pick the words that fit — how they show up, plus any kind watch-outs.', text: 'Which words describe {name}?' },
   { id: 31, type: 'nohari', dimension: 'nohari', pool: 'nohari', section: 'Watch-outs', sectionDescription: 'Pick a few that fit. Anonymous, and meant kindly.', text: 'Which of these are watch-outs for {name}?' },
 
   // ── In Their Words: 1 free-text (synthesized, never shown verbatim) ──
@@ -176,14 +176,19 @@ export type SurveyDepth = 'quick' | 'standard' | 'full'
 // framework activity (~13 to 14 min). Aggregation tolerates missing answers, so the three
 // mix freely.
 const QUICK_POOLS = new Set(['comp_a', 'comp_b'])
-const STANDARD_POOLS = new Set(['comp_a', 'comp_b', 'scenarios', 'via', 'johari', 'nohari'])
+// The three adjective decks (via / johari / nohari) are merged into the single Johari
+// pick (id 30) — see COLLEAGUE_SKIP + the questionnaire's johari branch — so Standard now
+// carries one adjective activity instead of three.
+const STANDARD_POOLS = new Set(['comp_a', 'comp_b', 'johari'])
 
 // Trimmed from the colleague survey to cut its load (the survey audit): the 3 scenarios
 // were invisible to every AI report, four of the six At-Work agree-scales just restated
 // the virtue sliders, and the first-impression free-text fed a single slide. Kept in the
 // `questions` array for the self flow + report label lookups; only the colleague survey
 // skips them. Keeps At-Work 11 (delivery) + 14 (responsiveness) as the two distinct bars.
-const COLLEAGUE_SKIP = new Set([17, 18, 19, 33, 12, 13, 15, 16])
+// 29 (VIA) + 31 (Nohari) are skipped too: they merge into the single Johari pick (30),
+// whose combined grid the questionnaire splits back into johari + nohari answers.
+const COLLEAGUE_SKIP = new Set([17, 18, 19, 33, 12, 13, 15, 16, 29, 31])
 
 // Presentation order for the colleague survey (by id): lead with the rich, engaging
 // framework activities (the two spend-20-points allocations and the word/adjective
@@ -191,9 +196,9 @@ const COLLEAGUE_SKIP = new Set([17, 18, 19, 33, 12, 13, 15, 16])
 // Only affects the colleague flow; the source `questions` order is untouched for other
 // consumers. Any id missing here falls to the end.
 const COLLEAGUE_ORDER = [
-  29, 30, 27, 28, 25, 26, // strengths, word portrait, spend-20 (feelings + roles), hats, candor
+  30, 27, 28, 25, 26, // merged adjective pick, spend-20 (feelings + roles), hats, candor
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, // the ten Character virtue sliders
-  24, 31, // responsibilities, watch-outs
+  24, // responsibilities
   32, // vibe
   20, // the free-text reflection
   11, 14, // easiest: the two kept At-Work agree scales, at the back

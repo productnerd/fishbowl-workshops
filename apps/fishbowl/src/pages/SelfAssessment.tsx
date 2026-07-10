@@ -10,14 +10,10 @@ import {
   MAX_RESPONSIBILITIES,
   BELBIN_ROLES,
   BELBIN_TOTAL,
-  VIA_STRENGTHS,
-  VIA_PICK,
-  JOHARI_ADJECTIVES,
-  JOHARI_MIN,
-  JOHARI_MAX,
-  WEAKNESSES,
-  NOHARI_MIN,
-  NOHARI_MAX,
+  ADJECTIVE_OPTIONS,
+  ADJECTIVE_MIN,
+  ADJECTIVE_MAX,
+  splitAdjectives,
   REQUIRED_RESPONSES,
   type BigFiveScores,
   type MbtiType,
@@ -54,11 +50,11 @@ type SelfDepth = {
   frameworks: string[]
   blurb: string
 }
-const ALL_FRAMEWORKS = ['sixhats', 'belbin', 'via', 'johari', 'nohari']
+const ALL_FRAMEWORKS = ['sixhats', 'belbin', 'adjectives']
 const DEPTHS: SelfDepth[] = [
   { id: 'quick', name: 'Quick', perTrait: 4, time: '~4 min', accuracy: 3, energizers: false, frameworks: [], blurb: 'The essentials. A solid first read.' },
-  { id: 'standard', name: 'Standard', perTrait: 6, time: '~8 min', accuracy: 4, energizers: true, frameworks: ['sixhats', 'via', 'johari', 'nohari'], blurb: 'More questions, a sharper read. The sweet spot.' },
-  { id: 'extended', name: 'Extended', perTrait: 8, time: '~10 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
+  { id: 'standard', name: 'Standard', perTrait: 6, time: '~6 min', accuracy: 4, energizers: true, frameworks: ['sixhats', 'adjectives'], blurb: 'More questions, a sharper read. The sweet spot.' },
+  { id: 'extended', name: 'Extended', perTrait: 8, time: '~8 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
 ]
 
 type Phase = 'checking' | 'needauth' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks' | 'reflections'
@@ -152,7 +148,6 @@ export default function SelfAssessment() {
         setResponsibilities(s.responsibilities?.length ? s.responsibilities : [''])
         setSelfHats((sp.hats as HatScores) ?? {})
         setSelfBelbin((sp.belbin as Record<string, number>) ?? {})
-        setSelfVia((sp.via as string[]) ?? [])
         setSelfJohari((sp.johari as string[]) ?? [])
         setSelfNohari((sp.nohari as string[]) ?? [])
         const refl = (sp.reflections as { aspiration?: string; blindspot?: string; manual?: string }) ?? {}
@@ -177,7 +172,8 @@ export default function SelfAssessment() {
   const [fwIdx, setFwIdx] = useState<number>(() => (typeof savedSelf.fwIdx === 'number' ? savedSelf.fwIdx : 0))
   const [selfHats, setSelfHats] = useState<HatScores>(() => (savedSelf.selfHats as HatScores) ?? {})
   const [selfBelbin, setSelfBelbin] = useState<Record<string, number>>(() => (savedSelf.selfBelbin as Record<string, number>) ?? {})
-  const [selfVia, setSelfVia] = useState<string[]>(() => (savedSelf.selfVia as string[]) ?? [])
+  // VIA is retired; the bucket stays so self_payload keeps its shape (via feeds nothing).
+  const [selfVia] = useState<string[]>(() => (savedSelf.selfVia as string[]) ?? [])
   const [selfJohari, setSelfJohari] = useState<string[]>(() => (savedSelf.selfJohari as string[]) ?? [])
   const [selfNohari, setSelfNohari] = useState<string[]>(() => (savedSelf.selfNohari as string[]) ?? [])
   // Free-text reflections (optional, private to the subject) — add colour + voice.
@@ -782,9 +778,7 @@ export default function SelfAssessment() {
     const titles: Record<string, string> = {
       sixhats: 'Your thinking hats',
       belbin: 'Your team role',
-      via: 'Your signature strengths',
-      johari: 'Words for yourself',
-      nohari: 'Your watch-outs',
+      adjectives: 'Words for yourself',
     }
     const fw = steps[Math.min(fwIdx, steps.length - 1)]
     const last = fwIdx === steps.length - 1
@@ -815,31 +809,17 @@ export default function SelfAssessment() {
                 onChange={setSelfBelbin}
               />
             )}
-            {fw === 'via' && (
+            {fw === 'adjectives' && (
               <ChipPicker
-                options={VIA_STRENGTHS.map((s) => ({ id: s.id, label: s.name, group: s.virtue }))}
-                min={VIA_PICK}
-                max={VIA_PICK}
-                value={selfVia}
-                onChange={setSelfVia}
-              />
-            )}
-            {fw === 'johari' && (
-              <ChipPicker
-                options={JOHARI_ADJECTIVES.map((w) => ({ id: w, label: w }))}
-                min={JOHARI_MIN}
-                max={JOHARI_MAX}
-                value={selfJohari}
-                onChange={setSelfJohari}
-              />
-            )}
-            {fw === 'nohari' && (
-              <ChipPicker
-                options={WEAKNESSES.map((w) => ({ id: w, label: w }))}
-                min={NOHARI_MIN}
-                max={NOHARI_MAX}
-                value={selfNohari}
-                onChange={setSelfNohari}
+                options={ADJECTIVE_OPTIONS}
+                min={ADJECTIVE_MIN}
+                max={ADJECTIVE_MAX}
+                value={[...selfJohari, ...selfNohari]}
+                onChange={(picks) => {
+                  const s = splitAdjectives(picks)
+                  setSelfJohari(s.johari)
+                  setSelfNohari(s.nohari)
+                }}
               />
             )}
           </div>

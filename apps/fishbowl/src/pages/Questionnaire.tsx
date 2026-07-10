@@ -7,14 +7,10 @@ import {
   SDT_TOTAL,
   BELBIN_ROLES,
   BELBIN_TOTAL,
-  VIA_STRENGTHS,
-  VIA_PICK,
-  JOHARI_ADJECTIVES,
-  JOHARI_MIN,
-  JOHARI_MAX,
-  WEAKNESSES,
-  NOHARI_MIN,
-  NOHARI_MAX,
+  ADJECTIVE_OPTIONS,
+  ADJECTIVE_MIN,
+  ADJECTIVE_MAX,
+  splitAdjectives,
 } from '@fishbowl/feedback-core'
 import { getSession, submitResponse } from '../lib/data'
 import { playQuizTick } from '../lib/sound'
@@ -93,7 +89,9 @@ export default function Questionnaire() {
   const [candor, setCandor] = useState<CandorAnswers>(() => (saved.candor as CandorAnswers) ?? {})
   const [sdt, setSdt] = useState<Record<string, number>>(() => (saved.sdt as Record<string, number>) ?? {})
   const [belbin, setBelbin] = useState<Record<string, number>>(() => (saved.belbin as Record<string, number>) ?? {})
-  const [via, setVia] = useState<string[]>(() => (saved.via as string[]) ?? [])
+  // VIA is retired from the survey (its aggregate fed nothing); the bucket stays so the
+  // submit payload shape is unchanged. Johari + Nohari are now one merged pick.
+  const [via] = useState<string[]>(() => (saved.via as string[]) ?? [])
   const [johari, setJohari] = useState<string[]>(() => (saved.johari as string[]) ?? [])
   const [nohari, setNohari] = useState<string[]>(() => (saved.nohari as string[]) ?? [])
   // First-open explainer: the friend often gets this link with zero context, so we
@@ -259,7 +257,7 @@ export default function Questionnaire() {
               <span className="absolute -top-3 right-5 rounded-full border-2 border-ink bg-paper-hi px-3 py-0.5 text-xs font-black uppercase tracking-wide text-pink-deep">
                 ♥ the most love
               </span>
-              <span className="kicker text-ink/70">~13 to 14 minutes</span>
+              <span className="kicker text-ink/70">~9 to 10 minutes</span>
               <span className="display mt-1 block text-2xl leading-tight">Go all in</span>
               <p className="mt-1.5 text-[0.95rem] leading-snug text-ink/80">
                 Every activity, the whole picture. The deepest, most accurate read.
@@ -271,10 +269,10 @@ export default function Questionnaire() {
               onClick={() => choose('standard')}
               className="press cursor-pointer rounded-3xl border-[2.5px] border-ink bg-paper-hi px-6 py-4 text-left shadow-chunky-sm"
             >
-              <span className="kicker text-ink-soft">~10 minutes</span>
+              <span className="kicker text-ink-soft">~6 minutes</span>
               <span className="display mt-1 block text-xl leading-tight">A generous read</span>
               <p className="mt-1 text-sm leading-snug text-ink-soft">
-                The essentials, plus their strengths, the words people reach for, and a few kind watch-outs.
+                The essentials, plus the words people reach for and a few kind watch-outs.
               </p>
             </button>
 
@@ -283,7 +281,7 @@ export default function Questionnaire() {
               onClick={() => choose('quick')}
               className="press cursor-pointer rounded-3xl border-[2.5px] border-ink bg-paper-hi px-6 py-4 text-left shadow-chunky-sm"
             >
-              <span className="kicker text-ink-soft">~6 to 7 minutes</span>
+              <span className="kicker text-ink-soft">~4 to 5 minutes</span>
               <span className="display mt-1 block text-xl leading-tight">Keep it short</span>
               <p className="mt-1 text-sm leading-snug text-ink-soft">
                 The essentials: their character, the core ratings, and your honest words.
@@ -478,31 +476,19 @@ export default function Questionnaire() {
                 onChange={setBelbin}
               />
             )}
-            {q.type === 'via' && (
-              <ChipPicker
-                options={VIA_STRENGTHS.map((s) => ({ id: s.id, label: s.name, group: s.virtue }))}
-                min={VIA_PICK}
-                max={VIA_PICK}
-                value={via}
-                onChange={setVia}
-              />
-            )}
+            {/* Merged adjective pick: one grid of "how they show up" + "watch-outs", split
+                back into the johari / nohari answer buckets so the report is unchanged. */}
             {q.type === 'johari' && (
               <ChipPicker
-                options={JOHARI_ADJECTIVES.map((w) => ({ id: w, label: w }))}
-                min={JOHARI_MIN}
-                max={JOHARI_MAX}
-                value={johari}
-                onChange={setJohari}
-              />
-            )}
-            {q.type === 'nohari' && (
-              <ChipPicker
-                options={WEAKNESSES.map((w) => ({ id: w, label: w }))}
-                min={NOHARI_MIN}
-                max={NOHARI_MAX}
-                value={nohari}
-                onChange={setNohari}
+                options={ADJECTIVE_OPTIONS}
+                min={ADJECTIVE_MIN}
+                max={ADJECTIVE_MAX}
+                value={[...johari, ...nohari]}
+                onChange={(picks) => {
+                  const s = splitAdjectives(picks)
+                  setJohari(s.johari)
+                  setNohari(s.nohari)
+                }}
               />
             )}
           </motion.div>
