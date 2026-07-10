@@ -32,6 +32,12 @@ export default function AllocationTagger({
         </span>
       </div>
 
+      {/* How-to: the meter shows state, this explains the action. */}
+      <p className="-mt-1 text-center text-sm leading-snug text-ink-soft">
+        Tap <span className="font-bold text-ink">+</span> to add points to what fits most.
+        Give more where it fits more; you can leave some unspent.
+      </p>
+
       {buckets.map((b) => {
         const n = value[b.key] ?? 0
         const canInc = remaining > 0

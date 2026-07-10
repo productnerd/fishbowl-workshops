@@ -70,6 +70,7 @@ const BELBIN_NAMES: Record<string, string> = {
 const SDT_NAMES: Record<string, string> = {
   autonomy: 'Autonomy', competence: 'Competence', relatedness: 'Relatedness',
   purpose: 'Purpose', safety: 'Safety', vitality: 'Vitality',
+  growth: 'Growth', recognition: 'Recognition', impact: 'Impact',
 }
 
 // Trait dimensions live in ./dimensions.ts (a hand-kept mirror of feedback-core, guarded

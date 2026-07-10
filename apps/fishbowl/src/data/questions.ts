@@ -155,9 +155,8 @@ export const questions: Question[] = [
   { id: 30, type: 'johari', dimension: 'johari', pool: 'johari', section: 'In a Word', sectionDescription: 'Pick 5 to 10 that fit.', text: 'Which words describe {name}?' },
   { id: 31, type: 'nohari', dimension: 'nohari', pool: 'nohari', section: 'Watch-outs', sectionDescription: 'Pick a few that fit. Anonymous, and meant kindly.', text: 'Which of these are watch-outs for {name}?' },
 
-  // ── In Their Words: 2 free-text (synthesized, never shown verbatim) ──
+  // ── In Their Words: 1 free-text (synthesized, never shown verbatim) ──
   { id: 20, type: 'freetext', dimension: 'appreciation', section: 'In Their Words', sectionDescription: 'A few honest words. Stays anonymous.', text: 'What do you most appreciate about working with {name}?' },
-  { id: 21, type: 'freetext', dimension: 'growth', section: 'In Their Words', sectionDescription: 'A few honest words. Stays anonymous.', text: 'What is one thing that would make {name} even more effective?' },
 
   // ── First impression: a quick gut read (freetext, synthesized, never shown verbatim) ──
   { id: 33, type: 'freetext', dimension: 'first_impression', section: 'First Impressions', sectionDescription: 'Quick gut read. Stays anonymous.', text: 'How does {name} come across in terms of first impression?', placeholder: 'When you first started working together…' },
@@ -190,7 +189,7 @@ const COLLEAGUE_ORDER = [
   17, 18, 19, // in-the-moment scenarios
   24, 31, // responsibilities, watch-outs
   32, 33, // vibe, first impression
-  20, 21, // the free-text reflections
+  20, // the free-text reflection
   11, 12, 13, 14, 15, 16, // easiest: the At-Work agree scales, at the back
 ]
 

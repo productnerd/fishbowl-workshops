@@ -299,6 +299,15 @@ export default function Questionnaire() {
   const a = answers[q.id]
   const structuredTypes = ['energizer', 'responsibilities', 'sixhats', 'radical_candor', 'sdt', 'belbin', 'via', 'johari', 'nohari']
   const answered = structuredTypes.includes(q.type) ? true : a !== undefined && a !== ''
+  // Point-allocation slides (SDT / Belbin) are optional: the forward button reads "Skip"
+  // until more than one point is spent, then it flips to "Next".
+  const allocSpent =
+    q.type === 'sdt'
+      ? Object.values(sdt).reduce((s, v) => s + (v || 0), 0)
+      : q.type === 'belbin'
+        ? Object.values(belbin).reduce((s, v) => s + (v || 0), 0)
+        : null
+  const allocSkippable = allocSpent !== null && allocSpent <= 1
   const isLast = i === questions.length - 1
   const myMean = q.dimension ? myProfile?.[q.dimension] : undefined
   const nudgeMsg = q.type === 'virtue' && myMean != null && typeof a === 'number' ? compareNudge(myMean, a) : null
@@ -372,9 +381,9 @@ export default function Questionnaire() {
       <div className="sticky top-0 z-10 -mx-5 px-5 pb-3 pt-5">
         <div className="mb-2 flex items-center justify-between">
           <span className="kicker text-pink-deep">{q.section}</span>
-          <span className="kicker text-ink-soft">
-            {i + 1} / {questions.length}
-          </span>
+          {/* Percent, not "N / 31": some slides hold several activities, so a raw slide
+              count reads as fast-then-slow. A filling % tracks the bar honestly. */}
+          <span className="kicker text-ink-soft">{Math.round(pct)}%</span>
         </div>
         <div className="h-3 overflow-hidden rounded-full border-2 border-ink bg-paper-hi">
           <motion.div className="h-full bg-blue" animate={{ width: `${pct}%` }} transition={{ ease: 'easeOut' }} />
@@ -524,7 +533,7 @@ export default function Questionnaire() {
             <Button variant="blue" onClick={submit} disabled={(!answered && q.type !== 'freetext') || submitting}>
               {submitting ? 'Sending…' : answered ? 'Submit ✓' : 'Skip & submit ✓'}
             </Button>
-          ) : q.type === 'freetext' && !answered ? (
+          ) : (q.type === 'freetext' && !answered) || allocSkippable ? (
             <Button variant="paper" onClick={() => go(1)}>
               Skip →
             </Button>

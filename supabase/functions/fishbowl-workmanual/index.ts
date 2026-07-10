@@ -68,6 +68,7 @@ const HAT_NAMES: Record<string, string> = {
 }
 const SDT_NAMES: Record<string, string> = {
   autonomy: 'Autonomy', competence: 'Competence', relatedness: 'Relatedness', purpose: 'Purpose', safety: 'Safety', vitality: 'Vitality',
+  growth: 'Growth', recognition: 'Recognition', impact: 'Impact',
 }
 
 Deno.serve(async (req) => {
