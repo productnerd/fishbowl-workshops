@@ -23,7 +23,7 @@ const rise = (delay: number) => ({
 // One beige family, light to dark across the four steps.
 const STEPS = [
   { n: '01', emoji: '🔗', bg: 'var(--color-paper-hi)', title: 'Grab your link', body: 'One tap. No account, no setup, nothing to install.' },
-  { n: '02', emoji: '🪞', bg: 'var(--color-paper)', title: 'Do your own first', body: 'A quick self-read, about two minutes. Seeing yourself first makes the rest hit harder.' },
+  { n: '02', emoji: '🪞', bg: 'var(--color-paper)', title: 'Do your own first', body: 'A quick self-read, about four minutes. Seeing yourself first makes the rest hit harder.' },
   { n: '03', emoji: '💬', bg: 'var(--color-sand)', title: 'Your team weighs in', body: 'They answer anonymously: sliders, quick taps, a few honest words. No names. Ever.' },
   { n: '04', emoji: '🎉', bg: 'var(--color-sand-deep)', title: 'Three in, report out', body: 'The second three teammates answer, your Wrapped pops open.' },
 ]
