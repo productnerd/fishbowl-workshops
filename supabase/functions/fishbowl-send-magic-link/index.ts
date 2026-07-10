@@ -41,18 +41,30 @@ Deno.serve(async (req) => {
     const email = String(body.email || '').trim().toLowerCase()
     const slug = String(body.slug || '').trim()
     // Anti-enumeration: we never reveal whether the email/session exists.
-    if (!email || !slug) return ok({ ok: true })
+    if (!email) return ok({ ok: true })
 
     const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
     const { data: personId } = await sb.rpc('fishbowl_identify', { p_email: email, p_name: null })
     if (!personId) return ok({ ok: true })
 
-    const { data: session } = await sb
-      .from('fishbowl_sessions')
-      .select('id, creator_person_id')
-      .eq('slug', slug)
-      .maybeSingle()
+    // Target session: an explicit slug (the self-assessment flow), or — when the create
+    // form asks to "retrieve my latest results" with no slug — this person's most recent
+    // session. The recover path can only ever surface a session this email already owns.
+    let session: { id: string; creator_person_id: string | null } | null = null
+    if (slug) {
+      const { data } = await sb.from('fishbowl_sessions').select('id, creator_person_id').eq('slug', slug).maybeSingle()
+      session = data
+    } else {
+      const { data } = await sb
+        .from('fishbowl_sessions')
+        .select('id, creator_person_id')
+        .eq('creator_person_id', personId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      session = data
+    }
     if (!session) return ok({ ok: true })
 
     // Claim-on-first-link: attach only an UNCLAIMED session. Never hijack one
