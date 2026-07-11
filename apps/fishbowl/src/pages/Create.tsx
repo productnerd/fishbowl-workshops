@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { createSession } from '../lib/data'
+import { motion, AnimatePresence } from 'framer-motion'
+import { createSession, emailHasSession, recoverLatestResults } from '../lib/data'
 import { setSubjectAuth } from '../lib/subjectAuth'
 import Button from '../components/Button'
 import CountryPicker from '../components/CountryPicker'
@@ -17,6 +17,42 @@ export default function Create() {
   const [country, setCountry] = useState('')
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(true)
+
+  const emailRef = useRef<HTMLInputElement>(null)
+  const [existsOpen, setExistsOpen] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [recoverSent, setRecoverSent] = useState(false)
+  // Once they pick "create new" for a given email, don't nag again for that same one.
+  const [dismissedEmail, setDismissedEmail] = useState('')
+
+  // When they finish typing an email, check whether it already owns a Fishbowl and, if
+  // so, offer to retrieve results vs. start fresh — instead of silently making a duplicate.
+  const checkExisting = async () => {
+    const e = email.trim().toLowerCase()
+    if (!e.includes('@') || e === dismissedEmail || loading || existsOpen) return
+    if (await emailHasSession(e)) setExistsOpen(true)
+  }
+
+  // "Take me to previous results": email the owner a one-tap magic link to their latest
+  // report (works on any device, and never hands a session to whoever typed the address).
+  const retrievePrevious = async () => {
+    if (sending) return
+    setSending(true)
+    await recoverLatestResults(email.trim())
+    setSending(false)
+    setRecoverSent(true)
+  }
+
+  const dismissAndCreate = () => {
+    setDismissedEmail(email.trim().toLowerCase())
+    setExistsOpen(false)
+  }
+
+  const changeEmail = () => {
+    setExistsOpen(false)
+    setEmail('')
+    setTimeout(() => emailRef.current?.focus(), 0)
+  }
 
   // If this browser already owns a session, its dashboard lives at a stable slug URL —
   // send them there instead of showing the name-entry form again.
@@ -80,9 +116,11 @@ export default function Create() {
           className="mt-7 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-6 py-4 text-center font-display text-2xl font-black text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/50 focus:shadow-chunky"
         />
         <input
+          ref={emailRef}
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          onBlur={checkExisting}
           placeholder="Email (optional), get notified + your report"
           maxLength={120}
           className="mt-4 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-left text-base text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/55 focus:shadow-chunky"
@@ -111,6 +149,72 @@ export default function Create() {
           </Button>
         </div>
       </motion.div>
+
+      {/* Email already on record: retrieve results, start fresh, or fix the address. */}
+      <AnimatePresence>
+        {existsOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={dismissAndCreate}
+            className="fixed inset-0 z-50 grid place-items-center bg-ink/60 px-5 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 16, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.97 }}
+              transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] as const }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md rounded-3xl border-[2.5px] border-ink bg-paper-hi p-6 text-center shadow-chunky"
+            >
+              {recoverSent ? (
+                <>
+                  <div className="text-5xl">📬</div>
+                  <h2 className="display mt-3 text-2xl">Check your inbox</h2>
+                  <p className="mt-2 text-ink-soft">
+                    We sent a one-tap link to your latest results to{' '}
+                    <span className="font-semibold text-ink">{email.trim()}</span>. It works once and expires in 30 minutes.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setExistsOpen(false)
+                      setRecoverSent(false)
+                    }}
+                    className="press mt-5 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3 font-display font-black text-ink shadow-chunky-sm"
+                  >
+                    Done
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="text-4xl">🐟</div>
+                  <div className="mt-3 rounded-2xl border-2 border-[#7c3aed]/35 bg-[#7c3aed]/10 px-4 py-3">
+                    <p className="font-semibold leading-snug text-[#6d28d9]">
+                      This email already has a Fishbowl. Would you like to retrieve your latest results, or create a brand
+                      new survey?
+                    </p>
+                  </div>
+                  <div className="mt-5 flex flex-col gap-2.5">
+                    <Button variant="pink" onClick={retrievePrevious} disabled={sending} className="!w-full">
+                      {sending ? 'Sending…' : 'Take me to previous results'}
+                    </Button>
+                    <button
+                      onClick={dismissAndCreate}
+                      className="press w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3 font-display font-black text-ink shadow-chunky-sm"
+                    >
+                      Create new session
+                    </button>
+                    <button onClick={changeEmail} className="mt-1 cursor-pointer text-sm font-semibold text-ink-soft underline">
+                      I&rsquo;ll change my email
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -19,11 +19,17 @@ export default function CandorPlot({
   teamChallenge,
   selfCare,
   selfChallenge,
+  maxW = 300,
+  compactLegend = false,
 }: {
   teamCare: number
   teamChallenge: number
   selfCare: number | null
   selfChallenge: number | null
+  // Optional shrink hooks for the homepage sample: a smaller plot and a one-line
+  // legend without the quadrant names. The report leaves both at their defaults.
+  maxW?: number
+  compactLegend?: boolean
 }) {
   // map a 1–9 value to a 0–100% position within the plot
   const px = (v: number) => ((v - 1) / 8) * 100 // challenge → x
@@ -40,7 +46,7 @@ export default function CandorPlot({
   const selfY = hasSelf ? py(selfCare) : 0
 
   return (
-    <div className="mx-auto flex w-full max-w-[300px] flex-col gap-3">
+    <div className="mx-auto flex w-full flex-col gap-3" style={{ maxWidth: maxW }}>
       <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-[2.5px] border-ink bg-paper-hi shadow-chunky-sm">
         {/* quadrant tints: TL ruinous empathy, TR radical candor, BL manipulative, BR obnoxious */}
         <div className="absolute left-0 top-0 h-1/2 w-1/2 bg-sand/60" title="Ruinous Empathy" />
@@ -110,17 +116,30 @@ export default function CandorPlot({
       </div>
       <div className="text-center text-[12px] font-semibold text-ink-soft">↕ Care Personally</div>
 
-      {/* legend + quadrant readout */}
-      <div className="flex flex-col gap-1.5 text-xs font-semibold text-ink-soft">
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded-full border-2 border-ink bg-blue" /> team, {teamQ.name}
-        </span>
-        {hasSelf && (
+      {/* legend + quadrant readout. Compact = one row, dots only (no quadrant names). */}
+      {compactLegend ? (
+        <div className="flex items-center justify-center gap-5 text-xs font-semibold text-ink-soft">
           <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-full border-[2.5px] border-pink-deep bg-paper-hi" /> you, {selfQ!.name}
+            <span className="inline-block h-3 w-3 rounded-full border-2 border-ink bg-blue" /> team
           </span>
-        )}
-      </div>
+          {hasSelf && (
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-3 w-3 rounded-full border-[2.5px] border-pink-deep bg-paper-hi" /> you
+            </span>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-1.5 text-xs font-semibold text-ink-soft">
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-3 w-3 rounded-full border-2 border-ink bg-blue" /> team, {teamQ.name}
+          </span>
+          {hasSelf && (
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-3 w-3 rounded-full border-[2.5px] border-pink-deep bg-paper-hi" /> you, {selfQ!.name}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   )
 }

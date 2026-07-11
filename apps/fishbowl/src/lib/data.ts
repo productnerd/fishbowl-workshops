@@ -17,6 +17,27 @@ export async function createSession(
   return { slug: data.slug ?? slug, bearer: data.bearer, person_id: data.person_id }
 }
 
+// Does this email already own a Fishbowl? Lets the create form offer "retrieve vs.
+// start new" instead of silently minting a duplicate. Boolean only (see the edge fn);
+// fails open to false so a flaky check never blocks someone from creating.
+export async function emailHasSession(email: string): Promise<boolean> {
+  const e = email.trim()
+  if (!e.includes('@')) return false
+  try {
+    const { data, error } = await supabase.functions.invoke('fishbowl-check-email', { body: { email: e } })
+    if (error) return false
+    return Boolean(data?.exists)
+  } catch {
+    return false
+  }
+}
+
+// Email the owner a one-tap link to their latest report (magic link, no slug needed).
+// Owner-verified: only the mailbox holder can act on it, so it never leaks a session.
+export async function recoverLatestResults(email: string): Promise<void> {
+  await supabase.functions.invoke('fishbowl-send-magic-link', { body: { email: email.trim(), slug: '' } })
+}
+
 export async function getSession(slug: string): Promise<Session | null> {
   const { data } = await supabase.from('fishbowl_sessions').select('*').eq('slug', slug).maybeSingle()
   return (data as Session) ?? null
