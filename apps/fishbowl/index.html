@@ -7,6 +7,13 @@
     <meta name="color-scheme" content="only light" />
     <title>Fishbowl — see yourself through your team's eyes</title>
 
+    <!-- TODO(personalized-share-preview): make the invite link's preview name the creator
+         (e.g. "Answer a quiz to help Maria grow") instead of this global card. Blocked on
+         infra: link crawlers strip the #/s/<slug> fragment and GitHub Pages is static, so
+         it needs path-based invite links + hosting that can run per-request logic
+         (Cloudflare Pages Functions / Netlify Edge — NOT Vercel) to inject the creator name
+         per slug. Keep this generic card as the fallback. -->
+
     <!-- Social share preview (Open Graph + Twitter). These are static and GLOBAL: on
          GitHub Pages with hash routing, a link crawler never sees the #/s/<slug> part and
          there is no server to vary the tags, so every link shares one preview. The copy

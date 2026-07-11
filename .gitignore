@@ -17,3 +17,10 @@ npm-debug.log*
 .idea
 .DS_Store
 *.sw?
+
+# Tooling / scratch (not app assets)
+.claude/
+deno.lock
+supabase/.temp/
+apps/fishbowl/public/personality test/
+apps/throughtheireyes/public/mbti/

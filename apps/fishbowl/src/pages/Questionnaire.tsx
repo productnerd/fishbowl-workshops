@@ -94,6 +94,8 @@ export default function Questionnaire() {
   const [via] = useState<string[]>(() => (saved.via as string[]) ?? [])
   const [johari, setJohari] = useState<string[]>(() => (saved.johari as string[]) ?? [])
   const [nohari, setNohari] = useState<string[]>(() => (saved.nohari as string[]) ?? [])
+  // One-time midway breather (thank + encourage to finish).
+  const [midSeen, setMidSeen] = useState(false)
   // First-open explainer: the friend often gets this link with zero context, so we
   // spell out what it is (anonymous, to help the person grow) before the first question.
   // Shown once per link (localStorage-gated).
@@ -372,6 +374,32 @@ export default function Questionnaire() {
   }
 
   const pct = ((i + 1) / questions.length) * 100
+
+  // A one-time breather at the halfway point: thank them and nudge them to finish.
+  const midIdx = Math.floor(questions.length / 2)
+  if (!midSeen && !isLast && i === midIdx && questions.length >= 8) {
+    return (
+      <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col justify-center px-5">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+          <div className="text-6xl">🌊</div>
+          <p className="kicker mt-4 text-pink-deep">halfway there</p>
+          <h1 className="display mt-2 text-4xl leading-tight">You&rsquo;re halfway. Thank you.</h1>
+          <p className="serif mt-3 text-lg leading-snug text-ink-soft">
+            Most people never do this for someone. {session.creator_name} is going to feel it — and the richest
+            part of their report comes from the second half.
+          </p>
+          <div className="mt-5 inline-block rounded-2xl border-2 border-ink bg-paper-hi px-4 py-2 text-sm font-semibold text-ink shadow-chunky-sm">
+            {Math.round(pct)}% done · just a few minutes left
+          </div>
+          <div className="mt-7">
+            <Button variant="pink" onClick={() => setMidSeen(true)} className="!text-xl">
+              Keep going →
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-5">
