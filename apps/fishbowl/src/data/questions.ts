@@ -189,10 +189,20 @@ const PERSONAL_TEXT: Record<number, string> = {
   27: 'After spending time with {name}, you feel…',
 }
 
+// Personal-lens section headers, so the progress label never reads "At Work" to a friend.
+const PERSONAL_SECTION: Record<number, string> = {
+  11: 'Showing up',
+  14: 'Showing up',
+  26: 'Honesty',
+  27: 'After time together',
+}
+
 const withName = (q: Question, name: string, lens: Lens): Question => {
   const text = (lens === 'personal' && PERSONAL_TEXT[q.id]) || q.text
+  const section = (lens === 'personal' && PERSONAL_SECTION[q.id]) || q.section
   return {
     ...q,
+    section,
     text: text.replace(/\{name\}/g, name),
     sectionDescription: q.sectionDescription.replace(/\{name\}/g, name),
   }
