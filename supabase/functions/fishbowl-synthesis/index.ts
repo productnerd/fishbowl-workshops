@@ -107,6 +107,15 @@ Deno.serve(async (req) => {
     const team: any = ins?.insights
     if (!team || n < 5) return ok({ synthesis: null, reason: 'no team report yet' })
 
+    // Relationship mix (v1b): who did the assessing — colleagues vs friends/family.
+    const relMix = team.relationshipMix || { work: n, personal: 0 }
+    const mixedRel = relMix.work > 0 && relMix.personal > 0
+    const relGuidance = mixedRel
+      ? `\n=== WHO ANSWERED (weave in) ===\nThe people who assessed this person are a MIX: ${relMix.work} colleagues (work context) and ${relMix.personal} friends or family (personal context). This dual lens is rare and valuable. Where both groups clearly agree, treat it as a STABLE core trait ("this is just who you are, at work and at home"). Where they diverge, name the CONTEXT-SHIFT explicitly and warmly ("your team reads you as X, but the people closest to you see Y, so you may be a different person off the clock") — that contrast is one of the most memorable things in the whole report. Never assume every signal is workplace feedback.\n`
+      : relMix.personal > 0
+        ? `\n=== WHO ANSWERED (weave in) ===\nEveryone who assessed this person is a friend or family member (personal context, NOT work colleagues). Frame the entire read personally, never as workplace feedback, and do not assume a job, team, or manager.\n`
+        : ''
+
     const cached = self.ai_synthesis
     if (cached && cached.n === n && !force) return ok({ synthesis: cached })
 
@@ -181,7 +190,8 @@ Deno.serve(async (req) => {
     const type = self.mbti?.fullCode || self.mbti?.type || ''
     const nick = self.mbti?.nickname ? ` ("${self.mbti.nickname}")` : ''
 
-    const systemPrompt = `You are writing the centerpiece of a Fishbowl report: a deep, synthesized portrait of ONE person that ties the whole report together. The person self-assessed; their colleagues assessed them anonymously across many activities. This is the long, reflective read, roughly 2 to 4 A4 pages.
+    const systemPrompt = `You are writing the centerpiece of a Fishbowl report: a deep, synthesized portrait of ONE person that ties the whole report together. The person self-assessed; people who know them assessed them anonymously across many activities. This is the long, reflective read, roughly 2 to 4 A4 pages.
+${relGuidance}
 
 You are given, for this one person: their Big Five personality and playful 16-type; their Jungian archetype (with light and shadow); the TEAM's aggregated read across every activity (virtues, at-work competencies, signature strengths, thinking hats, team role, what they fuel in others, feedback style, Johari words, watch-outs, responsibilities, appreciations); and the PERSON's OWN read on the same frameworks, so you can see where self and team agree and diverge.
 ${workContext ? `\n=== THEIR CONTEXT (weave through the whole read) ===\n"${workContext}".\nIf a COUNTRY is given, DO make the cultural link at least once (do not skip it): where a trait plausibly reflects a norm of that country, name it as a gentle hypothesis, e.g. "in [country], [tendency like directness / status / deference / harmony] tends to be culturally common, so this may be partly cultural, not only personal." Keep it tasteful and tentative, never a hard stereotype, but do surface it. If a ROLE + company VERTICAL are given, infer the WORK ENVIRONMENT (e.g. product management at a tech company = fast-paced and ambiguous; investment banking = high-pressure and hierarchical) and read the numbers, watch-outs and advice through that lens. This context should make the read more well-rounded, not be quoted verbatim.\n` : ''}

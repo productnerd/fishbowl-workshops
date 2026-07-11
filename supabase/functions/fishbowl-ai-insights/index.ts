@@ -335,7 +335,26 @@ Deno.serve(async (req) => {
         : []),
     ].join('\n')
 
-    const systemPrompt = `You are an insightful, kind workplace-feedback analyst for an app called "Fishbowl". ${responses.length} colleagues anonymously assessed a person named ${name} on Aristotelian virtues (the good is the MEAN between two vices), competencies, situational tendencies, and free text. Write a warm, specific, honest report that ${name} will read about themselves.${workContext ? ` Context about ${name}: "${workContext}". Use it to ground every insight and tip in their real situation. If a COUNTRY is given, DO surface the cultural angle at least once (gently, as a hypothesis, never a hard stereotype): where a trait plausibly reflects a norm of that country, say so, e.g. "in [country], [directness / status / deference / harmony] tends to be culturally common, so this may be partly cultural, not only personal." If a ROLE + company VERTICAL are given, infer the work ENVIRONMENT (e.g. a product manager at a tech company = fast-paced, ambiguity-heavy; investment banking = high-pressure, hierarchical) and factor that into what the scores mean and what advice actually fits.` : ''}
+    // Relationship mix (v1b): each response carries _relationship (work | personal); old
+    // or untagged responses count as work. Lets the AI tell colleague from friend/family.
+    const relCount = { work: 0, personal: 0 }
+    for (const r of responses as any[]) {
+      if (r.answers?._relationship === 'personal') relCount.personal++
+      else relCount.work++
+    }
+    const mixedSources = relCount.work > 0 && relCount.personal > 0
+    const sourceDesc = mixedSources
+      ? `${relCount.work} colleagues and ${relCount.personal} friends/family`
+      : relCount.personal > 0
+        ? "all from this person's personal life (friends and family)"
+        : 'colleagues'
+    const sourceGuidance = mixedSources
+      ? `\n\n=== WHO ANSWERED (important) ===\nThe people who assessed ${name} are a MIX: ${relCount.work} colleagues (work context) and ${relCount.personal} friends or family (personal context). Where both groups agree, that is a STABLE trait; where they diverge, ${name} shows up differently at work than in personal life, and naming that context-shift warmly is one of the most valuable things you can write. Do not assume every signal comes from a colleague.`
+      : relCount.personal > 0
+        ? `\n\n=== WHO ANSWERED (important) ===\nEveryone who assessed ${name} is a friend or family member (personal context, NOT work). Frame everything personally, never as workplace feedback, and never assume a job or team.`
+        : ''
+
+    const systemPrompt = `You are an insightful, kind feedback analyst for an app called "Fishbowl". ${responses.length} people (${sourceDesc}) anonymously assessed a person named ${name} on Aristotelian virtues (the good is the MEAN between two vices), competencies, situational tendencies, and free text. Write a warm, specific, honest report that ${name} will read about themselves.${sourceGuidance}${workContext ? ` Context about ${name}: "${workContext}". Use it to ground every insight and tip in their real situation. If a COUNTRY is given, DO surface the cultural angle at least once (gently, as a hypothesis, never a hard stereotype): where a trait plausibly reflects a norm of that country, say so, e.g. "in [country], [directness / status / deference / harmony] tends to be culturally common, so this may be partly cultural, not only personal." If a ROLE + company VERTICAL are given, infer the work ENVIRONMENT (e.g. a product manager at a tech company = fast-paced, ambiguity-heavy; investment banking = high-pressure, hierarchical) and factor that into what the scores mean and what advice actually fits.` : ''}
 
 === VOICE ===
 Speak TO ${name} in second person ("you", "your"). Never use their name. Write like a sharp, funny friend who knows them well, NOT a consultant: casual, warm, a little cheeky, and playfully teasing when the data invites it (especially the over-the-top stuff). Land the joke, then land the truth. Smart, dry, observational humor with taste, the kind that makes them laugh AND nod. Never mean, never sarcastic at their expense, never punching down, never a roast. Kill all corporate-speak (no "leverage", "stakeholders", "areas of opportunity", "strengths and weaknesses", "it's important to note", "at the end of the day"). Use contractions, short punchy sentences, the odd well-placed aside. Still: grounded in the data, honest, and genuinely useful. The virtue ideal is the MIDDLE (5 on the 1-9 scale), not the maximum: too little AND too much are both weaknesses, and overshooting a virtue is fair game for a gentle ribbing.
@@ -460,6 +479,7 @@ Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} 
       via: viaStats,
       johari: johariStats,
       nohari: nohariStats,
+      relationshipMix: relCount,
     }
 
     // Stamp per-dimension means for the live percentile layer.
