@@ -1,4 +1,4 @@
-import type { Question } from '@fishbowl/feedback-core'
+import type { Question, Lens } from '@fishbowl/feedback-core'
 
 // Mirrors supabase/functions/fishbowl-ai-insights QUESTIONS (ids must match).
 // Virtue sliders are a 1-9 bipolar scale: 1 = deficiency vice, 5 = the virtue,
@@ -162,11 +162,41 @@ export const questions: Question[] = [
   { id: 33, type: 'freetext', dimension: 'first_impression', section: 'First Impressions', sectionDescription: 'Quick gut read. Stays anonymous.', text: 'How does {name} come across in terms of first impression?', placeholder: 'When you first started working together…' },
 ]
 
-const withName = (q: Question, name: string): Question => ({
-  ...q,
-  text: q.text.replace(/\{name\}/g, name),
-  sectionDescription: q.sectionDescription.replace(/\{name\}/g, name),
-})
+// ── Relationship lens (v1) ────────────────────────────────────────────────────────
+// Friends/family answer the SAME constructs (same `dimension`, so scoring + slides are
+// unchanged) with re-framed scenarios, and skip the work-only activities. Kept as a
+// lookup here so the source `questions` array stays untouched for the self flow + report.
+
+// Skipped for the personal lens — team roles + work responsibilities don't translate.
+const WORK_ONLY = new Set([28, 24])
+
+// Personal-lens wording overrides (id → stem). Anything absent reuses the work text —
+// confidence, decisiveness, hats, the adjective pick, and the "vibe" read are universal.
+const PERSONAL_TEXT: Record<number, string> = {
+  1: 'When something scary or hard comes up, {name}…',
+  2: 'When something is off between you, {name}…',
+  4: 'On going after what they want, {name}…',
+  5: 'When things get tense or stressful, {name}…',
+  6: 'When plans involve other people, {name}…',
+  7: 'On following through on the little things, {name}…',
+  8: 'When you give them honest feedback, {name}…',
+  9: 'On showing up for the people around them, {name}…',
+  10: 'When there is a call to make, {name}…',
+  11: '{name} shows up when they say they will.',
+  14: '{name} is there for you when you need them.',
+  20: 'What do you most appreciate about {name}?',
+  26: 'How does {name} balance honesty and kindness with you?',
+  27: 'After spending time with {name}, you feel…',
+}
+
+const withName = (q: Question, name: string, lens: Lens): Question => {
+  const text = (lens === 'personal' && PERSONAL_TEXT[q.id]) || q.text
+  return {
+    ...q,
+    text: text.replace(/\{name\}/g, name),
+    sectionDescription: q.sectionDescription.replace(/\{name\}/g, name),
+  }
+}
 
 export type SurveyDepth = 'quick' | 'standard' | 'full'
 
@@ -204,9 +234,19 @@ const COLLEAGUE_ORDER = [
   11, 14, // easiest: the two kept At-Work agree scales, at the back
 ]
 
-export function getColleagueSurvey(name: string, hasResponsibilities: boolean, depth: SurveyDepth): Question[] {
+// `lens` picks the relationship framing: 'work' = colleagues (the original survey),
+// 'personal' = friends/family (re-worded stems + work-only activities dropped).
+export function getSurvey(
+  name: string,
+  hasResponsibilities: boolean,
+  depth: SurveyDepth,
+  lens: Lens,
+): Question[] {
   const usable = questions.filter(
-    (q) => (q.type !== 'responsibilities' || hasResponsibilities) && !COLLEAGUE_SKIP.has(q.id),
+    (q) =>
+      (q.type !== 'responsibilities' || hasResponsibilities) &&
+      !COLLEAGUE_SKIP.has(q.id) &&
+      !(lens === 'personal' && WORK_ONLY.has(q.id)),
   )
   const pools = depth === 'full' ? null : depth === 'standard' ? STANDARD_POOLS : QUICK_POOLS
   const keep = (q: Question) => !q.pool || pools === null || pools.has(q.pool)
@@ -217,5 +257,5 @@ export function getColleagueSurvey(name: string, hasResponsibilities: boolean, d
   return usable
     .filter(keep)
     .sort((a, b) => rank(a.id) - rank(b.id))
-    .map((q) => withName(q, name))
+    .map((q) => withName(q, name, lens))
 }

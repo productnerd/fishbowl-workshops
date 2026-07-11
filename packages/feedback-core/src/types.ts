@@ -62,7 +62,17 @@ export interface Question {
   // freetext: optional hard character cap + custom placeholder
   maxLength?: number
   placeholder?: string
+  // Relationship lens (v1): which relationships this question is shown to. Absent = both.
+  // 'work' = colleagues, 'personal' = friends/family. personalText / personalDescription
+  // swap the framing for the personal lens; where absent, personal reuses `text`.
+  lenses?: Lens[]
+  personalText?: string
+  personalDescription?: string
 }
+
+// Who's answering, relative to the subject. Colleagues answer the work lens; friends and
+// family answer the personal lens. Stored on each response so the AI knows the source.
+export type Lens = 'work' | 'personal'
 
 export interface Session {
   id: string

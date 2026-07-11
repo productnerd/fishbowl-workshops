@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { Question, Session, ResponsibilityTiers, HatScores, CandorAnswers } from '@fishbowl/feedback-core'
+import type { Question, Session, ResponsibilityTiers, HatScores, CandorAnswers, Lens } from '@fishbowl/feedback-core'
 import {
   SDT_NEEDS,
   SDT_TOTAL,
@@ -14,7 +14,7 @@ import {
 } from '@fishbowl/feedback-core'
 import { getSession, submitResponse } from '../lib/data'
 import { playQuizTick } from '../lib/sound'
-import { getColleagueSurvey, type SurveyDepth } from '../data/questions'
+import { getSurvey, type SurveyDepth } from '../data/questions'
 import VirtueSlider from '../components/VirtueSlider'
 import LikertScale from '../components/LikertScale'
 import ScenarioSlider from '../components/ScenarioSlider'
@@ -72,9 +72,21 @@ export default function Questionnaire() {
   const [depth, setDepth] = useState<SurveyDepth | null>(() =>
     saved.depth === 'quick' || saved.depth === 'standard' || saved.depth === 'full' ? (saved.depth as SurveyDepth) : null
   )
+  // Relationship lens: colleagues answer 'work', friends/family answer 'personal' (re-framed
+  // questions, work-only activities dropped). Chosen on the gate before the depth screen.
+  // `?as=work|personal` in the URL pre-selects it (for testing both flows from a link).
+  const [searchParams] = useSearchParams()
+  const [lens, setLens] = useState<Lens | null>(() => {
+    const as = searchParams.get('as')
+    if (as === 'work' || as === 'personal') return as
+    return saved.lens === 'work' || saved.lens === 'personal' ? (saved.lens as Lens) : null
+  })
   const questions = useMemo<Question[]>(
-    () => (session && depth ? getColleagueSurvey(session.creator_name, (session.responsibilities?.length ?? 0) > 0, depth) : []),
-    [session, depth]
+    () =>
+      session && depth && lens
+        ? getSurvey(session.creator_name, (session.responsibilities?.length ?? 0) > 0, depth, lens)
+        : [],
+    [session, depth, lens]
   )
   const [i, setI] = useState<number>(() => (typeof saved.i === 'number' ? saved.i : 0))
   const [answers, setAnswers] = useState<Record<number, string | number>>(() => (saved.answers as Record<number, string | number>) ?? {})
@@ -155,12 +167,12 @@ export default function Questionnaire() {
     try {
       localStorage.setItem(
         progressKey(slug),
-        JSON.stringify({ depth, i, answers, respTiers, respNotes, hats, candor, sdt, belbin, via, johari, nohari, email })
+        JSON.stringify({ lens, depth, i, answers, respTiers, respNotes, hats, candor, sdt, belbin, via, johari, nohari, email })
       )
     } catch {
       /* storage full / disabled */
     }
-  }, [slug, loading, submitting, depth, i, answers, respTiers, respNotes, hats, candor, sdt, belbin, via, johari, nohari, email])
+  }, [slug, loading, submitting, lens, depth, i, answers, respTiers, respNotes, hats, candor, sdt, belbin, via, johari, nohari, email])
 
   // Safety: if a restored index somehow lands past the (depth-based) question set, clamp it.
   useEffect(() => {
@@ -181,6 +193,43 @@ export default function Questionnaire() {
       <Screen>
         <p className="display text-3xl">This link doesn't exist.</p>
       </Screen>
+    )
+  }
+
+  // Relationship gate: colleagues and friends/family answer the same constructs with
+  // differently-framed scenarios, so the subject gets a fuller, multi-context picture.
+  if (!lens) {
+    const pick = (l: Lens) => {
+      playQuizTick()
+      setLens(l)
+    }
+    return (
+      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-5 py-10">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+          <p className="kicker text-pink-deep">before you start</p>
+          <h1 className="display mt-2 text-4xl leading-tight">How do you know {session.creator_name}?</h1>
+          <p className="serif mt-3 leading-snug text-ink-soft">
+            It shapes the questions — a friend gets asked different things than a colleague, so {session.creator_name}{' '}
+            gets a fuller picture of who they are.
+          </p>
+          <div className="mt-7 flex flex-col gap-4">
+            <button
+              onClick={() => pick('work')}
+              className="press cursor-pointer rounded-3xl border-[2.5px] border-ink bg-paper-hi px-6 py-5 text-left shadow-chunky-sm"
+            >
+              <span className="display block text-2xl leading-tight">We work together</span>
+              <p className="mt-1 text-sm leading-snug text-ink-soft">Colleague, manager, report, or client.</p>
+            </button>
+            <button
+              onClick={() => pick('personal')}
+              className="press cursor-pointer rounded-3xl border-[2.5px] border-ink bg-paper-hi px-6 py-5 text-left shadow-chunky-sm"
+            >
+              <span className="display block text-2xl leading-tight">We&rsquo;re friends or family</span>
+              <p className="mt-1 text-sm leading-snug text-ink-soft">Friend, partner, family, or someone close.</p>
+            </button>
+          </div>
+        </motion.div>
+      </div>
     )
   }
 
@@ -350,6 +399,7 @@ export default function Questionnaire() {
         session.id,
         {
           ...answers,
+          _relationship: lens ?? 'work',
           responsibility_tiers: respTiers,
           responsibility_notes: respNotes,
           hats,
