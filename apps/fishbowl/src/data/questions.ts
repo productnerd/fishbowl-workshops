@@ -152,7 +152,7 @@ export const questions: Question[] = [
   { id: 27, type: 'sdt', dimension: 'sdt', pool: 'sdt', section: 'After Working Together', sectionDescription: 'Spend 20 points on how it feels.', text: 'After working with {name}, you feel…' },
   { id: 28, type: 'belbin', dimension: 'belbin', pool: 'belbin', section: 'Team Role', sectionDescription: 'Spend 20 chips on the roles they play.', text: 'What role does {name} play on the team?' },
   { id: 29, type: 'via', dimension: 'via', pool: 'via', section: 'Signature Strengths', sectionDescription: 'Pick the 5 that fit best.', text: "{name}'s top character strengths" },
-  { id: 30, type: 'johari', dimension: 'johari', pool: 'johari', section: 'In a Word', sectionDescription: 'Pick the words that fit — how they show up, plus any kind watch-outs.', text: 'Which words describe {name}?' },
+  { id: 30, type: 'johari', dimension: 'johari', pool: 'johari', section: 'In a Word', sectionDescription: 'Pick the words that fit — up to 8 for how they show up, up to 6 watch-outs.', text: 'Which words describe {name} best?' },
   { id: 31, type: 'nohari', dimension: 'nohari', pool: 'nohari', section: 'Watch-outs', sectionDescription: 'Pick a few that fit. Anonymous, and meant kindly.', text: 'Which of these are watch-outs for {name}?' },
 
   // ── In Their Words: 1 free-text (synthesized, never shown verbatim) ──

@@ -9,16 +9,20 @@ export default function CandorTagger({
   name,
   value,
   onChange,
+  lens = 'work',
 }: {
   name: string
   value: CandorAnswers
   onChange: (v: CandorAnswers) => void
+  lens?: 'work' | 'personal'
 }) {
   return (
     <div className="flex flex-col gap-3">
       {CANDOR_ITEMS.map((item) => (
         <div key={item.id} className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3 shadow-chunky-sm">
-          <p className="mb-2 text-sm font-semibold text-ink">{item.text.replace('{name}', name)}</p>
+          <p className="mb-2 text-sm font-semibold text-ink">
+            {((lens === 'personal' && item.personalText) || item.text).replace('{name}', name)}
+          </p>
           <div className="flex gap-1">
             {STEPS.map((s) => {
               const sel = value[item.id] === s

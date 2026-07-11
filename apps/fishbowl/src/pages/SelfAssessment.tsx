@@ -13,6 +13,7 @@ import {
   ADJECTIVE_OPTIONS,
   ADJECTIVE_MIN,
   ADJECTIVE_MAX,
+  ADJECTIVE_GROUP_MAX,
   splitAdjectives,
   REQUIRED_RESPONSES,
   type BigFiveScores,
@@ -814,6 +815,7 @@ export default function SelfAssessment() {
                 options={ADJECTIVE_OPTIONS}
                 min={ADJECTIVE_MIN}
                 max={ADJECTIVE_MAX}
+                groupMax={ADJECTIVE_GROUP_MAX}
                 value={[...selfJohari, ...selfNohari]}
                 onChange={(picks) => {
                   const s = splitAdjectives(picks)

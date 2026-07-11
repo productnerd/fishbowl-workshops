@@ -10,6 +10,7 @@ import {
   ADJECTIVE_OPTIONS,
   ADJECTIVE_MIN,
   ADJECTIVE_MAX,
+  ADJECTIVE_GROUP_MAX,
   splitAdjectives,
 } from '@fishbowl/feedback-core'
 import { getSession, submitResponse } from '../lib/data'
@@ -28,6 +29,16 @@ import Button from '../components/Button'
 
 function Screen({ children }: { children: ReactNode }) {
   return <div className="grid min-h-dvh place-items-center px-5">{children}</div>
+}
+
+// Personal-lens descriptions for the "what you fuel" needs, so a friend never rates
+// "on top of my game" or "why the work matters". Keys = SDT need keys; absent = universal.
+const PERSONAL_SDT_SUB: Record<string, string> = {
+  autonomy: '…free to be fully myself',
+  competence: '…more capable and sure of myself',
+  relatedness: '…genuinely connected and close',
+  purpose: '…clearer on what matters',
+  impact: '…that I make a real difference to them',
 }
 
 // Snappy real-time read for returning respondents: their own lean (from their
@@ -92,7 +103,9 @@ export default function Questionnaire() {
   const [answers, setAnswers] = useState<Record<number, string | number>>(() => (saved.answers as Record<number, string | number>) ?? {})
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [email, setEmail] = useState<string>(() => (typeof saved.email === 'string' ? saved.email : ''))
+  // Respondent email is no longer collected inline — the Done screen handles the
+  // "create your own Fishbowl" conversion. Kept for payload/persistence shape only.
+  const [email] = useState<string>(() => (typeof saved.email === 'string' ? saved.email : ''))
   const [dir, setDir] = useState(1)
   const [myProfile, setMyProfile] = useState<Record<string, number> | null>(null)
   const [respTiers, setRespTiers] = useState<ResponsibilityTiers>(() => (saved.respTiers as ResponsibilityTiers) ?? {})
@@ -205,6 +218,57 @@ export default function Questionnaire() {
     }
     return (
       <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-5 py-10">
+        {/* First-open explainer for the friend who arrived with no context — shows before
+            the relationship question. */}
+        <AnimatePresence>
+          {showIntro && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 grid place-items-center bg-ink/45 px-5 backdrop-blur-sm"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 18, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                transition={{ duration: 0.24, ease: [0.2, 0.8, 0.2, 1] as const }}
+                className="w-full max-w-sm rounded-3xl border-[2.5px] border-ink bg-paper-hi p-7 text-center shadow-chunky"
+              >
+                <div className="text-5xl">🪞</div>
+                <p className="kicker mt-3 text-pink-deep">you were asked for feedback</p>
+                <h2 className="display mt-1 text-3xl leading-tight">Help {session.creator_name} level-up as a human</h2>
+                <ul className="mx-auto mt-5 flex max-w-xs flex-col gap-3 text-left text-[0.95rem] leading-snug text-ink-soft">
+                  <li className="flex gap-2.5">
+                    <span aria-hidden>🔒</span>
+                    <span>
+                      <span className="font-bold text-ink">Completely anonymous.</span> {session.creator_name} sees the patterns, never who said what.
+                    </span>
+                  </li>
+                  <li className="flex gap-2.5">
+                    <span aria-hidden>💡</span>
+                    <span>
+                      It shows them their <span className="font-bold text-ink">blind spots</span> so they can grow and be easier to be around.
+                    </span>
+                  </li>
+                  <li className="flex gap-2.5">
+                    <span aria-hidden>⏱️</span>
+                    <span>
+                      A couple of quick questions set it up, then just <span className="font-bold text-ink">answer honestly</span>.
+                    </span>
+                  </li>
+                </ul>
+                <button
+                  onClick={dismissIntro}
+                  className="press mt-7 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-pink sc-pink px-5 py-3.5 font-display text-lg font-black text-ink shadow-chunky-sm"
+                >
+                  Got it, let&rsquo;s go →
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
           <p className="kicker text-pink-deep">before you start</p>
           <h1 className="display mt-2 text-4xl leading-tight">How do you know {session.creator_name}?</h1>
@@ -242,55 +306,6 @@ export default function Questionnaire() {
     }
     return (
       <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-5 py-10">
-        {/* First-open explainer for the friend who arrived with no context. */}
-        <AnimatePresence>
-          {showIntro && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 grid place-items-center bg-ink/45 px-5 backdrop-blur-sm"
-            >
-              <motion.div
-                initial={{ opacity: 0, y: 18, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                transition={{ duration: 0.24, ease: [0.2, 0.8, 0.2, 1] as const }}
-                className="w-full max-w-sm rounded-3xl border-[2.5px] border-ink bg-paper-hi p-7 text-center shadow-chunky"
-              >
-                <div className="text-5xl">🪞</div>
-                <p className="kicker mt-3 text-pink-deep">you were asked for feedback</p>
-                <h2 className="display mt-1 text-3xl leading-tight">Help {session.creator_name} level-up as a human</h2>
-                <ul className="mx-auto mt-5 flex max-w-xs flex-col gap-3 text-left text-[0.95rem] leading-snug text-ink-soft">
-                  <li className="flex gap-2.5">
-                    <span aria-hidden>🔒</span>
-                    <span>
-                      <span className="font-bold text-ink">Completely anonymous.</span> {session.creator_name} sees the patterns, never who said what.
-                    </span>
-                  </li>
-                  <li className="flex gap-2.5">
-                    <span aria-hidden>💡</span>
-                    <span>
-                      It shows them their <span className="font-bold text-ink">blind spots</span> so they can grow and be easier to work with.
-                    </span>
-                  </li>
-                  <li className="flex gap-2.5">
-                    <span aria-hidden>⏱️</span>
-                    <span>
-                      You pick <span className="font-bold text-ink">how deep to go</span> next. Just answer honestly.
-                    </span>
-                  </li>
-                </ul>
-                <button
-                  onClick={dismissIntro}
-                  className="press mt-7 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-pink sc-pink px-5 py-3.5 font-display text-lg font-black text-ink shadow-chunky-sm"
-                >
-                  Got it, let&rsquo;s go →
-                </button>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
           <p className="kicker text-pink-deep">before you start</p>
@@ -423,7 +438,9 @@ export default function Questionnaire() {
     navigate(`/s/${slug}/done`)
   }
 
-  const pct = ((i + 1) / questions.length) * 100
+  // Progress = slides completed, not current position: 0% on the first slide (nothing
+  // answered yet), and the last slide sits below 100% until submit navigates away.
+  const pct = (i / questions.length) * 100
 
   // A one-time breather at the halfway point: thank them and nudge them to finish.
   const midIdx = Math.floor(questions.length / 2)
@@ -467,7 +484,7 @@ export default function Questionnaire() {
         <button
           onClick={() => go(-1)}
           disabled={i === 0}
-          className="press mt-3 cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-4 py-1.5 text-sm font-semibold text-ink shadow-chunky-sm disabled:opacity-40 disabled:pointer-events-none"
+          className="press mt-3 cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-4 py-1.5 text-sm font-semibold text-ink shadow-chunky-sm disabled:opacity-40 disabled:pointer-events-none sm:fixed sm:left-5 sm:top-5 sm:z-30 sm:mt-0"
         >
           ← Back
         </button>
@@ -536,11 +553,15 @@ export default function Questionnaire() {
             )}
             {q.type === 'sixhats' && <HatsTagger value={hats} onChange={setHats} />}
             {q.type === 'radical_candor' && (
-              <CandorTagger name={session.creator_name} value={candor} onChange={setCandor} />
+              <CandorTagger name={session.creator_name} value={candor} onChange={setCandor} lens={lens ?? 'work'} />
             )}
             {q.type === 'sdt' && (
               <AllocationTagger
-                buckets={SDT_NEEDS.map((s) => ({ key: s.key, label: s.label, sub: s.feelStem }))}
+                buckets={SDT_NEEDS.map((s) => ({
+                  key: s.key,
+                  label: s.label,
+                  sub: (lens === 'personal' && PERSONAL_SDT_SUB[s.key]) || s.feelStem,
+                }))}
                 total={SDT_TOTAL}
                 value={sdt}
                 onChange={setSdt}
@@ -561,6 +582,7 @@ export default function Questionnaire() {
                 options={ADJECTIVE_OPTIONS}
                 min={ADJECTIVE_MIN}
                 max={ADJECTIVE_MAX}
+                groupMax={ADJECTIVE_GROUP_MAX}
                 value={[...johari, ...nohari]}
                 onChange={(picks) => {
                   const s = splitAdjectives(picks)
@@ -572,21 +594,6 @@ export default function Questionnaire() {
           </motion.div>
         </AnimatePresence>
       </div>
-
-      {isLast && (
-        <div className="pb-3">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Your email (optional), get notified + your own Fishbowl"
-            className="w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-base text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/55 focus:shadow-chunky"
-          />
-          <p className="mt-1.5 text-center text-xs text-ink-soft">
-            Never shown to {session.creator_name}. You stay anonymous to them.
-          </p>
-        </div>
-      )}
 
       {/* nav — Back lives up in the header; here we only float the forward action
           (most discrete screens auto-advance and show nothing here). Free-text is

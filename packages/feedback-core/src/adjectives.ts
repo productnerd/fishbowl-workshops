@@ -8,6 +8,12 @@ import { WEAKNESSES } from './weaknesses'
 
 export const ADJECTIVE_MIN = 5
 export const ADJECTIVE_MAX = 14
+// Per-group caps: up to 8 "how they show up", up to 6 watch-outs — so nobody piles on 14
+// flattering words. Keys must match the ADJECTIVE_OPTIONS group names below.
+export const ADJECTIVE_GROUP_MAX: Record<string, number> = {
+  'How they show up': 8,
+  'Watch-outs (meant kindly)': 6,
+}
 
 export const ADJECTIVE_OPTIONS: { id: string; label: string; group: string }[] = [
   ...JOHARI_ADJECTIVES.map((w) => ({ id: w, label: w, group: 'How they show up' })),
