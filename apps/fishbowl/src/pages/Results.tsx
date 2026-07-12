@@ -22,7 +22,7 @@ import {
 } from '@fishbowl/feedback-core'
 import { getSession } from '../lib/data'
 import { questions } from '../data/questions'
-import { getSelfReport, getSynthesis, getWorkManual, type SelfData, type SelfSynthesis, type WorkManual as WorkManualData } from '../lib/self'
+import { getSelfReport, synthesisStart, synthesisPoll, getWorkManual, type SelfData, type SelfSynthesis, type SynthStatus, type WorkManual as WorkManualData } from '../lib/self'
 import { useAiInsights } from '../lib/aiInsights'
 import { topPercent } from '../lib/percentile'
 import { computeGolden } from '../lib/goldenScore'
@@ -135,6 +135,11 @@ const ACT_SOUND: Record<number, () => void> = {
   7: () => playScaleNote(9),
 }
 
+// The deep read runs ~2 min server-side; the countdown starts here and flips to a
+// "taking longer" message if it overruns. Purely cosmetic — the poll drives completion.
+const SYNTH_ETA = 150
+const fmtMMSS = (s: number) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.max(0, s) % 60).padStart(2, '0')}`
+
 export default function Results() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
@@ -153,7 +158,10 @@ export default function Results() {
   const [selfLoaded, setSelfLoaded] = useState(false)
   const [modalDismissed, setModalDismissed] = useState(false)
   const [synthesis, setSynthesis] = useState<SelfSynthesis | null>(null)
-  const [synthesisLoading, setSynthesisLoading] = useState(false)
+  const [synthStatus, setSynthStatus] = useState<SynthStatus>('idle')
+  const [synthSecs, setSynthSecs] = useState(0) // elapsed while generating, drives the countdown
+  const [synthNonce, setSynthNonce] = useState(0) // bump to re-trigger a generation (retry)
+  const synthesisLoading = synthStatus === 'generating'
   const [workManual, setWorkManual] = useState<WorkManualData | null>(null)
   const [copied, setCopied] = useState(false)
 
@@ -198,19 +206,32 @@ export default function Results() {
   useEffect(() => {
     if (!slug || !hasSelf || !insights || !self) return
     let cancelled = false
-    setSynthesisLoading(true)
+    let poll: number | undefined
+    let tick: number | undefined
+    const stop = () => { if (poll) window.clearInterval(poll); if (tick) window.clearInterval(tick) }
     const virtueMeans = Object.fromEntries(insights.virtues.map((v) => [v.dimension, v.mu]))
     const a = deriveArchetype(self.big_five ?? null, virtueMeans)
     const archPayload = a ? { name: a.name, essence: a.essence, light: a.light, shadow: a.shadow, runnerUp: a.runnerUp } : null
-    getSynthesis(slug, archPayload).then((r) => {
+
+    setSynthStatus('generating') // optimistic; corrected the moment start() resolves
+    setSynthSecs(0)
+    // Retry (synthNonce>0) forces a fresh generation; the first pass reuses any cache.
+    synthesisStart(slug, archPayload, synthNonce > 0).then((r) => {
       if (cancelled) return
-      setSynthesis(r)
-      setSynthesisLoading(false)
+      if (r.status === 'ready' && r.synthesis) { setSynthesis(r.synthesis); setSynthStatus('ready'); return }
+      if (r.status === 'error') { setSynthStatus('error'); return }
+      if (r.status !== 'generating') { setSynthStatus('idle'); return }
+      // Still writing: tick a countdown and poll the cheap status endpoint until it lands.
+      tick = window.setInterval(() => setSynthSecs((s) => s + 1), 1000)
+      poll = window.setInterval(async () => {
+        const p = await synthesisPoll(slug)
+        if (cancelled) return
+        if (p.status === 'ready' && p.synthesis) { setSynthesis(p.synthesis); setSynthStatus('ready'); stop() }
+        else if (p.status === 'error') { setSynthStatus('error'); stop() }
+      }, 4000)
     })
-    return () => {
-      cancelled = true
-    }
-  }, [slug, hasSelf, insights, self])
+    return () => { cancelled = true; stop() }
+  }, [slug, hasSelf, insights, self, synthNonce])
 
   // The Work Manual — its own focused AI call, cached client-side by (slug, n). Fetched
   // once the team report + self-read exist; renders as a typed manual page in the deck.
@@ -1299,7 +1320,7 @@ export default function Results() {
   // The deep "full read" synthesis — the long, cross-referenced portrait that ties
   // every activity together. Bearer-gated, generated with extended thinking. Sits
   // right before the action plan.
-  if (hasSelf && (synthesis || synthesisLoading)) {
+  if (hasSelf && (synthesis || synthStatus === 'generating' || synthStatus === 'error')) {
     const para = (text: string) =>
       stripGifTokens(text).split('\n\n').filter(Boolean).map((p, i) => (
         <p key={i} className="mt-4 leading-relaxed text-ink first:mt-0">
@@ -1333,12 +1354,36 @@ export default function Results() {
           </button>
           <p className="mt-2 text-center text-xs text-ink-soft">Paste it into your AI assistant so it knows how you work.</p>
         </div>
-      ) : (
-        <div className="flex min-h-[50vh] flex-col justify-center">
+      ) : synthStatus === 'error' ? (
+        <div className="flex min-h-[50vh] flex-col justify-center text-center">
           <p className="kicker mb-1 text-blue-deep">the full read</p>
-          <h2 className="display mb-3 text-3xl">Synthesizing everything…</h2>
-          <p className="leading-relaxed text-ink-soft">
-            Weaving every activity together with your personality and archetype into one read. This one thinks hard, so it takes a few seconds to write, then it appears right here.
+          <h2 className="display mb-3 text-3xl">That one didn&rsquo;t finish</h2>
+          <p className="mb-5 leading-relaxed text-ink-soft">The deep read hit a snag while writing. Everything else in your report is here — give it another go.</p>
+          <button
+            onClick={() => { setSynthStatus('generating'); setSynthSecs(0); setSynthNonce((x) => x + 1) }}
+            className="press mx-auto cursor-pointer rounded-2xl border-[2.5px] border-ink bg-ink px-6 py-3 font-display font-black text-paper-hi shadow-chunky-sm sc-sand"
+          >
+            Try again
+          </button>
+        </div>
+      ) : (
+        <div className="flex min-h-[50vh] flex-col justify-center text-center">
+          <p className="kicker mb-1 text-blue-deep">the full read</p>
+          <h2 className="display mb-3 text-3xl">Writing your deep read…</h2>
+          {synthSecs < SYNTH_ETA ? (
+            <>
+              <p className="mb-2 font-display text-6xl font-black tabular-nums text-ink">{fmtMMSS(SYNTH_ETA - synthSecs)}</p>
+              <p className="leading-relaxed text-ink-soft">
+                This one thinks hard — it weaves every activity into a single read. It&rsquo;ll appear here on its own the moment it&rsquo;s done.
+              </p>
+            </>
+          ) : (
+            <p className="leading-relaxed text-ink-soft">
+              <span className="font-semibold text-ink">Taking a little longer than expected</span> — hang tight, it&rsquo;s still writing and will appear here automatically.
+            </p>
+          )}
+          <p className="mt-5 text-sm text-ink-soft">
+            Feel free to close this tab — <span className="font-semibold text-ink">we&rsquo;ll email you a link</span> the moment it&rsquo;s ready.
           </p>
         </div>
       ),

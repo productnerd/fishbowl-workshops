@@ -78,11 +78,19 @@ const SDT_NAMES: Record<string, string> = {
 // as the Big Five (reverse = 8-raw, mean -> (mean-1)/6*100).
 import { ORIENTATION_TITLE, scoreDimensions } from './dimensions.ts'
 
+// Supabase edge runtime global: keeps the isolate alive to finish a background task
+// after the HTTP response is sent (up to the 400s wall-clock).
+declare const EdgeRuntime: { waitUntil: (p: Promise<unknown>) => void }
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: cors })
   try {
     const body = await req.json().catch(() => ({}))
     const force = !!body.force
+    // 'status' = cheap poll (no generation). 'start' (default) = kick off a background
+    // generation and return immediately, so the browser never holds the connection open
+    // past the 150s edge idle timeout. The heavy work runs under EdgeRuntime.waitUntil.
+    const mode = String(body.mode || 'start')
     const arch = body.archetype && typeof body.archetype === 'object' ? body.archetype : null
     const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
     const v = await verifyOwner(sb, String(body.bearer || ''), String(body.slug || ''))
@@ -94,7 +102,7 @@ Deno.serve(async (req) => {
 
     const { data: self } = await sb
       .from('fishbowl_self_assessments')
-      .select('big_five, mbti, self_payload, completed, ai_synthesis, ocean_answers')
+      .select('big_five, mbti, self_payload, completed, ai_synthesis, ocean_answers, synthesis_status, synthesis_started_at')
       .eq('session_id', session.id)
       .maybeSingle()
     if (!self || !self.completed) return ok({ synthesis: null, reason: 'no self yet' })
@@ -117,8 +125,27 @@ Deno.serve(async (req) => {
         : ''
 
     const cached = self.ai_synthesis
-    if (cached && cached.n === n && !force) return ok({ synthesis: cached })
+    const fresh = cached && cached.n === n
+    const startedMs = self.synthesis_started_at ? Date.parse(self.synthesis_started_at) : 0
+    const genRecent = self.synthesis_status === 'generating' && Date.now() - startedMs < 5 * 60 * 1000
 
+    if (mode === 'status') {
+      const status = fresh ? 'ready' : self.synthesis_status === 'error' ? 'error' : genRecent ? 'generating' : 'idle'
+      return ok({ status, synthesis: fresh ? cached : null })
+    }
+    if (fresh && !force) return ok({ status: 'ready', synthesis: cached })
+    if (genRecent && !force) return ok({ status: 'generating' })
+
+    // Claim the slot so a second 'start' can't launch a duplicate generation.
+    await sb.from('fishbowl_self_assessments')
+      .update({ synthesis_status: 'generating', synthesis_started_at: new Date().toISOString(), synthesis_error: null })
+      .eq('session_id', session.id)
+
+    // Everything below runs in the BACKGROUND (EdgeRuntime.waitUntil); the request has
+    // already returned 'generating'. On success it writes ai_synthesis + status='ready'
+    // and emails the subject a link; on failure it records status='error'.
+    const generate = async () => {
+     try {
     // ── Assemble every signal, with self vs team overlaid where both exist ──
     const sp = self.self_payload || {}
     const refl = (sp.reflections || {}) as { aspiration?: string; fear?: string; blindspot?: string; manual?: string }
@@ -351,7 +378,7 @@ The words colleagues reach for most: ${johariTop.join(', ') || '(none)'}
 Return the JSON now.`
 
     const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')
-    if (!anthropicKey) return ok({ error: 'ANTHROPIC_API_KEY not configured' }, 500)
+    if (!anthropicKey) throw new Error('ANTHROPIC_API_KEY not configured')
 
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -367,7 +394,7 @@ Return the JSON now.`
     })
     if (!claudeRes.ok) {
       const details = await claudeRes.text()
-      return ok({ error: 'claude api error', status: claudeRes.status, details }, 502)
+      throw new Error(`claude api error ${claudeRes.status}: ${details.slice(0, 200)}`)
     }
 
     const claudeJson = await claudeRes.json()
@@ -396,7 +423,7 @@ Return the JSON now.`
         }
         prose = JSON.parse(out)
       } catch {
-        return ok({ error: 'parse error', raw: raw.slice(0, 1200), stop: claudeJson.stop_reason }, 502)
+        throw new Error(`parse error (stop=${claudeJson.stop_reason}): ${raw.slice(0, 200)}`)
       }
     }
 
@@ -458,8 +485,41 @@ Return the JSON now.`
       n,
     }
 
-    await sb.from('fishbowl_self_assessments').update({ ai_synthesis: synthesis }).eq('session_id', session.id)
-    return ok({ synthesis })
+    await sb.from('fishbowl_self_assessments')
+      .update({ ai_synthesis: synthesis, synthesis_status: 'ready', synthesis_error: null })
+      .eq('session_id', session.id)
+
+    // Best-effort: email the subject that their report is ready (they may have left the tab).
+    try {
+      const RESEND = Deno.env.get('RESEND_API_KEY')
+      const { data: person } = await sb.from('fishbowl_people').select('email').eq('id', session.creator_person_id).maybeSingle()
+      const email = person?.email
+      if (RESEND && email) {
+        const FROM = Deno.env.get('FISHBOWL_FROM_EMAIL') || 'Fishbowl <onboarding@resend.dev>'
+        const APP = Deno.env.get('FISHBOWL_APP_URL') || 'https://productnerd.github.io/fishbowl/'
+        const link = `${APP}#/s/${body.slug}`
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', authorization: `Bearer ${RESEND}` },
+          body: JSON.stringify({
+            from: FROM,
+            to: email,
+            subject: 'Your Fishbowl is ready 🐟',
+            html: `<p>Hi ${name},</p><p>Your report just finished. Open it on the same device you started on:</p><p><a href="${link}">${link}</a></p><p>— Fishbowl</p>`,
+          }),
+        })
+        await sb.from('fishbowl_self_assessments').update({ synthesis_notified_at: new Date().toISOString() }).eq('session_id', session.id)
+      }
+    } catch { /* email is best-effort; the report is already saved */ }
+     } catch (e) {
+       await sb.from('fishbowl_self_assessments')
+         .update({ synthesis_status: 'error', synthesis_error: String((e as Error)?.message || e).slice(0, 400) })
+         .eq('session_id', session.id)
+     }
+    }
+
+    EdgeRuntime.waitUntil(generate())
+    return ok({ status: 'generating' })
   } catch (_e) {
     return ok({ error: 'internal' }, 500)
   }

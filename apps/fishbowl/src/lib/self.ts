@@ -64,21 +64,40 @@ export interface SelfSynthesis {
   n: number
 }
 
-// The deep, cross-referenced "full read" (bearer-gated, generated with extended
-// thinking server-side, cached on the self row). Pass the derived archetype so the
-// synthesis can weave it in. Returns null until a team report + self-read both exist.
-export async function getSynthesis(
-  slug: string,
-  archetype: { name: string; essence: string; light: string; shadow: string; runnerUp?: string } | null,
-  force = false
-): Promise<SelfSynthesis | null> {
+// The deep, cross-referenced "full read" (bearer-gated). It's generated with extended
+// thinking server-side and takes ~2 minutes — longer than the 150s edge idle timeout —
+// so generation runs as a BACKGROUND task: `synthesisStart` kicks it off and returns
+// immediately, then the client polls `synthesisPoll` until it's ready. The subject also
+// gets an email when it finishes, so they can close the tab and come back.
+export type SynthStatus = 'ready' | 'generating' | 'error' | 'idle'
+export interface SynthResult {
+  status: SynthStatus
+  synthesis: SelfSynthesis | null
+}
+
+type Archetype = { name: string; essence: string; light: string; shadow: string; runnerUp?: string } | null
+
+// Kick off (or reuse) a background generation. Returns 'ready' immediately if it's
+// already cached, otherwise 'generating' after launching the background task.
+export async function synthesisStart(slug: string, archetype: Archetype, force = false): Promise<SynthResult> {
   const auth = getSubjectAuth()
-  if (!auth) return null
+  if (!auth) return { status: 'idle', synthesis: null }
   const { data, error } = await supabase.functions.invoke('fishbowl-synthesis', {
-    body: { bearer: auth.bearer, slug, archetype, force },
+    body: { bearer: auth.bearer, slug, archetype, force, mode: 'start' },
   })
-  if (error || !data || data.error) return null
-  return (data.synthesis as SelfSynthesis) ?? null
+  if (error || !data || data.error) return { status: 'error', synthesis: null }
+  return { status: (data.status as SynthStatus) ?? 'idle', synthesis: (data.synthesis as SelfSynthesis) ?? null }
+}
+
+// Cheap status poll (no generation). Used on an interval while status is 'generating'.
+export async function synthesisPoll(slug: string): Promise<SynthResult> {
+  const auth = getSubjectAuth()
+  if (!auth) return { status: 'idle', synthesis: null }
+  const { data, error } = await supabase.functions.invoke('fishbowl-synthesis', {
+    body: { bearer: auth.bearer, slug, mode: 'status' },
+  })
+  if (error || !data || data.error) return { status: 'error', synthesis: null }
+  return { status: (data.status as SynthStatus) ?? 'idle', synthesis: (data.synthesis as SelfSynthesis) ?? null }
 }
 
 export interface WorkManual {
