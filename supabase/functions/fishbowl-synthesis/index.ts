@@ -208,6 +208,7 @@ CROSS-REFERENCE constantly and explicitly. Whenever two activities point the sam
 6. TENDENCIES and BIASES that likely flow from their profile: an archetype's shadow, a trait taken too far, the decision and social biases their exact mix predicts. Frame these as things to keep in the back of their mind.
 7. HOW THEY SHOW UP day to day, in concrete situations (meetings, conflict, slipping deadlines, receiving feedback), drawing on the scenarios, hats and candor.
 8. ACTION PLAN: the single most useful screen. Concrete stop/start behaviours, each GROUNDED in this person's specific data — above all where their SELF-read and the TEAM diverge (the gaps), plus thinking-hat holes, the archetype shadow, and blind spots. Name the exact thing + the move; this is self-aware ("you rate your candor a 2 but the team feels 6, so warm the opener").
+9. SOFT SPOTS (REQUIRED): the tender, private read of the quiet insecurities they may carry — built from their stated FEAR vs what the team actually reported, imposter gaps (self lower than team), and the weakness they own. Reassurance-first, never a gut-punch. This is the "softSpots" output below and it is NOT optional when a fear or a real self-vs-team gap exists.
 
 === VOICE ===
 Second person ("you", "your"). Warm, sharp, honest, a little playful, like a perceptive friend who has read everything about you and is leveling with you. Not a consultant, zero corporate-speak, zero horoscope vagueness. Every claim grounded in the data given; specific over generic. It can sting a little where the data is strong, never cruel, never a roast.
@@ -262,11 +263,11 @@ ${gifPromptBlock('portrait, any of the sections[].body, and howYouComeAcross')}
   "oneOnOne": ["4 to 6 concrete things to raise in a routine 1:1 with their manager. EACH must be SELF-AWARE: anchored in where THEIR OWN read diverges from the TEAM's (a specific gap, blind spot, or watch-out), naming how they see it vs how the team does. A QUESTION to ask or something to SHARE, <= 22 words, starting with 'Ask: ' or 'Share: ' (e.g. 'Share: I rate my candor a 2 but the team reads 6, help me calibrate')."],
   "biases": ["4 to 6 SHORT punchy notes-to-self (<= 9 words each) of the tendencies, blind spots and biases to keep at the back of their mind. No 'Ask/Share' prefix, no bold, just the pattern in plain words (e.g. 'I decide before I loop people in')."],
   "greatAt": [ { "label": "a specific ROLE, RESPONSIBILITY or type of TASK this person would be great at and love (<= 6 words)", "why": "one short clause grounding it in a real STRENGTH + what ENERGIZES them, <= 16 words" } ],
-  "howYouComeAcross": "2 to 3 sentences, second person, that hold up who you HOPE to be seen as (your ASPIRATION) against how you ACTUALLY land, drawing on the team's aura read and the words colleagues reach for most WHERE THEY EXIST. Name the overlap warmly and any gap honestly (never harsh). **bold** 1 to 2 phrases. If no ASPIRATION was given, return an empty string.",
   "softSpots": {
     "heading": "a warm, soft, human title for this section — NOT the word 'insecurities' (e.g. 'The things you carry quietly', 'Where you're hardest on yourself'). <= 6 words.",
-    "body": "2 to 3 SHORT paragraphs (¶¶ between every paragraph, no line breaks), reassurance-FIRST. Surface, gently, the places this person may quietly feel insecure — each built from a REAL signal and ALWAYS paired with the counter-evidence: (a) their stated FEAR vs what the team actually reported (if the data contradicts the fear, say so warmly and plainly — most fears are heavier than the truth); (b) IMPOSTER GAPS where they rate themselves LOWER than the team does ('you're better at X than you let yourself believe'); (c) the weakness they OWN, held kindly, never as indictment; (d) any place a strength reads as effortful or over-proved, hinting at something they feel they must earn. Warm, tender, second person, never clinical, never a gut-punch, never diagnose. **bold** 1 to 2 gentle phrases. If there is NO fear given AND no meaningful self-vs-team gap to draw on, return an empty string — never invent an insecurity."
-  }
+    "body": "2 to 3 SHORT paragraphs (¶¶ between every paragraph, no line breaks), reassurance-FIRST. This is the FEARED self, and it is a SEPARATE, REQUIRED field from howYouComeAcross (which is the HOPED self) — put ALL fear-vs-reality material HERE, never fold it into howYouComeAcross. Surface, gently, the places this person may quietly feel insecure — each built from a REAL signal and ALWAYS paired with the counter-evidence: (a) their stated FEAR ('what they fear people feel about them, true or not') vs what the team actually reported (if the data contradicts the fear, say so warmly and plainly — most fears are heavier than the truth); (b) IMPOSTER GAPS where they rate themselves LOWER than the team does ('you're better at X than you let yourself believe'); (c) the weakness they OWN, held kindly, never as indictment; (d) any place a strength reads as effortful or over-proved, hinting at something they feel they must earn. Warm, tender, second person, never clinical, never a gut-punch, never diagnose. **bold** 1 to 2 gentle phrases. Return this whenever a FEAR or a real self-vs-team gap exists (it almost always does); only return heading and body as empty strings when there is genuinely neither — never invent an insecurity."
+  },
+  "howYouComeAcross": "2 to 3 sentences, second person, that hold up who you HOPE to be seen as (your ASPIRATION) against how you ACTUALLY land, drawing on the team's aura read and the words colleagues reach for most WHERE THEY EXIST. This is the HOPED self ONLY — do NOT discuss what they FEAR here (the feared self belongs in softSpots above). Name the overlap warmly and any gap honestly (never harsh). **bold** 1 to 2 phrases. If no ASPIRATION was given, return an empty string."
 }
 For "greatAt": propose 3 to 4, best first. Combine what the team rates them STRONGEST at (top strengths, high virtues, VIA) with what ENERGIZES them (their energizers) and the role they play, to name concrete things they'd thrive doing. Specific and real (e.g. "Own key client relationships", "Run the launch war-room"), never vague ("be a leader").
 For "constellation": look ONLY at the words the team flagged that the person did NOT own (Johari blind spot, Nohari blind spot, watch-outs). If two or more of them trace to ONE underlying theme, group them into a named constellation (1, at most 2 groups). Use the words VERBATIM as given. If nothing coheres, return an empty array.
@@ -274,7 +275,7 @@ For "softSpots": this is the most tender part of the whole report — a private,
 === CAPTIONS + THROUGH-LINE (as important as the prose) ===
 Each caption is the single one-line takeaway shown on that visual slide, so it must be SHARP and SPECIFIC to this person, never generic, never just restate the slide's title. Second person, one sentence, <= 18 words, **bold** the key phrase, no dashes.
 CRUCIAL: read the ABSOLUTE result AND the self-vs-team gap. Whenever the person and their team meaningfully DISAGREE on that slide's topic (a gap of ~2+ on a 1-9 scale, or a clear blind spot / hidden strength), the caption MUST name that gap, not just the raw number. Where they agree, say what the number means. The through-line is the spine of the whole report: archetype -> two driving signals -> the one tension they create; make "to" sting a little and ring true.
-This is a LONG read: aim for roughly 1800 to 2600 words across portrait + sections (2 to 4 full A4 pages). Rich and specific, cross-referenced, never padded, never repeat a point across sections. The captions, action plan, 1:1 points and biases are separate short outputs — keep them tight. Do not stop short; return the COMPLETE JSON.`
+This is a LONG read: aim for roughly 1800 to 2600 words across portrait + sections (2 to 4 full A4 pages). Rich and specific, cross-referenced, never padded, never repeat a point across sections. The captions, action plan, 1:1 points, biases and softSpots are separate short outputs — keep them tight. Do not stop short; the JSON is only COMPLETE when it includes "howYouComeAcross" AND the "softSpots" object (heading + body) as the final field — never omit softSpots when a fear or a real self-vs-team gap exists. Return the COMPLETE JSON.`
 
     const userPrompt = `SUBJECT: ${name}. Speak TO them in second person; never use their name.
 
@@ -432,6 +433,11 @@ Return the JSON now.`
     const actionPlan = ap && (Array.isArray(ap.stopNow) || Array.isArray(ap.startNow))
       ? { stopNow: three(ap.stopNow), startNow: three(ap.startNow), stopNext: three(ap.stopNext), startNext: three(ap.startNext) }
       : null
+    // Soft spots (the tender "insecurities" read). Only kept when the model wrote a real body.
+    const ss = prose.softSpots && typeof prose.softSpots === 'object' ? prose.softSpots : null
+    const softSpots = ss && typeof ss.body === 'string' && ss.body.trim()
+      ? { heading: stripDashes(String(ss.heading || '')).slice(0, 60), body: stripDashes(String(ss.body)) }
+      : null
 
     const synthesis = {
       title: stripDashes(String(prose.title || 'Your full read')),
@@ -447,6 +453,7 @@ Return the JSON now.`
       ...(biases.length ? { biases } : {}),
       ...(greatAt.length ? { greatAt } : {}),
       ...(typeof prose.howYouComeAcross === 'string' && prose.howYouComeAcross.trim() ? { howYouComeAcross: stripDashes(prose.howYouComeAcross) } : {}),
+      ...(softSpots ? { softSpots } : {}),
       ...(actionPlan && actionPlan.stopNow.length ? { actionPlan } : {}),
       n,
     }
