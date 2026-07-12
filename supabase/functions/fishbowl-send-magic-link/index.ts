@@ -112,7 +112,10 @@ Deno.serve(async (req) => {
       expires_at,
     })
 
-    const claimUrl = `${APP}#/claim/${raw}`
+    // Recovery (no slug = "retrieve my results") lands on the reports list so all of a
+    // person's reports are reachable, not just the newest. A slug-specific link (the
+    // self-assessment flow) keeps the default destination.
+    const claimUrl = `${APP}#/claim/${raw}${slug ? '' : '?next=me'}`
     if (RESEND) {
       await fetch('https://api.resend.com/emails', {
         method: 'POST',

@@ -24,6 +24,7 @@ export default function Create() {
   const [recoverSent, setRecoverSent] = useState(false)
   // Once they pick "create new" for a given email, don't nag again for that same one.
   const [dismissedEmail, setDismissedEmail] = useState('')
+  const [tooSoon, setTooSoon] = useState<string | null>(null) // retry date if the 3-per-quarter guard fires
 
   // When they finish typing an email, check whether it already owns a Fishbowl and, if
   // so, offer to retrieve results vs. start fresh — instead of silently making a duplicate.
@@ -96,8 +97,9 @@ export default function Create() {
       localStorage.setItem(KEY, JSON.stringify({ slug, creator_name: name.trim(), email: email.trim() || null }))
       navigate(`/dashboard/${slug}`)
       return
-    } catch {
-      /* surface later */
+    } catch (e) {
+      const err = e as Error & { retryAt?: string }
+      if (err.message === 'too_soon' && err.retryAt) setTooSoon(err.retryAt)
     }
     setLoading(false)
   }
@@ -152,6 +154,18 @@ export default function Create() {
             {loading ? 'Creating…' : 'Create my link →'}
           </Button>
         </div>
+
+        {tooSoon && (
+          <div className="mt-5 rounded-2xl border-[2.5px] border-ink bg-sand p-4 text-left text-sm shadow-chunky-sm">
+            <p className="font-semibold text-ink">You&rsquo;ve already run two Fishbowls with this email.</p>
+            <p className="mt-1 text-ink-soft">
+              To keep each one meaningful, a new one opens up on{' '}
+              <span className="font-semibold text-ink">{new Date(tooSoon).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}</span>.
+              In the meantime,{' '}
+              <button onClick={() => navigate('/me')} className="cursor-pointer font-semibold text-pink-deep underline">see your reports</button>.
+            </p>
+          </div>
+        )}
       </motion.div>
 
       {/* Email already on record: retrieve results, start fresh, or fix the address. */}

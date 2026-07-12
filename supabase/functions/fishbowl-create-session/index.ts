@@ -47,6 +47,20 @@ Deno.serve(async (req) => {
       const { data, error } = await sb.rpc('fishbowl_identify', { p_email: email, p_name: name })
       if (error || !data) return ok({ error: 'could not identify' }, 500)
       personId = data as string
+      // Guardrail: a person's 1st and 2nd reports are free (a second is often a genuine
+      // redo), but a 3rd+ is capped to once every 3 months so the tool can't be abused as
+      // an unlimited generator. Enforced server-side so the client can't skip it.
+      const { data: prior } = await sb
+        .from('fishbowl_sessions')
+        .select('created_at')
+        .eq('creator_person_id', personId)
+        .order('created_at', { ascending: false })
+      const newest = prior?.[0]?.created_at ? Date.parse(prior[0].created_at) : 0
+      const THREE_MONTHS = 90 * 86_400_000
+      if ((prior?.length ?? 0) >= 2 && Date.now() - newest < THREE_MONTHS) {
+        // 200 (not 429) so supabase-js exposes the body — the client reads retry_at.
+        return ok({ error: 'too_soon', retry_at: new Date(newest + THREE_MONTHS).toISOString() })
+      }
     } else {
       const sentinel = `anon-${randomHex(12)}@device.fishbowl`
       const { data, error } = await sb

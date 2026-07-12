@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { claimToken, saveSelf } from '../lib/self'
 import { setSubjectAuth } from '../lib/subjectAuth'
@@ -8,6 +8,7 @@ import Card from '../components/Card'
 export default function ClaimToken() {
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const [error, setError] = useState(false)
 
   useEffect(() => {
@@ -45,12 +46,15 @@ export default function ClaimToken() {
         /* ignore */
       }
       if (done) return
-      navigate(hasSelf ? `/r/${r.slug}` : `/self/${r.slug}`, { replace: true })
+      // Recovery links ask to land on the reports list (so all reports are reachable);
+      // everything else goes straight to the claimed report (or its self-read).
+      if (params.get('next') === 'me') navigate('/me', { replace: true })
+      else navigate(hasSelf ? `/r/${r.slug}` : `/self/${r.slug}`, { replace: true })
     })
     return () => {
       done = true
     }
-  }, [token, navigate])
+  }, [token, navigate, params])
 
   return (
     <div className="grid min-h-dvh place-items-center px-5 text-center">

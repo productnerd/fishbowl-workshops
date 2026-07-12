@@ -489,15 +489,28 @@ Return the JSON now.`
       .update({ ai_synthesis: synthesis, synthesis_status: 'ready', synthesis_error: null })
       .eq('session_id', session.id)
 
-    // Best-effort: email the subject that their report is ready (they may have left the tab).
+    // Best-effort: email the subject that THIS report is ready (they may have left the tab).
+    // A magic link (single-use, 7 days) so one tap opens the ready report on any device —
+    // claiming mints a fresh device bearer and lands on /r/<slug>.
     try {
       const RESEND = Deno.env.get('RESEND_API_KEY')
       const { data: person } = await sb.from('fishbowl_people').select('email').eq('id', session.creator_person_id).maybeSingle()
-      const email = person?.email
-      if (RESEND && email) {
+      const email = person?.email as string | undefined
+      // Skip synthetic per-device anonymous addresses (they can't receive mail).
+      if (RESEND && email && email.includes('@') && !email.endsWith('@device.fishbowl')) {
         const FROM = Deno.env.get('FISHBOWL_FROM_EMAIL') || 'Fishbowl <onboarding@resend.dev>'
         const APP = Deno.env.get('FISHBOWL_APP_URL') || 'https://productnerd.github.io/fishbowl/'
-        const link = `${APP}#/s/${body.slug}`
+        const rawArr = new Uint8Array(24)
+        crypto.getRandomValues(rawArr)
+        const raw = [...rawArr].map((x) => x.toString(16).padStart(2, '0')).join('')
+        const token_hash = await sha256hex(raw)
+        await sb.from('fishbowl_magic_tokens').insert({
+          person_id: session.creator_person_id,
+          session_id: session.id,
+          token_hash,
+          expires_at: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+        })
+        const link = `${APP}#/claim/${raw}`
         await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: { 'content-type': 'application/json', authorization: `Bearer ${RESEND}` },
@@ -505,7 +518,7 @@ Return the JSON now.`
             from: FROM,
             to: email,
             subject: 'Your Fishbowl is ready 🐟',
-            html: `<p>Hi ${name},</p><p>Your report just finished. Open it on the same device you started on:</p><p><a href="${link}">${link}</a></p><p>— Fishbowl</p>`,
+            html: `<p>Hi ${name},</p><p>Your report just finished — here's your private link (opens on any device):</p><p><a href="${link}">Open my Fishbowl report →</a></p><p style="color:#5a4f45;font-size:13px">Single-use, expires in 7 days.</p>`,
           }),
         })
         await sb.from('fishbowl_self_assessments').update({ synthesis_notified_at: new Date().toISOString() }).eq('session_id', session.id)

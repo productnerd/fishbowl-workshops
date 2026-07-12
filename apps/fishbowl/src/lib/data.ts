@@ -13,8 +13,36 @@ export async function createSession(
   const { data, error } = await supabase.functions.invoke('fishbowl-create-session', {
     body: { name, slug, context: context ?? '', email: email?.trim() || '' },
   })
+  // Guardrail hit: a 3rd+ report inside the 3-month window. Surface it with the retry date.
+  if (data?.error === 'too_soon') {
+    const e = new Error('too_soon') as Error & { retryAt?: string }
+    e.retryAt = data.retry_at
+    throw e
+  }
   if (error || !data || data.error || !data.bearer) throw new Error(data?.error || 'could not create session')
   return { slug: data.slug ?? slug, bearer: data.bearer, person_id: data.person_id }
+}
+
+// Every report this person owns (via their device bearer), newest first — the data
+// behind the "your reports" screen. One person can accumulate several over time.
+export interface MyReport {
+  slug: string
+  name: string
+  respondents: number
+  createdAt: string
+  generatedAt: string | null
+  ready: boolean
+  selfDone: boolean
+  deepRead: boolean
+}
+export async function getMyReports(bearer: string): Promise<MyReport[]> {
+  try {
+    const { data, error } = await supabase.functions.invoke('fishbowl-my-reports', { body: { bearer } })
+    if (error || !data || data.error) return []
+    return (data.reports as MyReport[]) ?? []
+  } catch {
+    return []
+  }
 }
 
 // Does this email already own a Fishbowl? Lets the create form offer "retrieve vs.

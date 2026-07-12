@@ -198,6 +198,11 @@ export default function Landing() {
                 )}
               </Button>
               <span className="text-sm font-semibold text-ink-soft">FREE · no signup needed</span>
+              {mySlug && (
+                <button onClick={() => navigate('/me')} className="cursor-pointer text-sm font-semibold text-pink-deep underline">
+                  Your reports →
+                </button>
+              )}
             </div>
           </motion.div>
         </div>
