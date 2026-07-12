@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
 
     // ── Assemble every signal, with self vs team overlaid where both exist ──
     const sp = self.self_payload || {}
-    const refl = (sp.reflections || {}) as { aspiration?: string; blindspot?: string; manual?: string }
+    const refl = (sp.reflections || {}) as { aspiration?: string; fear?: string; blindspot?: string; manual?: string }
     const bf = self.big_five || {}
     // Trait dimensions from the raw self answers, grouped by orientation for the prompt.
     const dims = self.ocean_answers && typeof self.ocean_answers === 'object' ? scoreDimensions(self.ocean_answers) : []
@@ -236,9 +236,9 @@ ${gifPromptBlock('portrait, any of the sections[].body, and howYouComeAcross')}
   ],
   "actionPlan": {
     "stopNow": ["exactly 3 behaviours to STOP this week", "each grounded in THIS person's specific data (a self-vs-team gap, a blind spot, a virtue past the mean, a thinking hat that runs cold, the archetype's shadow) + a concrete how, <= 16 words, **bold** one phrase", "a third"],
-    "startNow": ["exactly 3 to START this week, same grounding", "second", "third"],
+    "startNow": ["exactly 3 to START this week. At LEAST ONE must be a concrete step toward their ASPIRATION (who they said they want to become), the rest grounded in a specific gap / blind spot / watch-out. Each with a concrete how, <= 16 words, **bold** one phrase", "second", "third"],
     "stopNext": ["exactly 3 MORE to stop once the first are habit (a level-up)", "second", "third"],
-    "startNext": ["exactly 3 MORE to start once the first are habit", "second", "third"]
+    "startNext": ["exactly 3 MORE to start once the first are habit. At LEAST ONE a bigger stretch toward the ASPIRATION.", "second", "third"]
   },
   "captions": {
     "strengths": "ONE punchy sentence (<= 18 words) on the through-line of their strengths",
@@ -262,10 +262,15 @@ ${gifPromptBlock('portrait, any of the sections[].body, and howYouComeAcross')}
   "oneOnOne": ["4 to 6 concrete things to raise in a routine 1:1 with their manager. EACH must be SELF-AWARE: anchored in where THEIR OWN read diverges from the TEAM's (a specific gap, blind spot, or watch-out), naming how they see it vs how the team does. A QUESTION to ask or something to SHARE, <= 22 words, starting with 'Ask: ' or 'Share: ' (e.g. 'Share: I rate my candor a 2 but the team reads 6, help me calibrate')."],
   "biases": ["4 to 6 SHORT punchy notes-to-self (<= 9 words each) of the tendencies, blind spots and biases to keep at the back of their mind. No 'Ask/Share' prefix, no bold, just the pattern in plain words (e.g. 'I decide before I loop people in')."],
   "greatAt": [ { "label": "a specific ROLE, RESPONSIBILITY or type of TASK this person would be great at and love (<= 6 words)", "why": "one short clause grounding it in a real STRENGTH + what ENERGIZES them, <= 16 words" } ],
-  "howYouComeAcross": "2 to 3 sentences, second person, that hold up who you HOPE to be seen as (your ASPIRATION) against how you ACTUALLY land, drawing on the team's aura read and the words colleagues reach for most WHERE THEY EXIST. Name the overlap warmly and any gap honestly (never harsh). **bold** 1 to 2 phrases. If no ASPIRATION was given, return an empty string."
+  "howYouComeAcross": "2 to 3 sentences, second person, that hold up who you HOPE to be seen as (your ASPIRATION) against how you ACTUALLY land, drawing on the team's aura read and the words colleagues reach for most WHERE THEY EXIST. Name the overlap warmly and any gap honestly (never harsh). **bold** 1 to 2 phrases. If no ASPIRATION was given, return an empty string.",
+  "softSpots": {
+    "heading": "a warm, soft, human title for this section — NOT the word 'insecurities' (e.g. 'The things you carry quietly', 'Where you're hardest on yourself'). <= 6 words.",
+    "body": "2 to 3 SHORT paragraphs (¶¶ between every paragraph, no line breaks), reassurance-FIRST. Surface, gently, the places this person may quietly feel insecure — each built from a REAL signal and ALWAYS paired with the counter-evidence: (a) their stated FEAR vs what the team actually reported (if the data contradicts the fear, say so warmly and plainly — most fears are heavier than the truth); (b) IMPOSTER GAPS where they rate themselves LOWER than the team does ('you're better at X than you let yourself believe'); (c) the weakness they OWN, held kindly, never as indictment; (d) any place a strength reads as effortful or over-proved, hinting at something they feel they must earn. Warm, tender, second person, never clinical, never a gut-punch, never diagnose. **bold** 1 to 2 gentle phrases. If there is NO fear given AND no meaningful self-vs-team gap to draw on, return an empty string — never invent an insecurity."
+  }
 }
 For "greatAt": propose 3 to 4, best first. Combine what the team rates them STRONGEST at (top strengths, high virtues, VIA) with what ENERGIZES them (their energizers) and the role they play, to name concrete things they'd thrive doing. Specific and real (e.g. "Own key client relationships", "Run the launch war-room"), never vague ("be a leader").
 For "constellation": look ONLY at the words the team flagged that the person did NOT own (Johari blind spot, Nohari blind spot, watch-outs). If two or more of them trace to ONE underlying theme, group them into a named constellation (1, at most 2 groups). Use the words VERBATIM as given. If nothing coheres, return an empty array.
+For "softSpots": this is the most tender part of the whole report — a private, kind mirror for the quiet worries this person carries. Draw on the FEARED SELF (their stated fear), the FEAR-vs-reality contrast, imposter gaps (self lower than team), the owned weakness, and any over-proved strength. The reader should finish it feeling SEEN and RELIEVED, not exposed. Reassurance leads and closes; every named soft spot is anchored to real evidence AND softened by counter-evidence. If you have no fear and no meaningful self-vs-team gap, return heading and body both as empty strings.
 === CAPTIONS + THROUGH-LINE (as important as the prose) ===
 Each caption is the single one-line takeaway shown on that visual slide, so it must be SHARP and SPECIFIC to this person, never generic, never just restate the slide's title. Second person, one sentence, <= 18 words, **bold** the key phrase, no dashes.
 CRUCIAL: read the ABSOLUTE result AND the self-vs-team gap. Whenever the person and their team meaningfully DISAGREE on that slide's topic (a gap of ~2+ on a 1-9 scale, or a clear blind spot / hidden strength), the caption MUST name that gap, not just the raw number. Where they agree, say what the number means. The through-line is the spine of the whole report: archetype -> two driving signals -> the one tension they create; make "to" sting a little and ring true.
@@ -330,10 +335,13 @@ ${energizerLines.join('\n') || '(none)'}
 ${responsibilities.join('\n') || '(none)'}
 
 === IN THEIR OWN WORDS (self-written, private) ===
-Wants the team to describe them as: ${refl.aspiration || '(not given)'}
+Wants the team to describe them as (their ASPIRATION — treat this as a GOAL, the person they are reaching to become): ${refl.aspiration || '(not given)'}
+What they FEAR people might feel about them, true or not (their FEARED SELF — private, tender, may be pure anxiety not reality): ${refl.fear || '(not given)'}
 A weakness they own / feedback they keep hearing: ${refl.blindspot || '(not given)'}
 Their user manual for a new teammate: ${refl.manual || '(not given)'}
 Use these where they add colour and voice: contrast the ASPIRATION with how the team actually describes them (a real self-vs-team signal), take the OWNED weakness seriously and connect it to the data, and let the user manual sharpen the practical advice. Quote their phrasing sparingly.
+The ASPIRATION is not just colour — it is a destination. The action plan must actively help them BECOME that person, not only fix what's broken.
+The FEAR feeds the "soft spots" section below: check each fear against what the team actually reported and, wherever the data contradicts the fear, say so plainly and warmly — most fears are heavier than the truth.
 
 === HOW YOU LAND ON PEOPLE (team) ===
 Your aura / vibe (team's read): ${auraSummary || '(not given)'}

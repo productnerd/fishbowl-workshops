@@ -174,7 +174,7 @@ export default function Landing() {
           </motion.p>
           <motion.h1 {...rise(0.12)} className="display text-[clamp(2.8rem,8vw,6rem)] leading-[0.95]">
             See yourself the way your{' '}
-            <span className="relative inline-block text-blue-deep">
+            <span className="relative inline-block text-paper-hi">
               team does
               <svg className="absolute -bottom-3 left-0 w-full" height="16" viewBox="0 0 300 16" fill="none" preserveAspectRatio="none">
                 <path d="M3 11C70 4 230 3 297 9" stroke="var(--color-pink-deep)" strokeWidth="5" strokeLinecap="round" />

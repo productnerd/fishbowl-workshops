@@ -78,7 +78,7 @@ export default function Questionnaire() {
   const navigate = useNavigate()
   const [saved] = useState(() => readSurveyProgress(slug))
   const [session, setSession] = useState<Session | null>(null)
-  // How much the colleague chose to give: quick (~6-7 min) or full (~13-14 min). Null until
+  // How much the colleague chose to give: quick (~2-3 min) or full (~6-8 min). Null until
   // they pick on the screen after the intro. Restored from saved progress so resume matches.
   const [depth, setDepth] = useState<SurveyDepth | null>(() =>
     saved.depth === 'quick' || saved.depth === 'standard' || saved.depth === 'full' ? (saved.depth as SurveyDepth) : null
@@ -323,7 +323,7 @@ export default function Questionnaire() {
               <span className="absolute -top-3 right-5 rounded-full border-2 border-ink bg-paper-hi px-3 py-0.5 text-xs font-black uppercase tracking-wide text-pink-deep">
                 ♥ the most love
               </span>
-              <span className="kicker text-ink/70">~9 to 10 minutes</span>
+              <span className="kicker text-ink/70">~6 to 8 minutes</span>
               <span className="display mt-1 block text-2xl leading-tight">Go all in</span>
               <p className="mt-1.5 text-[0.95rem] leading-snug text-ink/80">
                 Every activity, the whole picture. The deepest, most accurate read.
@@ -335,7 +335,7 @@ export default function Questionnaire() {
               onClick={() => choose('standard')}
               className="press cursor-pointer rounded-3xl border-[2.5px] border-ink bg-paper-hi px-6 py-4 text-left shadow-chunky-sm"
             >
-              <span className="kicker text-ink-soft">~6 minutes</span>
+              <span className="kicker text-ink-soft">~3 to 4 minutes</span>
               <span className="display mt-1 block text-xl leading-tight">A generous read</span>
               <p className="mt-1 text-sm leading-snug text-ink-soft">
                 The essentials, plus the words people reach for and a few kind watch-outs.
@@ -347,7 +347,7 @@ export default function Questionnaire() {
               onClick={() => choose('quick')}
               className="press cursor-pointer rounded-3xl border-[2.5px] border-ink bg-paper-hi px-6 py-4 text-left shadow-chunky-sm"
             >
-              <span className="kicker text-ink-soft">~4 to 5 minutes</span>
+              <span className="kicker text-ink-soft">~2 to 3 minutes</span>
               <span className="display mt-1 block text-xl leading-tight">Keep it short</span>
               <p className="mt-1 text-sm leading-snug text-ink-soft">
                 The essentials: their character, the core ratings, and your honest words.

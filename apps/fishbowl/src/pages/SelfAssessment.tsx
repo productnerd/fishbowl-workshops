@@ -53,9 +53,9 @@ type SelfDepth = {
 }
 const ALL_FRAMEWORKS = ['sixhats', 'belbin', 'adjectives']
 const DEPTHS: SelfDepth[] = [
-  { id: 'quick', name: 'Quick', perTrait: 4, time: '~4 min', accuracy: 3, energizers: false, frameworks: [], blurb: 'The essentials. A solid first read.' },
-  { id: 'standard', name: 'Standard', perTrait: 6, time: '~6 min', accuracy: 4, energizers: true, frameworks: ['sixhats', 'adjectives'], blurb: 'More questions, a sharper read. The sweet spot.' },
-  { id: 'extended', name: 'Extended', perTrait: 8, time: '~8 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
+  { id: 'quick', name: 'Quick', perTrait: 4, time: '~5 to 6 min', accuracy: 3, energizers: false, frameworks: [], blurb: 'The essentials. A solid first read.' },
+  { id: 'standard', name: 'Standard', perTrait: 6, time: '~8 to 9 min', accuracy: 4, energizers: true, frameworks: ['sixhats', 'adjectives'], blurb: 'More questions, a sharper read. The sweet spot.' },
+  { id: 'extended', name: 'Extended', perTrait: 8, time: '~10 to 11 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
 ]
 
 type Phase = 'checking' | 'needauth' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks' | 'reflections'
@@ -151,8 +151,9 @@ export default function SelfAssessment() {
         setSelfBelbin((sp.belbin as Record<string, number>) ?? {})
         setSelfJohari((sp.johari as string[]) ?? [])
         setSelfNohari((sp.nohari as string[]) ?? [])
-        const refl = (sp.reflections as { aspiration?: string; blindspot?: string; manual?: string }) ?? {}
+        const refl = (sp.reflections as { aspiration?: string; fear?: string; blindspot?: string; manual?: string }) ?? {}
         setAspireWords(refl.aspiration ?? '')
+        setFearWords(refl.fear ?? '')
         setSelfBlindspot(refl.blindspot ?? '')
         setSelfManual(refl.manual ?? '')
         setPhase(sp.progress as Phase)
@@ -179,6 +180,7 @@ export default function SelfAssessment() {
   const [selfNohari, setSelfNohari] = useState<string[]>(() => (savedSelf.selfNohari as string[]) ?? [])
   // Free-text reflections (optional, private to the subject) — add colour + voice.
   const [aspireWords, setAspireWords] = useState<string>(() => (typeof savedSelf.aspiration === 'string' ? savedSelf.aspiration : ''))
+  const [fearWords, setFearWords] = useState<string>(() => (typeof savedSelf.fear === 'string' ? savedSelf.fear : ''))
   const [selfBlindspot, setSelfBlindspot] = useState<string>(() => (typeof savedSelf.blindspot === 'string' ? savedSelf.blindspot : ''))
   const [selfManual, setSelfManual] = useState<string>(() => (typeof savedSelf.manual === 'string' ? savedSelf.manual : ''))
 
@@ -257,13 +259,13 @@ export default function SelfAssessment() {
           phase, depthIdx, depth, i, vIdx, fwIdx, answers, bigFive, mbti,
           selfVirtues, energizerTags, respTiers, responsibilities,
           selfHats, selfBelbin, selfVia, selfJohari, selfNohari,
-          aspiration: aspireWords, blindspot: selfBlindspot, manual: selfManual,
+          aspiration: aspireWords, fear: fearWords, blindspot: selfBlindspot, manual: selfManual,
         })
       )
     } catch {
       /* storage full / disabled */
     }
-  }, [slug, phase, depthIdx, depth, i, vIdx, fwIdx, answers, bigFive, mbti, selfVirtues, energizerTags, respTiers, responsibilities, selfHats, selfBelbin, selfVia, selfJohari, selfNohari, aspireWords, selfBlindspot, selfManual])
+  }, [slug, phase, depthIdx, depth, i, vIdx, fwIdx, answers, bigFive, mbti, selfVirtues, energizerTags, respTiers, responsibilities, selfHats, selfBelbin, selfVia, selfJohari, selfNohari, aspireWords, fearWords, selfBlindspot, selfManual])
 
   const q = items[Math.min(i, items.length - 1)]
   const pct = ((i + 1) / items.length) * 100
@@ -301,6 +303,7 @@ export default function SelfAssessment() {
       nohari: selfNohari,
       reflections: {
         aspiration: aspireWords.trim(),
+        fear: fearWords.trim(),
         blindspot: selfBlindspot.trim(),
         manual: selfManual.trim(),
       },
@@ -865,6 +868,11 @@ export default function SelfAssessment() {
           <label className="mt-7 block">
             <span className="serif text-lg font-semibold text-ink">In as few words as possible, how do you wish your team described you?</span>
             <textarea value={aspireWords} onChange={(e) => setAspireWords(e.target.value)} rows={2} maxLength={160} placeholder="e.g. calm, decisive, generous" className={ta} />
+          </label>
+
+          <label className="mt-5 block">
+            <span className="serif text-lg font-semibold text-ink">And what do you fear people might feel about you, whether it&rsquo;s true or not?</span>
+            <textarea value={fearWords} onChange={(e) => setFearWords(e.target.value)} rows={2} maxLength={200} placeholder="The worry at the back of your mind…" className={ta} />
           </label>
 
           <label className="mt-5 block">

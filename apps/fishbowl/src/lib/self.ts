@@ -58,6 +58,9 @@ export interface SelfSynthesis {
   greatAt?: { label: string; why: string }[]
   // How you come across: your hoped-for image held up against the team's aura read + words.
   howYouComeAcross?: string
+  // Soft spots: the tender, reassurance-first "insecurities" read, AI-written from
+  // the feared self + self-vs-team gaps. Empty strings when there's nothing honest to say.
+  softSpots?: { heading: string; body: string }
   n: number
 }
 

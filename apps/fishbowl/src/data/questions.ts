@@ -211,10 +211,10 @@ const withName = (q: Question, name: string, lens: Lens): Question => {
 export type SurveyDepth = 'quick' | 'standard' | 'full'
 
 // The colleague chooses how much to give. Everyone answers CORE (no `pool`). QUICK adds only
-// the light At-Work ratings (~6 to 7 min). STANDARD adds the fast, fun signal modules too
-// (situations, strengths, the word portraits, watch-outs) (~10 min). FULL adds every deeper
-// framework activity (~13 to 14 min). Aggregation tolerates missing answers, so the three
-// mix freely.
+// the light At-Work ratings (~2 to 3 min). STANDARD adds the merged adjective portrait too
+// (~3 to 4 min). FULL adds every deeper framework activity (~6 to 8 min; ~5 to 6 for the
+// personal lens, which drops the work-only Belbin + responsibilities). Aggregation tolerates
+// missing answers, so the three mix freely.
 const QUICK_POOLS = new Set(['comp_a', 'comp_b'])
 // The three adjective decks (via / johari / nohari) are merged into the single Johari
 // pick (id 30) — see COLLEAGUE_SKIP + the questionnaire's johari branch — so Standard now

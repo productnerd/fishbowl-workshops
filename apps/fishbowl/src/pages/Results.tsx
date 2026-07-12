@@ -575,6 +575,31 @@ export default function Results() {
     })
   }
 
+  // Soft spots: the tender, reassurance-first read of the quiet insecurities they may carry,
+  // AI-written from their feared self + self-vs-team gaps. Self-gated, and only when the model
+  // had something honest to say. Sits at sec 6.9 — just before the action plan — so the reader
+  // is soothed first, then handed a plan aimed at who they said they want to become.
+  if (hasSelf && synthesis?.softSpots?.body) {
+    cards.push({
+      tone: 'sand',
+      sec: 6.9,
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">just between us</p>
+          <h2 className="display mb-1 text-3xl text-ink">
+            {synthesis.softSpots.heading || 'The things you carry quietly'}
+          </h2>
+          <p className="mb-5 text-sm italic text-ink/55">
+            the insecurities you might be quietly carrying, held up to what&rsquo;s actually true
+          </p>
+          <div className="text-[1.05rem] leading-relaxed text-ink/90">
+            <Rich text={synthesis.softSpots.body} />
+          </div>
+        </div>
+      ),
+    })
+  }
+
   // Archetype: derived from the team virtue means (always), blended with the subject's
   // Big Five when they've self-assessed. Placed late in the deck (a closing lens), well
   // after the personality card.
@@ -854,28 +879,103 @@ export default function Results() {
   // The Jungian archetype sits late, just before the closing.
   if (archCard) cards.splice(cards.length - 1, 0, archCard)
 
-  // Self-vs-team, as pictures (bearer-gated). Two fixed, data-driven slides that
-  // replace the old text "you vs them" card: a dumbbell of every gap, then a blind
-  // spot / hidden strength quadrant. Needs both self virtue picks and team means.
-  const gapRows = hasSelf && selfVirtues
-    ? insights.virtues
-        .map((v) => ({ label: v.name, self: selfVirtues[v.dimension] as number, team: v.mu }))
-        .filter((r) => typeof r.self === 'number' && !Number.isNaN(r.self))
-        .sort((a, b) => Math.abs(b.self - b.team) - Math.abs(a.self - a.team))
-    : []
-  if (gapRows.length > 0) {
+  // Self-vs-team perception maps (bearer-gated). Two rich 2×2 quadrants that fuse many
+  // signals — virtues, thinking hats and the Johari/Nohari adjective picks — onto one
+  // plane: across = how the team rates you, up = how you rate yourself. Off the diagonal
+  // is where you and they disagree. One map for strengths, one for watch-outs. These sit
+  // alongside (not instead of) the Johari/Nohari windows. Needs the self side.
+  const to9 = (frac01: number) => 1 + Math.max(0, Math.min(1, frac01)) * 8 // 0..1 → 1..9
+  const adj9 = (count: number, n: number) => (n > 0 ? to9(count / n) : 1) // adjective freq → 1..9
+  const selfHatsRec = (selfHats as Record<string, number> | null) ?? null
+
+  // STRENGTHS: virtues + thinking hats (graded), plus every Johari word (self picked = 9,
+  // team frequency mapped to 1..9). Keep the most informative by self-vs-team gap.
+  const strengthPts: { label: string; self: number; team: number }[] = []
+  if (hasSelf && selfVirtues) {
+    insights.virtues.forEach((v) => {
+      const s = selfVirtues[v.dimension] as number | undefined
+      if (typeof s === 'number') strengthPts.push({ label: v.name.toLowerCase(), self: s, team: v.mu })
+    })
+    if (selfHatsRec) {
+      ;(insights.hats ?? []).forEach((h) => {
+        const s = selfHatsRec[h.key]
+        if (h.n > 0 && typeof s === 'number') strengthPts.push({ label: (HATS.find((x) => x.key === h.key)?.mode ?? h.key).toLowerCase(), self: s, team: h.mu })
+      })
+    }
+    const jn = insights.johari?.n ?? 0
+    ;(insights.johari?.counts ?? []).forEach((c) => {
+      strengthPts.push({ label: c.word, self: (selfJohari ?? []).includes(c.word) ? 9 : 1, team: adj9(c.count, jn) })
+    })
+  }
+  const strengthMap = strengthPts
+    .filter((p) => p.self >= 4 || p.team >= 4)
+    .sort((a, b) => Math.abs(b.self - b.team) - Math.abs(a.self - a.team))
+    .slice(0, 9)
+
+  // WATCH-OUTS: every Nohari word the team named (>=2, kindness guard) or you owned, plus
+  // the virtues pushed off-centre, expressed as how strongly each side feels the imbalance.
+  const weaknessPts: { label: string; self: number; team: number }[] = []
+  if (hasSelf) {
+    const nn = insights.nohari?.n ?? 0
+    const nohariWords = new Map<string, number>()
+    teamNohari.forEach((c) => nohariWords.set(c.word, c.count))
+    ;(selfNohari ?? []).forEach((w) => { if (!nohariWords.has(w)) nohariWords.set(w, 0) })
+    nohariWords.forEach((count, word) => {
+      weaknessPts.push({ label: word, self: (selfNohari ?? []).includes(word) ? 9 : 1, team: adj9(count, nn) })
+    })
+    if (selfVirtues) {
+      insights.virtues.forEach((v) => {
+        const s = selfVirtues[v.dimension] as number | undefined
+        if (typeof s !== 'number') return
+        const teamDist = Math.abs(v.mu - 5)
+        const selfDist = Math.abs(s - 5)
+        if (teamDist < 1.5 && selfDist < 1.5) return // balanced by both → not a watch-out
+        const pole = v.mu >= 5 ? v.excessivePole : v.deficientPole
+        weaknessPts.push({ label: (pole ?? v.name).toLowerCase(), self: to9(selfDist / 4), team: to9(teamDist / 4) })
+      })
+    }
+  }
+  const weaknessMap = weaknessPts
+    .filter((p) => p.self >= 4 || p.team >= 4)
+    .sort((a, b) => Math.abs(b.self - b.team) - Math.abs(a.self - a.team))
+    .slice(0, 9)
+
+  if (strengthMap.length >= 4) {
     cards.splice(cards.length - 1, 0, {
       tone: 'paper',
-      sec: 4.3,
+      sec: 4.05,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
-            the map
-            <InfoTip text="Every trait plotted: across = how the team rates you, up = how you rate yourself. Off the diagonal is where you and the team disagree, blind spots above it, hidden strengths below." />
+            the strengths map
+            <InfoTip text="Many signals on one plane — virtues, thinking styles and the words your team picked. Across = how the team sees each, up = how you see it. Above the diagonal you rate yourself higher (a blind spot); below it the team rates you higher (a hidden strength you undersell)." />
           </p>
-          <h2 className="display mb-4 text-3xl">Blind spots &amp; hidden strengths</h2>
+          <h2 className="display mb-4 text-3xl">Where you and they agree on your strengths</h2>
           {cap('blindspots')}
-          <BlindSpotQuadrant points={gapRows} />
+          <BlindSpotQuadrant points={strengthMap} />
+        </div>
+      ),
+    })
+  }
+
+  if (weaknessMap.length >= 4) {
+    cards.splice(cards.length - 1, 0, {
+      tone: 'paper',
+      sec: 4.25,
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">
+            the watch-outs map
+            <InfoTip text="The same plane for growth edges. Across = how much the team flags each, up = how much you own it. Above the diagonal you're harder on yourself than they are; below it they see something you don't — a blind spot." />
+          </p>
+          <h2 className="display mb-4 text-3xl">Where you and they agree on your edges</h2>
+          <BlindSpotQuadrant
+            points={weaknessMap}
+            colors={{ blind: '#5b86c4', hidden: '#d9734a', aligned: '#8a7d6d' }}
+            labels={{ blind: 'harder on yourself', hidden: 'blind spot', aligned: 'you agree' }}
+            axisX="how much the team flags it →"
+            axisY="how much you own it →"
+          />
         </div>
       ),
     })
