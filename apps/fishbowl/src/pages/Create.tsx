@@ -72,8 +72,12 @@ export default function Create() {
     setChecking(false)
   }, [navigate])
 
+  // Email is required now — it's how we send the report-ready notification and the
+  // recovery link. Keep the check loose (real MX validation happens when we send).
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+
   const create = async () => {
-    if (!name.trim()) return
+    if (!name.trim() || !emailOk) return
     setLoading(true)
     // Compose a labelled context the AI can parse: role + company vertical + country.
     // Country lets the AI weigh cultural tendencies; role + vertical the work environment.
@@ -85,7 +89,7 @@ export default function Create() {
       .filter(Boolean)
       .join('. ')
     try {
-      const { slug, bearer, person_id } = await createSession(name.trim(), context || undefined, email.trim() || undefined)
+      const { slug, bearer, person_id } = await createSession(name.trim(), context || undefined, email.trim())
       // This browser now owns the session: store the device key so the self-read saves
       // and the report unlocks here with no magic link.
       setSubjectAuth({ bearer, person_id, slug })
@@ -121,7 +125,7 @@ export default function Create() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           onBlur={checkExisting}
-          placeholder="Email (optional), get notified + your report"
+          placeholder="Email — where we send your report"
           maxLength={120}
           className="mt-4 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-left text-base text-ink shadow-chunky-sm outline-none placeholder:text-ink-soft/55 focus:shadow-chunky"
         />
@@ -144,7 +148,7 @@ export default function Create() {
         </div>
         <p className="mt-7 mb-2 text-sm font-semibold text-ink">A little context sharpens the whole AI report</p>
         <div className="mt-1">
-          <Button variant="pink" onClick={create} disabled={!name.trim() || loading} className="!text-xl">
+          <Button variant="pink" onClick={create} disabled={!name.trim() || !emailOk || loading} className="!text-xl">
             {loading ? 'Creating…' : 'Create my link →'}
           </Button>
         </div>

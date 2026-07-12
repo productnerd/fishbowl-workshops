@@ -33,7 +33,7 @@ import WorkManual from '../components/WorkManual'
 import DimensionsProfile from '../components/DimensionsProfile'
 import VirtueGauge from '../components/VirtueGauge'
 import StatBar from '../components/StatBar'
-import { playClick, playQuizTick, playChime, playPaper, playWarm, playTurn } from '../lib/sound'
+import { playClick, playQuizTick, playChime, playPaper, playWarm, playScaleNote } from '../lib/sound'
 import { PRESETS, rowItem, heroReveal, coverChild, type MotionPreset } from '../lib/motion'
 import PersonalityCard, { SideCharacter } from '../components/PersonalityCard'
 import LockedCard from '../components/LockedCard'
@@ -120,6 +120,19 @@ const ACTS: Record<number, { title: string; line: string; color: string }> = {
   5: { title: 'The warm part', line: 'Set the analysis down for a second. This is what they wanted you to hear.', color: '#a83f6f' },
   6: { title: 'Putting it together', line: 'Every thread from the last few minutes, woven into one read.', color: '#6b4e9e' },
   7: { title: 'What to do with it', line: "Insight is nice. Here's how to actually use it this week.", color: '#2a2420' },
+}
+
+// Each chapter cover gets its own happy cue instead of one repeated page-turn tone
+// (the old one descended, which read like an error buzzer). These climb the scale as
+// you move through the deck, with a warm dyad at the honest chapter and a rising bell
+// at the emotional one — so a chapter break always sounds like a lift, never a stumble.
+const ACT_SOUND: Record<number, () => void> = {
+  2: () => playScaleNote(3),
+  3: () => playScaleNote(4),
+  4: playWarm,
+  5: playChime,
+  6: () => playScaleNote(7),
+  7: () => playScaleNote(9),
 }
 
 export default function Results() {
@@ -1191,7 +1204,7 @@ export default function Results() {
     breather: true,
     bare: true,
     motion: 'wash',
-    sound: playTurn,
+    sound: ACT_SOUND[act] ?? playChime,
     node: (
       <div
         className="relative flex min-h-[calc(100dvh-3rem)] flex-col justify-center rounded-[2rem] border-[2.5px] border-ink px-10 py-16 text-center text-paper-hi shadow-chunky sm:px-16"
