@@ -323,7 +323,7 @@ export default function Questionnaire() {
               <span className="absolute -top-3 right-5 rounded-full border-2 border-ink bg-paper-hi px-3 py-0.5 text-xs font-black uppercase tracking-wide text-pink-deep">
                 ♥ the most love
               </span>
-              <span className="kicker text-ink/70">~6 to 8 minutes</span>
+              <span className="kicker text-ink/70">{lens === 'personal' ? '~5 to 6 minutes' : '~6 to 8 minutes'}</span>
               <span className="display mt-1 block text-2xl leading-tight">Go all in</span>
               <p className="mt-1.5 text-[0.95rem] leading-snug text-ink/80">
                 Every activity, the whole picture. The deepest, most accurate read.
