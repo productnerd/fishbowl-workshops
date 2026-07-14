@@ -60,6 +60,18 @@ export async function emailHasSession(email: string): Promise<boolean> {
   }
 }
 
+// Fetch the shared viewer key for a DEMO session (public, non-expiring). Powers the
+// /demo/<slug> link that can be shared with many people. Returns null for non-demo slugs.
+export async function getDemoBearer(slug: string): Promise<{ bearer: string; person_id: string; slug: string } | null> {
+  try {
+    const { data, error } = await supabase.functions.invoke('fishbowl-demo-bearer', { body: { slug } })
+    if (error || !data || data.error || !data.bearer) return null
+    return { bearer: data.bearer, person_id: data.person_id, slug: data.slug }
+  } catch {
+    return null
+  }
+}
+
 // Email the owner a one-tap link to their latest report (magic link, no slug needed).
 // Owner-verified: only the mailbox holder can act on it, so it never leaks a session.
 export async function recoverLatestResults(email: string): Promise<void> {

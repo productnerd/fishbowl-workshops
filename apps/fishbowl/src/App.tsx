@@ -15,6 +15,7 @@ const ManagerReport = lazy(() => import('./pages/ManagerReport'))
 const SelfAssessment = lazy(() => import('./pages/SelfAssessment'))
 const ClaimToken = lazy(() => import('./pages/ClaimToken'))
 const MyReports = lazy(() => import('./pages/MyReports'))
+const Demo = lazy(() => import('./pages/Demo'))
 const Legal = lazy(() => import('./pages/Legal'))
 
 // A tiny CSS-only spinner while a route chunk loads (no framer-motion, so the shell
@@ -42,6 +43,7 @@ export default function App() {
           <Route path="/self/:slug" element={<SelfAssessment />} />
           <Route path="/claim/:token" element={<ClaimToken />} />
           <Route path="/me" element={<MyReports />} />
+          <Route path="/demo/:slug" element={<Demo />} />
           <Route path="/manager-report" element={<ManagerReport />} />
           <Route path="/privacy" element={<Legal kind="privacy" />} />
           <Route path="/terms" element={<Legal kind="terms" />} />
