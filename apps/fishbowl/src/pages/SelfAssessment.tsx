@@ -436,14 +436,15 @@ export default function SelfAssessment() {
   if (phase === 'intro') {
     // Each card is framed as a takeaway (what you walk away knowing) plus why it's worth it.
     const explore = [
-      { icon: '🧠', title: 'What makes you tick', sub: 'The traits driving how you work, so you can play to them on purpose.' },
-      { icon: '🎩', title: 'How your mind works', sub: 'Your default thinking modes, and where a different gear would serve you.' },
-      { icon: '⚖️', title: 'The strengths you lead with', sub: 'Name your signature virtues so you can put them to work deliberately.' },
-      { icon: '⚡', title: 'What energizes you', sub: 'What fuels you versus what drains you, so you can build better days.' },
-      { icon: '🤝', title: 'Where you fit on a team', sub: 'The role you naturally take, so you can claim the spots where you shine.' },
-      { icon: '🎯', title: 'How you handle honesty', sub: 'Your candor style, so tough conversations land the way you mean them.' },
-      { icon: '🪞', title: 'Your blind spots', sub: 'The gap between how you see yourself and how others do. The fastest place to grow.' },
-      { icon: '✍️', title: "What's really on your mind", sub: 'Your quiet hopes and worries, surfaced kindly and put in perspective.' },
+      { icon: '🧠', title: 'What makes you tick', sub: 'Your core wiring, so you can lean into it.' },
+      { icon: '🎩', title: 'How your mind works', sub: 'The thinking modes you default to.' },
+      { icon: '⚖️', title: 'Strengths you lead with', sub: 'Your signature virtues, put to work.' },
+      { icon: '⚡', title: 'What energizes you', sub: 'What fuels you versus what drains you.' },
+      { icon: '🤝', title: 'Where you fit on a team', sub: 'The role you naturally take.' },
+      { icon: '🎯', title: 'How you handle honesty', sub: 'Your candor style in the hard talks.' },
+      { icon: '🪞', title: 'Your blind spots', sub: 'Where your view and theirs differ.' },
+      { icon: '🌱', title: 'What to work on', sub: 'Your growth edges, named kindly.' },
+      { icon: '🎭', title: 'Which character you are', sub: 'The literary figure you mirror.' },
     ]
     return (
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mx-auto w-full max-w-lg px-5 py-10">
@@ -454,12 +455,12 @@ export default function SelfAssessment() {
         </p>
 
         <p className="kicker mb-3 mt-8 text-blue-deep">what you&rsquo;ll walk away with</p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-2.5">
           {explore.map((e) => (
-            <div key={e.title} className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3.5 shadow-chunky-sm">
-              <div className="text-2xl leading-none">{e.icon}</div>
-              <p className="mt-2 font-display text-sm font-black leading-tight text-ink">{e.title}</p>
-              <p className="mt-0.5 text-xs leading-snug text-ink-soft">{e.sub}</p>
+            <div key={e.title} className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-2.5 shadow-chunky-sm">
+              <div className="text-xl leading-none">{e.icon}</div>
+              <p className="mt-1.5 font-display text-[13px] font-black leading-tight text-ink">{e.title}</p>
+              <p className="mt-0.5 text-[11px] leading-snug text-ink-soft">{e.sub}</p>
             </div>
           ))}
         </div>
