@@ -434,30 +434,26 @@ export default function SelfAssessment() {
   }
 
   if (phase === 'intro') {
+    // Each card is framed as a takeaway (what you walk away knowing) plus why it's worth it.
     const explore = [
-      { icon: '🧠', title: 'Personality', sub: 'Your Big Five make-up' },
-      { icon: '🎩', title: 'How you think', sub: 'Your thinking-hat mix' },
-      { icon: '⚖️', title: 'Character strengths', sub: 'The virtues you lead with' },
-      { icon: '⚡', title: 'What energizes you', sub: 'What fuels vs. drains you' },
-      { icon: '🤝', title: 'Your team role', sub: 'How you show up in a group' },
-      { icon: '🎯', title: 'Candor style', sub: 'How you give & take honesty' },
-      { icon: '🪞', title: 'Blind spots & hidden strengths', sub: 'You vs. how they see you' },
-      { icon: '✍️', title: 'In your own words', sub: 'Your hopes, fears & watch-outs' },
-    ]
-    const tips = [
-      { icon: '⚡', text: 'Answer with your gut — your first instinct is the truest one' },
-      { icon: '🫶', text: 'No right or wrong answers, just honest reflection' },
-      { icon: '💾', text: 'Save anytime, pick up on any device' },
+      { icon: '🧠', title: 'What makes you tick', sub: 'The traits driving how you work, so you can play to them on purpose.' },
+      { icon: '🎩', title: 'How your mind works', sub: 'Your default thinking modes, and where a different gear would serve you.' },
+      { icon: '⚖️', title: 'The strengths you lead with', sub: 'Name your signature virtues so you can put them to work deliberately.' },
+      { icon: '⚡', title: 'What energizes you', sub: 'What fuels you versus what drains you, so you can build better days.' },
+      { icon: '🤝', title: 'Where you fit on a team', sub: 'The role you naturally take, so you can claim the spots where you shine.' },
+      { icon: '🎯', title: 'How you handle honesty', sub: 'Your candor style, so tough conversations land the way you mean them.' },
+      { icon: '🪞', title: 'Your blind spots', sub: 'The gap between how you see yourself and how others do. The fastest place to grow.' },
+      { icon: '✍️', title: "What's really on your mind", sub: 'Your quiet hopes and worries, surfaced kindly and put in perspective.' },
     ]
     return (
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mx-auto w-full max-w-lg px-5 py-10">
         <p className="kicker text-pink-deep">before we start</p>
         <h1 className="display mt-2 text-4xl leading-tight">A report built entirely around you</h1>
         <p className="mt-3 leading-snug text-ink-soft">
-          Every page is <span className="font-semibold text-ink">yours alone</span> — synthesized from <span className="font-semibold text-ink">your own answers</span> and the honest read from <span className="font-semibold text-ink">your team</span>, woven into one deep, cross-referenced portrait. Nothing generic, nothing off-the-shelf.
+          Every page is <span className="font-semibold text-ink">yours alone</span>, synthesized from <span className="font-semibold text-ink">your own answers</span> and the honest read from <span className="font-semibold text-ink">your team</span>, woven into one deep, cross-referenced portrait.
         </p>
 
-        <p className="kicker mb-3 mt-8 text-blue-deep">what you&rsquo;ll uncover</p>
+        <p className="kicker mb-3 mt-8 text-blue-deep">what you&rsquo;ll walk away with</p>
         <div className="grid grid-cols-2 gap-3">
           {explore.map((e) => (
             <div key={e.title} className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3.5 shadow-chunky-sm">
@@ -467,22 +463,11 @@ export default function SelfAssessment() {
             </div>
           ))}
         </div>
-        <p className="mt-3 text-center text-sm italic text-ink-soft">…all pulled together into a single read, in your own colours.</p>
-
-        <div className="mt-8 flex flex-col gap-3">
-          {tips.map((t) => (
-            <div key={t.text} className="flex items-center gap-3">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 border-ink bg-sand text-lg">{t.icon}</span>
-              <span className="text-sm font-semibold text-ink">{t.text}</span>
-            </div>
-          ))}
-        </div>
 
         <div className="mt-9 text-center">
           <Button variant="pink" onClick={() => setPhase('depth')} className="!text-xl">
             Start my read →
           </Button>
-          <p className="mt-3 text-xs text-ink-soft">A few honest minutes. The more you share, the sharper your mirror.</p>
         </div>
       </motion.div>
     )
@@ -544,9 +529,14 @@ export default function SelfAssessment() {
                     playTick()
                     setDepthIdx(k)
                   }}
-                  className={`cursor-pointer uppercase tracking-wide ${k === depthIdx ? 'text-pink-deep' : 'text-ink-soft/70'}`}
+                  className={`flex cursor-pointer flex-col items-center uppercase tracking-wide ${k === depthIdx ? 'text-pink-deep' : 'text-ink-soft/70'}`}
                 >
                   {d.name}
+                  {d.id === 'extended' && (
+                    <span className="mt-1 rounded-full border-2 border-ink bg-pink px-2 py-0 text-[9px] font-black normal-case leading-tight tracking-normal text-ink">
+                      best
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -585,7 +575,7 @@ export default function SelfAssessment() {
             Start →
           </Button>
           <p className="min-h-[1.25rem] text-center text-xs text-ink-soft">
-            {cur.id !== 'extended' ? 'Most people learn more from the extended read.' : ''}
+            Answer honestly, and trust the first thing that comes to mind.
           </p>
         </div>
       </motion.div>

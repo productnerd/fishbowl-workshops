@@ -982,7 +982,7 @@ export default function Results() {
         <div>
           <p className="kicker mb-1 text-pink-deep">
             the strengths map
-            <InfoTip text="Many signals on one plane — virtues, thinking styles and the words your team picked. Across = how the team sees each, up = how you see it. Above the diagonal you rate yourself higher (a blind spot); below it the team rates you higher (a hidden strength you undersell)." />
+            <InfoTip text="Many signals on one plane: virtues, thinking styles and the words your team picked. Across = how the team sees each, up = how you see it. Above the diagonal you rate yourself higher (a blind spot); below it the team rates you higher (a hidden strength you undersell)." />
           </p>
           <h2 className="display mb-4 text-3xl">Where you and they agree on your strengths</h2>
           {cap('blindspots')}
@@ -1000,7 +1000,7 @@ export default function Results() {
         <div>
           <p className="kicker mb-1 text-pink-deep">
             the watch-outs map
-            <InfoTip text="The same plane for growth edges. Across = how much the team flags each, up = how much you own it. Above the diagonal you're harder on yourself than they are; below it they see something you don't — a blind spot." />
+            <InfoTip text="The same plane for growth edges. Across = how much the team flags each, up = how much you own it. Above the diagonal you're harder on yourself than they are; below it they see something you don't: a blind spot." />
           </p>
           <h2 className="display mb-4 text-3xl">Where you and they agree on your edges</h2>
           <BlindSpotQuadrant
@@ -1358,7 +1358,7 @@ export default function Results() {
         <div className="flex min-h-[50vh] flex-col justify-center text-center">
           <p className="kicker mb-1 text-blue-deep">the full read</p>
           <h2 className="display mb-3 text-3xl">That one didn&rsquo;t finish</h2>
-          <p className="mb-5 leading-relaxed text-ink-soft">The deep read hit a snag while writing. Everything else in your report is here — give it another go.</p>
+          <p className="mb-5 leading-relaxed text-ink-soft">The deep read hit a snag while writing. Everything else in your report is here. Give it another go.</p>
           <button
             onClick={() => { setSynthStatus('generating'); setSynthSecs(0); setSynthNonce((x) => x + 1) }}
             className="press mx-auto cursor-pointer rounded-2xl border-[2.5px] border-ink bg-ink px-6 py-3 font-display font-black text-paper-hi shadow-chunky-sm sc-sand"
@@ -1374,16 +1374,16 @@ export default function Results() {
             <>
               <p className="mb-2 font-display text-6xl font-black tabular-nums text-ink">{fmtMMSS(SYNTH_ETA - synthSecs)}</p>
               <p className="leading-relaxed text-ink-soft">
-                This one thinks hard — it weaves every activity into a single read. It&rsquo;ll appear here on its own the moment it&rsquo;s done.
+                This one thinks hard. It weaves every activity into a single read, and appears here on its own the moment it&rsquo;s done.
               </p>
             </>
           ) : (
             <p className="leading-relaxed text-ink-soft">
-              <span className="font-semibold text-ink">Taking a little longer than expected</span> — hang tight, it&rsquo;s still writing and will appear here automatically.
+              <span className="font-semibold text-ink">Taking a little longer than expected.</span> Hang tight, it&rsquo;s still writing and will appear here automatically.
             </p>
           )}
           <p className="mt-5 text-sm text-ink-soft">
-            Feel free to close this tab — <span className="font-semibold text-ink">we&rsquo;ll email you a link</span> the moment it&rsquo;s ready.
+            Feel free to close this tab, and <span className="font-semibold text-ink">we&rsquo;ll email you a link</span> the moment it&rsquo;s ready.
           </p>
         </div>
       ),
