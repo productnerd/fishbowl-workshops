@@ -447,7 +447,8 @@ export default function SelfAssessment() {
       { icon: '🎭', title: 'Which character you are', sub: 'The literary figure you mirror.' },
     ]
     return (
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mx-auto w-full max-w-lg px-5 py-10">
+      <>
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mx-auto w-full max-w-2xl px-5 pb-10 pt-10">
         <p className="kicker text-pink-deep">before we start</p>
         <h1 className="display mt-2 text-4xl leading-tight">A report built entirely around you</h1>
         <p className="mt-3 leading-snug text-ink-soft">
@@ -455,22 +456,24 @@ export default function SelfAssessment() {
         </p>
 
         <p className="kicker mb-3 mt-8 text-blue-deep">what you&rsquo;ll walk away with</p>
-        <div className="grid grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-3 gap-3.5 pb-28">
           {explore.map((e) => (
-            <div key={e.title} className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-2.5 shadow-chunky-sm">
-              <div className="text-xl leading-none">{e.icon}</div>
-              <p className="mt-1.5 font-display text-[13px] font-black leading-tight text-ink">{e.title}</p>
-              <p className="mt-0.5 text-[11px] leading-snug text-ink-soft">{e.sub}</p>
+            <div key={e.title} className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-4 shadow-chunky-sm">
+              <div className="text-2xl leading-none">{e.icon}</div>
+              <p className="mt-2 font-display text-sm font-black leading-tight text-ink">{e.title}</p>
+              <p className="mt-1 text-xs leading-snug text-ink-soft">{e.sub}</p>
             </div>
           ))}
         </div>
-
-        <div className="mt-9 text-center">
-          <Button variant="pink" onClick={() => setPhase('depth')} className="!text-xl">
-            Start my read →
-          </Button>
-        </div>
       </motion.div>
+
+      {/* CTA pinned to the bottom of the viewport with fixed padding, always in reach */}
+      <div className="fixed inset-x-0 bottom-0 z-20 flex justify-center bg-gradient-to-t from-paper via-paper/85 to-transparent px-5 pb-6 pt-10">
+        <Button variant="pink" onClick={() => setPhase('depth')} className="!text-xl">
+          Start my read →
+        </Button>
+      </div>
+    </>
     )
   }
 
@@ -487,10 +490,11 @@ export default function SelfAssessment() {
       setPhase('quiz')
     }
     return (
+      <>
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mx-auto flex min-h-dvh w-full max-w-lg flex-col px-5 py-8"
+        className="mx-auto flex min-h-dvh w-full max-w-lg flex-col px-5 pt-8 pb-36"
       >
         {/* header — pinned at the top, never moves */}
         <div className="shrink-0">
@@ -570,16 +574,18 @@ export default function SelfAssessment() {
           </Card>
         </div>
 
-        {/* start — pinned at the bottom; nudge space reserved so the button never jumps */}
-        <div className="flex shrink-0 flex-col items-center gap-5">
-          <Button variant="pink" onClick={start} className="!text-xl">
-            Start →
-          </Button>
-          <p className="min-h-[1.25rem] text-center text-xs text-ink-soft">
-            Answer honestly, and trust the first thing that comes to mind.
-          </p>
-        </div>
       </motion.div>
+
+      {/* CTA pinned to the bottom of the viewport with fixed padding, same as the intro */}
+      <div className="fixed inset-x-0 bottom-0 z-20 flex flex-col items-center gap-2 bg-gradient-to-t from-paper via-paper/85 to-transparent px-5 pb-6 pt-10">
+        <Button variant="pink" onClick={start} className="!text-xl">
+          Start →
+        </Button>
+        <p className="text-center text-xs text-ink-soft">
+          Answer honestly, and trust the first thing that comes to mind.
+        </p>
+      </div>
+    </>
     )
   }
 
