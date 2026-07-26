@@ -58,7 +58,7 @@ const DEPTHS: SelfDepth[] = [
   { id: 'extended', name: 'Extended', perTrait: 8, time: '~10 to 11 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
 ]
 
-type Phase = 'checking' | 'needauth' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks' | 'reflections'
+type Phase = 'checking' | 'needauth' | 'intro' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks' | 'reflections'
 
 // The 10 virtue scales, reused from the colleague survey so the vice/virtue behaviours
 // (deficientTraits / virtueTraits / excessiveTraits) are a single source of truth.
@@ -114,7 +114,7 @@ export default function SelfAssessment() {
     // them to spin up their own Fishbowl (carrying the read over) rather than asking.
     if (!getSubjectAuth()) {
       setAuthed(false)
-      if (!hasLocal) setPhase('depth') // a local snapshot already restored the phase
+      if (!hasLocal) setPhase('intro') // a local snapshot already restored the phase
       return
     }
     let cancelled = false
@@ -122,7 +122,7 @@ export default function SelfAssessment() {
       if (cancelled) return
       setAuthed(r.authed)
       if (!r.authed) {
-        if (!hasLocal) setPhase('depth')
+        if (!hasLocal) setPhase('intro')
         return
       }
       const s = r.self
@@ -158,7 +158,7 @@ export default function SelfAssessment() {
         setSelfManual(refl.manual ?? '')
         setPhase(sp.progress as Phase)
       } else {
-        setPhase('depth')
+        setPhase('intro')
       }
     })
     return () => {
@@ -251,7 +251,7 @@ export default function SelfAssessment() {
   // Persist the whole in-progress state locally (from the quiz onward), so closing and
   // reopening the tab resumes exactly here. Cleared when the self-read is finished.
   useEffect(() => {
-    if (!slug || phase === 'checking' || phase === 'needauth' || phase === 'depth') return
+    if (!slug || phase === 'checking' || phase === 'needauth' || phase === 'intro' || phase === 'depth') return
     try {
       localStorage.setItem(
         selfProgressKey(slug),
@@ -430,6 +430,61 @@ export default function SelfAssessment() {
           </Card>
         </motion.div>
       </div>
+    )
+  }
+
+  if (phase === 'intro') {
+    const explore = [
+      { icon: '🧠', title: 'Personality', sub: 'Your Big Five make-up' },
+      { icon: '🎩', title: 'How you think', sub: 'Your thinking-hat mix' },
+      { icon: '⚖️', title: 'Character strengths', sub: 'The virtues you lead with' },
+      { icon: '⚡', title: 'What energizes you', sub: 'What fuels vs. drains you' },
+      { icon: '🤝', title: 'Your team role', sub: 'How you show up in a group' },
+      { icon: '🎯', title: 'Candor style', sub: 'How you give & take honesty' },
+      { icon: '🪞', title: 'Blind spots & hidden strengths', sub: 'You vs. how they see you' },
+      { icon: '✍️', title: 'In your own words', sub: 'Your hopes, fears & watch-outs' },
+    ]
+    const tips = [
+      { icon: '⚡', text: 'Answer with your gut — your first instinct is the truest one' },
+      { icon: '🫶', text: 'No right or wrong answers, just honest reflection' },
+      { icon: '💾', text: 'Save anytime, pick up on any device' },
+    ]
+    return (
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mx-auto w-full max-w-lg px-5 py-10">
+        <p className="kicker text-pink-deep">before we start</p>
+        <h1 className="display mt-2 text-4xl leading-tight">A report built entirely around you</h1>
+        <p className="mt-3 leading-snug text-ink-soft">
+          Every page is <span className="font-semibold text-ink">yours alone</span> — synthesized from <span className="font-semibold text-ink">your own answers</span> and the honest read from <span className="font-semibold text-ink">your team</span>, woven into one deep, cross-referenced portrait. Nothing generic, nothing off-the-shelf.
+        </p>
+
+        <p className="kicker mb-3 mt-8 text-blue-deep">what you&rsquo;ll uncover</p>
+        <div className="grid grid-cols-2 gap-3">
+          {explore.map((e) => (
+            <div key={e.title} className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3.5 shadow-chunky-sm">
+              <div className="text-2xl leading-none">{e.icon}</div>
+              <p className="mt-2 font-display text-sm font-black leading-tight text-ink">{e.title}</p>
+              <p className="mt-0.5 text-xs leading-snug text-ink-soft">{e.sub}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-center text-sm italic text-ink-soft">…all pulled together into a single read, in your own colours.</p>
+
+        <div className="mt-8 flex flex-col gap-3">
+          {tips.map((t) => (
+            <div key={t.text} className="flex items-center gap-3">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 border-ink bg-sand text-lg">{t.icon}</span>
+              <span className="text-sm font-semibold text-ink">{t.text}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-9 text-center">
+          <Button variant="pink" onClick={() => setPhase('depth')} className="!text-xl">
+            Start my read →
+          </Button>
+          <p className="mt-3 text-xs text-ink-soft">A few honest minutes. The more you share, the sharper your mirror.</p>
+        </div>
+      </motion.div>
     )
   }
 
