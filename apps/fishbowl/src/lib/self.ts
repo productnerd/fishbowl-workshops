@@ -61,8 +61,6 @@ export interface SelfSynthesis {
   // Soft spots: the tender, reassurance-first "insecurities" read, AI-written from
   // the feared self + self-vs-team gaps. Empty strings when there's nothing honest to say.
   softSpots?: { heading: string; body: string }
-  // Two AI-cast working-style personas from the whole read: who you'd clash with vs thrive with.
-  colleagueFit?: { clashWith: string; thriveWith: string }
   n: number
 }
 
@@ -104,6 +102,9 @@ export async function synthesisPoll(slug: string): Promise<SynthResult> {
 
 export interface WorkManual {
   entries: { key: string; stem: string; text: string }[]
+  // Two AI-cast working-style personas (who you'd clash with vs thrive with), produced by the
+  // same lightweight work-manual call so the big synthesis stays lean.
+  colleagueFit?: { clashWith: string; thriveWith: string }
   n: number
 }
 
@@ -114,7 +115,7 @@ export interface WorkManual {
 export async function getWorkManual(slug: string, n: number): Promise<WorkManual | null> {
   const auth = getSubjectAuth()
   if (!auth) return null
-  const cacheKey = `fb_workmanual_${slug}_${n}`
+  const cacheKey = `fb_workmanual_v2_${slug}_${n}`
   try {
     const cached = localStorage.getItem(cacheKey)
     if (cached) return JSON.parse(cached) as WorkManual

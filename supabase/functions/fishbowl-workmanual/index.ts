@@ -9,7 +9,7 @@
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
-const MODEL = 'claude-opus-4-8'
+const MODEL = 'claude-opus-5'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -128,8 +128,11 @@ Never use an em dash, en dash, double hyphen, or spaced hyphen. Use commas, peri
 Never put a double-quote character inside a string value; use single quotes if you must quote.
 
 === OUTPUT (JSON only, no code fences) ===
-{ "entries": [ ${CONTEXTS.map((c) => `{ "key": "${c.key}", "text": "completion for: ${c.stem} ___" }`).join(', ')} ] }
-Return all ${CONTEXTS.length} entries in this exact order. No prose outside the JSON.`
+{ "entries": [ ${CONTEXTS.map((c) => `{ "key": "${c.key}", "text": "completion for: ${c.stem} ___" }`).join(', ')} ], "colleagueFit": { "clashWith": "...", "thriveWith": "..." } }
+Return all ${CONTEXTS.length} entries in this exact order, then the colleagueFit object. No prose outside the JSON.
+
+=== colleagueFit (write these two in SECOND PERSON, "you", NOT first person) ===
+From this whole read (personality, candor, watch-outs, energy, virtues, what you fuel in others), cast TWO short working-style personas: clashWith = the kind of colleague YOU would most grate against or find draining; thriveWith = the kind YOU would most trust and thrive alongside. 2 to 3 sentences each, concrete about the behaviours (not adjectives), **bold** one phrase each. Never name a real person.`
 
     const userPrompt = `SUBJECT: ${name} (write as them, first person).
 
@@ -198,7 +201,14 @@ Now write the completions.`
     const entries = CONTEXTS.map((c) => ({ key: c.key, stem: c.stem, text: byKey[c.key] || '' })).filter((e) => e.text)
     if (entries.length < 4) return ok({ error: 'too few entries', raw: raw.slice(0, 400) }, 502)
 
-    return ok({ manual: { entries, n } })
+    // Two AI-cast working-style personas, generated alongside the manual so the big synthesis
+    // call stays lean. Kept only when the model wrote both sides.
+    const cf = parsed.colleagueFit && typeof parsed.colleagueFit === 'object' ? parsed.colleagueFit : null
+    const colleagueFit = cf && typeof cf.clashWith === 'string' && cf.clashWith.trim() && typeof cf.thriveWith === 'string' && cf.thriveWith.trim()
+      ? { clashWith: clean(cf.clashWith), thriveWith: clean(cf.thriveWith) }
+      : null
+
+    return ok({ manual: { entries, n, ...(colleagueFit ? { colleagueFit } : {}) } })
   } catch (e) {
     return ok({ error: String(e) }, 500)
   }

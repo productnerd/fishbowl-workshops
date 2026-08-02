@@ -1396,8 +1396,8 @@ export default function Results() {
   }
 
   // Who you click with: two AI-cast personas from the whole read (needs the synthesis).
-  if (hasSelf && synthesis?.colleagueFit) {
-    const cf = synthesis.colleagueFit
+  if (hasSelf && workManual?.colleagueFit) {
+    const cf = workManual.colleagueFit
     cards.push({
       tone: 'paper',
       sec: 6.15,

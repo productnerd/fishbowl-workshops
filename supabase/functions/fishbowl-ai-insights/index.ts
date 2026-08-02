@@ -15,7 +15,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import { gifPromptBlock } from './gifs.ts'
 
 const THRESHOLD = 3
-const MODEL = 'claude-opus-4-8'
+const MODEL = 'claude-opus-5'
 
 type Tendency = 'deficient' | 'balanced' | 'excessive'
 interface Q {

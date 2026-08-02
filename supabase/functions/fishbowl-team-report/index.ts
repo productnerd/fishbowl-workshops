@@ -10,7 +10,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
 const PASSWORD = Deno.env.get('FISHBOWL_MANAGER_PASSWORD') || 'fishbowl2026'
-const MODEL = 'claude-opus-4-8'
+const MODEL = 'claude-opus-5'
 const THRESHOLD = 5
 
 const VIRTUES: Record<string, { name: string; lo: string; hi: string }> = {

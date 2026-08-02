@@ -11,7 +11,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import { gifPromptBlock } from './gifs.ts'
 
-const MODEL = 'claude-opus-4-8'
+const MODEL = 'claude-opus-5'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -326,11 +326,7 @@ ${gifPromptBlock('portrait, any of the sections[].body, and howYouComeAcross')}
     "heading": "a warm, soft, human title for this section — NOT the word 'insecurities' (e.g. 'The things you carry quietly', 'Where you're hardest on yourself'). <= 6 words.",
     "body": "2 to 3 SHORT paragraphs (¶¶ between every paragraph, no line breaks), reassurance-FIRST. This is the FEARED self, and it is a SEPARATE, REQUIRED field from howYouComeAcross (which is the HOPED self) — put ALL fear-vs-reality material HERE, never fold it into howYouComeAcross. Surface, gently, the places this person may quietly feel insecure — each built from a REAL signal and ALWAYS paired with the counter-evidence: (a) their stated FEAR ('what they fear people feel about them, true or not') vs what the team actually reported (if the data contradicts the fear, say so warmly and plainly — most fears are heavier than the truth); (b) IMPOSTER GAPS where they rate themselves LOWER than the team does ('you're better at X than you let yourself believe'); (c) the weakness they OWN, held kindly, never as indictment; (d) any place a strength reads as effortful or over-proved, hinting at something they feel they must earn. Warm, tender, second person, never clinical, never a gut-punch, never diagnose. **bold** 1 to 2 gentle phrases. Return this whenever a FEAR or a real self-vs-team gap exists (it almost always does); only return heading and body as empty strings when there is genuinely neither — never invent an insecurity."
   },
-  "howYouComeAcross": "2 to 3 sentences, second person, that hold up who you HOPE to be seen as (your ASPIRATION) against how you ACTUALLY land, drawing on the team's aura read and the words colleagues reach for most WHERE THEY EXIST. This is the HOPED self ONLY — do NOT discuss what they FEAR here (the feared self belongs in softSpots above). Name the overlap warmly and any gap honestly (never harsh). **bold** 1 to 2 phrases. If no ASPIRATION was given, return an empty string.",
-  "colleagueFit": {
-    "clashWith": "2 to 3 sentences, second person, on the working style you would most clash with or find draining, grounded in your values, candor, conflict needs and energy. Concrete behaviours, not adjectives. **bold** one phrase. Never name a real person.",
-    "thriveWith": "2 to 3 sentences, second person, on the working style you would most trust and thrive alongside, grounded in the same signals. Concrete behaviours. **bold** one phrase."
-  }
+  "howYouComeAcross": "2 to 3 sentences, second person, that hold up who you HOPE to be seen as (your ASPIRATION) against how you ACTUALLY land, drawing on the team's aura read and the words colleagues reach for most WHERE THEY EXIST. This is the HOPED self ONLY — do NOT discuss what they FEAR here (the feared self belongs in softSpots above). Name the overlap warmly and any gap honestly (never harsh). **bold** 1 to 2 phrases. If no ASPIRATION was given, return an empty string."
 }
 For "greatAt": propose 3 to 4, best first. Combine what the team rates them STRONGEST at (top strengths, high virtues, VIA) with what ENERGIZES them (their energizers) and the role they play, to name concrete things they'd thrive doing. Specific and real (e.g. "Own key client relationships", "Run the launch war-room"), never vague ("be a leader").
 For "constellation": look ONLY at the words the team flagged that the person did NOT own (Johari blind spot, Nohari blind spot, watch-outs). If two or more of them trace to ONE underlying theme, group them into a named constellation (1, at most 2 groups). Use the words VERBATIM as given. If nothing coheres, return an empty array.
@@ -338,7 +334,7 @@ For "softSpots": this is the most tender part of the whole report — a private,
 === CAPTIONS + THROUGH-LINE (as important as the prose) ===
 Each caption is the single one-line takeaway shown on that visual slide, so it must be SHARP and SPECIFIC to this person, never generic, never just restate the slide's title. Second person, one sentence, <= 18 words, **bold** the key phrase, no dashes.
 CRUCIAL: read the ABSOLUTE result AND the self-vs-team gap. Whenever the person and their team meaningfully DISAGREE on that slide's topic (a gap of ~2+ on a 1-9 scale, or a clear blind spot / hidden strength), the caption MUST name that gap, not just the raw number. Where they agree, say what the number means. The through-line is the spine of the whole report: archetype -> two driving signals -> the one tension they create; make "to" sting a little and ring true.
-This is a LONG read: aim for roughly 1800 to 2600 words across portrait + sections (2 to 4 full A4 pages). Rich and specific, cross-referenced, never padded, never repeat a point across sections. The captions, action plan, 1:1 points, biases and softSpots are separate short outputs — keep them tight. Do not stop short; the JSON is only COMPLETE when it includes "howYouComeAcross" AND the "softSpots" object (heading + body). "colleagueFit" is an OPTIONAL final field: include it when you have room, but a COMPLETE and VALID JSON always comes first, so never let it truncate the output — never omit softSpots when a fear or a real self-vs-team gap exists. Return the COMPLETE JSON.`
+This is a LONG read: aim for roughly 1800 to 2600 words across portrait + sections (2 to 4 full A4 pages). Rich and specific, cross-referenced, never padded, never repeat a point across sections. The captions, action plan, 1:1 points, biases and softSpots are separate short outputs — keep them tight. Do not stop short; the JSON is only COMPLETE when it includes "howYouComeAcross" AND the "softSpots" object (heading + body) as the final field — never omit softSpots when a fear or a real self-vs-team gap exists. Return the COMPLETE JSON.`
 
     const userPrompt = `SUBJECT: ${name}. Speak TO them in second person; never use their name.
 
@@ -519,12 +515,6 @@ Return the JSON now.`
     const softSpots = ss && typeof ss.body === 'string' && ss.body.trim()
       ? { heading: stripDashes(String(ss.heading || '')).slice(0, 60), body: stripDashes(String(ss.body)) }
       : null
-    // Two AI-cast working-style personas (who you'd clash with vs thrive with). Kept only
-    // when the model wrote both sides.
-    const cfRaw = prose.colleagueFit && typeof prose.colleagueFit === 'object' ? prose.colleagueFit : null
-    const colleagueFit = cfRaw && typeof cfRaw.clashWith === 'string' && cfRaw.clashWith.trim() && typeof cfRaw.thriveWith === 'string' && cfRaw.thriveWith.trim()
-      ? { clashWith: stripDashes(String(cfRaw.clashWith)), thriveWith: stripDashes(String(cfRaw.thriveWith)) }
-      : null
 
     const synthesis = {
       title: stripDashes(String(prose.title || 'Your full read')),
@@ -541,7 +531,6 @@ Return the JSON now.`
       ...(greatAt.length ? { greatAt } : {}),
       ...(typeof prose.howYouComeAcross === 'string' && prose.howYouComeAcross.trim() ? { howYouComeAcross: stripDashes(prose.howYouComeAcross) } : {}),
       ...(softSpots ? { softSpots } : {}),
-      ...(colleagueFit ? { colleagueFit } : {}),
       ...(actionPlan && actionPlan.stopNow.length ? { actionPlan } : {}),
       n,
     }

@@ -8,7 +8,7 @@
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
-const MODEL = 'claude-opus-4-8'
+const MODEL = 'claude-opus-5'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
