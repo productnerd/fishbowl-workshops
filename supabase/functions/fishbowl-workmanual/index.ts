@@ -161,7 +161,7 @@ My note to a new teammate: ${refl.manual || '(not given)'}
 
 Now write the completions.`
 
-    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')
+    const anthropicKey = Deno.env.get('FISHBOWL_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY')
     if (!anthropicKey) return ok({ error: 'ANTHROPIC_API_KEY not configured' }, 500)
 
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {

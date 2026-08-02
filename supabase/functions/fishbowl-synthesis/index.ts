@@ -427,7 +427,7 @@ The words colleagues reach for most: ${johariTop.join(', ') || '(none)'}
 
 Return the JSON now.`
 
-    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')
+    const anthropicKey = Deno.env.get('FISHBOWL_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY')
     if (!anthropicKey) throw new Error('ANTHROPIC_API_KEY not configured')
 
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {

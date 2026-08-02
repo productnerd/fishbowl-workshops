@@ -395,7 +395,7 @@ Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} 
 
     const userPrompt = `Computed results for ${name} (n=${responses.length}):\n\n${statsBlock}\n\nReturn the JSON now.`
 
-    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')
+    const anthropicKey = Deno.env.get('FISHBOWL_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY')
     if (!anthropicKey) {
       return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured' }), { status: 500, headers: jsonHeaders })
     }
