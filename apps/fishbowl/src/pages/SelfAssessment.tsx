@@ -35,8 +35,22 @@ import EnergizerTagger from '../components/EnergizerTagger'
 import HatsTagger from '../components/HatsTagger'
 import AllocationTagger from '../components/AllocationTagger'
 import ChipPicker from '../components/ChipPicker'
+import PickList from '../components/PickList'
 import VirtueSlider from '../components/VirtueSlider'
 import { questions } from '../data/questions'
+import {
+  VALUE_OPTIONS,
+  VALUES_PICK,
+  MOTIVATION_ITEMS,
+  RIASEC_OPTIONS,
+  RIASEC_PICK,
+  LOVE_OPTIONS,
+  CONFLICT_REPAIR,
+  CONFLICT_NEED,
+  CONFLICT_WORSE,
+  LIFESAT_ITEMS,
+  ALIVE_OPTIONS,
+} from '../data/selfExtras'
 
 // The depth slider: how much time the subject wants to spend, which scales the
 // number of personality questions (per dimension) and which extra activities are
@@ -51,11 +65,11 @@ type SelfDepth = {
   frameworks: string[]
   blurb: string
 }
-const ALL_FRAMEWORKS = ['sixhats', 'belbin', 'adjectives']
+const ALL_FRAMEWORKS = ['sixhats', 'belbin', 'adjectives', 'drives', 'career', 'love', 'conflict', 'wellbeing']
 const DEPTHS: SelfDepth[] = [
   { id: 'quick', name: 'Quick', perTrait: 4, time: '~5 to 6 min', accuracy: 3, energizers: false, frameworks: [], blurb: 'The essentials. A solid first read.' },
-  { id: 'standard', name: 'Standard', perTrait: 6, time: '~8 to 9 min', accuracy: 4, energizers: true, frameworks: ['sixhats', 'adjectives'], blurb: 'More questions, a sharper read. The sweet spot.' },
-  { id: 'extended', name: 'Extended', perTrait: 8, time: '~10 to 11 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
+  { id: 'standard', name: 'Standard', perTrait: 6, time: '~9 to 10 min', accuracy: 4, energizers: true, frameworks: ['sixhats', 'adjectives', 'conflict'], blurb: 'More questions, a sharper read. The sweet spot.' },
+  { id: 'extended', name: 'Extended', perTrait: 8, time: '~13 to 15 min', accuracy: 5, energizers: true, frameworks: ALL_FRAMEWORKS, blurb: 'The works. The most accurate, most detailed read.' },
 ]
 
 type Phase = 'checking' | 'needauth' | 'intro' | 'depth' | 'quiz' | 'reveal' | 'virtues' | 'energizers' | 'responsibilities' | 'frameworks' | 'reflections'
@@ -151,6 +165,17 @@ export default function SelfAssessment() {
         setSelfBelbin((sp.belbin as Record<string, number>) ?? {})
         setSelfJohari((sp.johari as string[]) ?? [])
         setSelfNohari((sp.nohari as string[]) ?? [])
+        setSelfValues(sp.values?.top ?? [])
+        setSelfValueLeast(sp.values?.least ?? '')
+        setSelfMotivation(sp.motivation ?? {})
+        setSelfRiasec(sp.riasec ?? [])
+        setLoveShow(sp.love?.show ?? '')
+        setLoveReceive(sp.love?.receive ?? '')
+        setConflictRepair(sp.conflict?.repair ?? '')
+        setConflictNeed(sp.conflict?.need ?? '')
+        setConflictWorse(sp.conflict?.worse ?? '')
+        setSelfLifeSat(sp.lifesat?.answers ?? {})
+        setAliveArea(sp.lifesat?.alive ?? '')
         const refl = (sp.reflections as { aspiration?: string; fear?: string; blindspot?: string; manual?: string }) ?? {}
         setAspireWords(refl.aspiration ?? '')
         setFearWords(refl.fear ?? '')
@@ -183,6 +208,19 @@ export default function SelfAssessment() {
   const [fearWords, setFearWords] = useState<string>(() => (typeof savedSelf.fear === 'string' ? savedSelf.fear : ''))
   const [selfBlindspot, setSelfBlindspot] = useState<string>(() => (typeof savedSelf.blindspot === 'string' ? savedSelf.blindspot : ''))
   const [selfManual, setSelfManual] = useState<string>(() => (typeof savedSelf.manual === 'string' ? savedSelf.manual : ''))
+  // Extended "deeper read" self inputs (values, motivation, career fit, love language,
+  // conflict repair, life satisfaction). Conflict is also offered at Standard depth.
+  const [selfValues, setSelfValues] = useState<string[]>(() => (savedSelf.selfValues as string[]) ?? [])
+  const [selfValueLeast, setSelfValueLeast] = useState<string>(() => (typeof savedSelf.selfValueLeast === 'string' ? savedSelf.selfValueLeast : ''))
+  const [selfMotivation, setSelfMotivation] = useState<Record<string, number>>(() => (savedSelf.selfMotivation as Record<string, number>) ?? {})
+  const [selfRiasec, setSelfRiasec] = useState<string[]>(() => (savedSelf.selfRiasec as string[]) ?? [])
+  const [loveShow, setLoveShow] = useState<string>(() => (typeof savedSelf.loveShow === 'string' ? savedSelf.loveShow : ''))
+  const [loveReceive, setLoveReceive] = useState<string>(() => (typeof savedSelf.loveReceive === 'string' ? savedSelf.loveReceive : ''))
+  const [conflictRepair, setConflictRepair] = useState<string>(() => (typeof savedSelf.conflictRepair === 'string' ? savedSelf.conflictRepair : ''))
+  const [conflictNeed, setConflictNeed] = useState<string>(() => (typeof savedSelf.conflictNeed === 'string' ? savedSelf.conflictNeed : ''))
+  const [conflictWorse, setConflictWorse] = useState<string>(() => (typeof savedSelf.conflictWorse === 'string' ? savedSelf.conflictWorse : ''))
+  const [selfLifeSat, setSelfLifeSat] = useState<Record<string, number>>(() => (savedSelf.selfLifeSat as Record<string, number>) ?? {})
+  const [aliveArea, setAliveArea] = useState<string>(() => (typeof savedSelf.aliveArea === 'string' ? savedSelf.aliveArea : ''))
 
   const [authed, setAuthed] = useState(false)
 
@@ -259,13 +297,15 @@ export default function SelfAssessment() {
           phase, depthIdx, depth, i, vIdx, fwIdx, answers, bigFive, mbti,
           selfVirtues, energizerTags, respTiers, responsibilities,
           selfHats, selfBelbin, selfVia, selfJohari, selfNohari,
+          selfValues, selfValueLeast, selfMotivation, selfRiasec,
+          loveShow, loveReceive, conflictRepair, conflictNeed, conflictWorse, selfLifeSat, aliveArea,
           aspiration: aspireWords, fear: fearWords, blindspot: selfBlindspot, manual: selfManual,
         })
       )
     } catch {
       /* storage full / disabled */
     }
-  }, [slug, phase, depthIdx, depth, i, vIdx, fwIdx, answers, bigFive, mbti, selfVirtues, energizerTags, respTiers, responsibilities, selfHats, selfBelbin, selfVia, selfJohari, selfNohari, aspireWords, fearWords, selfBlindspot, selfManual])
+  }, [slug, phase, depthIdx, depth, i, vIdx, fwIdx, answers, bigFive, mbti, selfVirtues, energizerTags, respTiers, responsibilities, selfHats, selfBelbin, selfVia, selfJohari, selfNohari, selfValues, selfValueLeast, selfMotivation, selfRiasec, loveShow, loveReceive, conflictRepair, conflictNeed, conflictWorse, selfLifeSat, aliveArea, aspireWords, fearWords, selfBlindspot, selfManual])
 
   const q = items[Math.min(i, items.length - 1)]
   const pct = ((i + 1) / items.length) * 100
@@ -301,6 +341,12 @@ export default function SelfAssessment() {
       via: selfVia,
       johari: selfJohari,
       nohari: selfNohari,
+      values: { top: selfValues, least: selfValueLeast },
+      motivation: selfMotivation,
+      riasec: selfRiasec,
+      love: { show: loveShow, receive: loveReceive },
+      conflict: { repair: conflictRepair, need: conflictNeed, worse: conflictWorse },
+      lifesat: { answers: selfLifeSat, alive: aliveArea },
       reflections: {
         aspiration: aspireWords.trim(),
         fear: fearWords.trim(),
@@ -805,7 +851,7 @@ export default function SelfAssessment() {
                   }}
                   className="cursor-pointer text-sm font-semibold text-blue-deep underline-offset-2 hover:underline"
                 >
-                  Or add a deeper read (4 quick activities) →
+                  Or add the deeper read activities →
                 </button>
               </>
             )}
@@ -835,6 +881,11 @@ export default function SelfAssessment() {
       sixhats: 'Your thinking hats',
       belbin: 'Your team role',
       adjectives: 'Words for yourself',
+      drives: 'What drives you',
+      career: 'Where you fit',
+      love: 'How you connect',
+      conflict: 'Handling conflict',
+      wellbeing: 'Where you stand',
     }
     const fw = steps[Math.min(fwIdx, steps.length - 1)]
     const last = fwIdx === steps.length - 1
@@ -878,6 +929,82 @@ export default function SelfAssessment() {
                   setSelfNohari(s.nohari)
                 }}
               />
+            )}
+            {fw === 'drives' && (
+              <div className="flex flex-col gap-7">
+                <div>
+                  <p className="mb-2 font-semibold text-ink">Which of these matter most to you? Pick 3.</p>
+                  <ChipPicker options={VALUE_OPTIONS} min={VALUES_PICK} max={VALUES_PICK} value={selfValues} onChange={setSelfValues} />
+                </div>
+                <div>
+                  <p className="mb-2 font-semibold text-ink">And the one you care about least?</p>
+                  <PickList options={VALUE_OPTIONS.filter((o) => !selfValues.includes(o.id))} value={selfValueLeast} onChange={setSelfValueLeast} />
+                </div>
+                <div>
+                  <p className="mb-3 font-semibold text-ink">How true is each of these?</p>
+                  <div className="flex flex-col gap-5">
+                    {MOTIVATION_ITEMS.map((m) => (
+                      <div key={m.id}>
+                        <p className="mb-2 text-sm text-ink-soft">{m.text}</p>
+                        <LikertScale value={selfMotivation[m.id] ?? null} onChange={(v) => setSelfMotivation((p) => ({ ...p, [m.id]: v }))} lowLabel="Disagree" highLabel="Agree" points={5} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            {fw === 'career' && (
+              <div>
+                <p className="mb-2 font-semibold text-ink">Which of these sound most like you at work? Pick 3.</p>
+                <ChipPicker options={RIASEC_OPTIONS} min={RIASEC_PICK} max={RIASEC_PICK} value={selfRiasec} onChange={setSelfRiasec} />
+              </div>
+            )}
+            {fw === 'love' && (
+              <div className="flex flex-col gap-7">
+                <div>
+                  <p className="mb-2 font-semibold text-ink">How do you naturally show you care?</p>
+                  <PickList options={LOVE_OPTIONS} value={loveShow} onChange={setLoveShow} />
+                </div>
+                <div>
+                  <p className="mb-2 font-semibold text-ink">And how do you most feel cared for?</p>
+                  <PickList options={LOVE_OPTIONS} value={loveReceive} onChange={setLoveReceive} />
+                </div>
+              </div>
+            )}
+            {fw === 'conflict' && (
+              <div className="flex flex-col gap-7">
+                <div>
+                  <p className="mb-2 font-semibold text-ink">Once a conflict cools, what actually repairs it for you?</p>
+                  <PickList options={CONFLICT_REPAIR} value={conflictRepair} onChange={setConflictRepair} />
+                </div>
+                <div>
+                  <p className="mb-2 font-semibold text-ink">In the heat of it, what do you most need from the other person?</p>
+                  <PickList options={CONFLICT_NEED} value={conflictNeed} onChange={setConflictNeed} />
+                </div>
+                <div>
+                  <p className="mb-2 font-semibold text-ink">What makes a conflict worse for you?</p>
+                  <PickList options={CONFLICT_WORSE} value={conflictWorse} onChange={setConflictWorse} />
+                </div>
+              </div>
+            )}
+            {fw === 'wellbeing' && (
+              <div className="flex flex-col gap-7">
+                <div>
+                  <p className="mb-3 font-semibold text-ink">How true is each of these?</p>
+                  <div className="flex flex-col gap-5">
+                    {LIFESAT_ITEMS.map((it) => (
+                      <div key={it.id}>
+                        <p className="mb-2 text-sm text-ink-soft">{it.text}</p>
+                        <LikertScale value={selfLifeSat[it.id] ?? null} onChange={(v) => setSelfLifeSat((p) => ({ ...p, [it.id]: v }))} lowLabel="Disagree" highLabel="Agree" points={5} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-2 font-semibold text-ink">Where do you feel most alive right now?</p>
+                  <PickList options={ALIVE_OPTIONS} value={aliveArea} onChange={setAliveArea} />
+                </div>
+              </div>
             )}
           </div>
           <div className="mt-7 flex flex-col items-center gap-3">

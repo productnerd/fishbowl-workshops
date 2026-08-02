@@ -61,6 +61,8 @@ export interface SelfSynthesis {
   // Soft spots: the tender, reassurance-first "insecurities" read, AI-written from
   // the feared self + self-vs-team gaps. Empty strings when there's nothing honest to say.
   softSpots?: { heading: string; body: string }
+  // Two AI-cast working-style personas from the whole read: who you'd clash with vs thrive with.
+  colleagueFit?: { clashWith: string; thriveWith: string }
   n: number
 }
 

@@ -163,6 +163,32 @@ Deno.serve(async (req) => {
     const selfVia: string[] = Array.isArray(sp.via) ? sp.via : []
     const selfJohari: string[] = Array.isArray(sp.johari) ? sp.johari : []
     const selfNohari: string[] = Array.isArray(sp.nohari) ? sp.nohari : []
+    // New self-knowledge (Extended depth; conflict also Standard). Id->label maps kept in
+    // sync with apps/fishbowl/src/data/selfExtras.ts so the prompt sees plain phrases.
+    const selfValues = (sp.values || {}) as { top?: string[]; least?: string }
+    const selfMot = (sp.motivation || {}) as Record<string, number>
+    const selfRiasec: string[] = Array.isArray(sp.riasec) ? sp.riasec : []
+    const selfLove = (sp.love || {}) as { show?: string; receive?: string }
+    const selfConflict = (sp.conflict || {}) as { repair?: string; need?: string; worse?: string }
+    const selfLifesat = (sp.lifesat || {}) as { answers?: Record<string, number>; alive?: string }
+    const VAL_LBL: Record<string, string> = { autonomy: 'Freedom to do things their own way', stimulation: 'Novelty and challenge', enjoyment: 'Enjoying life', mastery: 'Being excellent at what they do', recognition: 'Influence and recognition', security: 'Security and stability', tradition: 'Tradition and doing what is expected', loyalty: 'Loyalty to those close to them', fairness: 'Fairness and care for everyone' }
+    const RIASEC_LBL: Record<string, string> = { R: 'Realistic (hands-on)', I: 'Investigative (analysis)', A: 'Artistic (creating)', S: 'Social (developing people)', E: 'Enterprising (leading, persuading)', C: 'Conventional (systems, detail)' }
+    const LOVE_LBL: Record<string, string> = { acts: 'doing things for them (acts of service)', words: 'saying it out loud (words)', time: 'time and full attention', presence: 'showing up, physical closeness', gifts: 'small gifts and tokens' }
+    const CREPAIR_LBL: Record<string, string> = { talk: 'a direct talk that names what happened', space: 'space first, then talk', gesture: 'a gesture (a coffee, a joke, a small act)', apology_plan: 'an apology and a plan so it does not repeat', move_on: 'just moving on, no big talk' }
+    const CNEED_LBL: Record<string, string> = { heard: 'to be heard, not fixed', straight: 'straight talk, no tiptoeing', cool: 'a minute to cool down', reassurance: 'reassurance you are still okay', solve: 'to solve it now and move on' }
+    const CWORSE_LBL: Record<string, string> = { rushed: 'being rushed', vague: 'vagueness', raised: 'raised voices', placated: 'being managed or placated', public: 'a public callout' }
+    const ALIVE_LBL: Record<string, string> = { work: 'work', relationships: 'relationships', health: 'health', growth: 'growth', play: 'play' }
+    const motIntr = ((Number(selfMot.intr_work) || 0) + (Number(selfMot.intr_noticed) || 0)) / 2
+    const motExtr = ((Number(selfMot.extr_reco) || 0) + (Number(selfMot.extr_pressure) || 0)) / 2
+    const motDone = ['intr_work', 'intr_noticed', 'extr_reco', 'extr_pressure'].every((k) => typeof selfMot[k] === 'number')
+    const motPos = motDone ? Math.round(50 + ((motIntr - motExtr) / 4) * 50) : null
+    const lsAns = (selfLifesat.answers || {}) as Record<string, number>
+    const lsDone = ['ideal', 'satisfied', 'again'].every((k) => typeof lsAns[k] === 'number')
+    const lsScore = lsDone ? Math.round(((['ideal', 'satisfied', 'again'].reduce((s, k) => s + lsAns[k], 0) / 3 - 1) / 4) * 100) / 10 : null
+    const valuesTop = (selfValues.top || []).map((id) => VAL_LBL[id] || id)
+    const valuesLeast = selfValues.least ? (VAL_LBL[selfValues.least] || selfValues.least) : ''
+    const riasecCode = selfRiasec.join('-')
+    const riasecNames = selfRiasec.map((id) => RIASEC_LBL[id] || id)
 
     const virtueLines = (team.virtues || [])
       .map((vv: any) => {
@@ -237,6 +263,8 @@ CROSS-REFERENCE constantly and explicitly. Whenever two activities point the sam
 8. ACTION PLAN: the single most useful screen. Concrete stop/start behaviours, each GROUNDED in this person's specific data — above all where their SELF-read and the TEAM diverge (the gaps), plus thinking-hat holes, the archetype shadow, and blind spots. Name the exact thing + the move; this is self-aware ("you rate your candor a 2 but the team feels 6, so warm the opener").
 9. SOFT SPOTS (REQUIRED): the tender, private read of the quiet insecurities they may carry — built from their stated FEAR vs what the team actually reported, imposter gaps (self lower than team), and the weakness they own. Reassurance-first, never a gut-punch. This is the "softSpots" output below and it is NOT optional when a fear or a real self-vs-team gap exists.
 
+10. WHAT DRIVES + CONNECTS them (their own read, Extended depth): their top VALUES and where they land on the intrinsic vs extrinsic motivation SPECTRUM; how they SHOW care vs want to RECEIVE it (name the gap when the two differ); what they NEED in conflict and what REPAIRS it; their RIASEC career code; and their life-satisfaction read. Weave these into the relevant sections and captions, cross-referenced with the personality and team read; never just list them.
+
 === VOICE ===
 Second person ("you", "your"). Warm, sharp, honest, a little playful, like a perceptive friend who has read everything about you and is leveling with you. Not a consultant, zero corporate-speak, zero horoscope vagueness. Every claim grounded in the data given; specific over generic. It can sting a little where the data is strong, never cruel, never a roast.
 
@@ -279,7 +307,11 @@ ${gifPromptBlock('portrait, any of the sections[].body, and howYouComeAcross')}
     "responsibilities": "ONE sentence on how the team reads their delivery on what they own",
     "vice": "ONE sentence: which strength, pushed too far, becomes the vice the team feels",
     "rooms": "ONE sentence naming the one situation (conflict / deadline / feedback) where their balance most breaks",
-    "lockedDoor": "ONE sentence on how high confidence + low receptiveness keeps a blind spot shut"
+    "lockedDoor": "ONE sentence on how high confidence + low receptiveness keeps a blind spot shut",
+    "drives": "ONE sentence tying their TOP VALUES to where they sit on the intrinsic vs extrinsic spectrum, with a gentle nudge toward intrinsic",
+    "conflictRepair": "ONE sentence on what they most need in conflict and what actually repairs it (the through-line, not a list)",
+    "loveLanguage": "ONE sentence on how they SHOW care vs how they want to RECEIVE it, naming the gap if the two differ",
+    "lifeSatisfaction": "ONE warm, honest sentence on where they stand right now and where they feel most alive"
   },
   "throughLine": {
     "from": "their archetype in 1 to 3 words (e.g. The Hero)",
@@ -294,7 +326,11 @@ ${gifPromptBlock('portrait, any of the sections[].body, and howYouComeAcross')}
     "heading": "a warm, soft, human title for this section — NOT the word 'insecurities' (e.g. 'The things you carry quietly', 'Where you're hardest on yourself'). <= 6 words.",
     "body": "2 to 3 SHORT paragraphs (¶¶ between every paragraph, no line breaks), reassurance-FIRST. This is the FEARED self, and it is a SEPARATE, REQUIRED field from howYouComeAcross (which is the HOPED self) — put ALL fear-vs-reality material HERE, never fold it into howYouComeAcross. Surface, gently, the places this person may quietly feel insecure — each built from a REAL signal and ALWAYS paired with the counter-evidence: (a) their stated FEAR ('what they fear people feel about them, true or not') vs what the team actually reported (if the data contradicts the fear, say so warmly and plainly — most fears are heavier than the truth); (b) IMPOSTER GAPS where they rate themselves LOWER than the team does ('you're better at X than you let yourself believe'); (c) the weakness they OWN, held kindly, never as indictment; (d) any place a strength reads as effortful or over-proved, hinting at something they feel they must earn. Warm, tender, second person, never clinical, never a gut-punch, never diagnose. **bold** 1 to 2 gentle phrases. Return this whenever a FEAR or a real self-vs-team gap exists (it almost always does); only return heading and body as empty strings when there is genuinely neither — never invent an insecurity."
   },
-  "howYouComeAcross": "2 to 3 sentences, second person, that hold up who you HOPE to be seen as (your ASPIRATION) against how you ACTUALLY land, drawing on the team's aura read and the words colleagues reach for most WHERE THEY EXIST. This is the HOPED self ONLY — do NOT discuss what they FEAR here (the feared self belongs in softSpots above). Name the overlap warmly and any gap honestly (never harsh). **bold** 1 to 2 phrases. If no ASPIRATION was given, return an empty string."
+  "howYouComeAcross": "2 to 3 sentences, second person, that hold up who you HOPE to be seen as (your ASPIRATION) against how you ACTUALLY land, drawing on the team's aura read and the words colleagues reach for most WHERE THEY EXIST. This is the HOPED self ONLY — do NOT discuss what they FEAR here (the feared self belongs in softSpots above). Name the overlap warmly and any gap honestly (never harsh). **bold** 1 to 2 phrases. If no ASPIRATION was given, return an empty string.",
+  "colleagueFit": {
+    "clashWith": "2 to 3 sentences, second person, on the working style you would most clash with or find draining, grounded in your values, candor, conflict needs and energy. Concrete behaviours, not adjectives. **bold** one phrase. Never name a real person.",
+    "thriveWith": "2 to 3 sentences, second person, on the working style you would most trust and thrive alongside, grounded in the same signals. Concrete behaviours. **bold** one phrase."
+  }
 }
 For "greatAt": propose 3 to 4, best first. Combine what the team rates them STRONGEST at (top strengths, high virtues, VIA) with what ENERGIZES them (their energizers) and the role they play, to name concrete things they'd thrive doing. Specific and real (e.g. "Own key client relationships", "Run the launch war-room"), never vague ("be a leader").
 For "constellation": look ONLY at the words the team flagged that the person did NOT own (Johari blind spot, Nohari blind spot, watch-outs). If two or more of them trace to ONE underlying theme, group them into a named constellation (1, at most 2 groups). Use the words VERBATIM as given. If nothing coheres, return an empty array.
@@ -371,6 +407,24 @@ Use these where they add colour and voice: contrast the ASPIRATION with how the 
 The ASPIRATION is not just colour — it is a destination. The action plan must actively help them BECOME that person, not only fix what's broken.
 The FEAR feeds the "soft spots" section below: check each fear against what the team actually reported and, wherever the data contradicts the fear, say so plainly and warmly — most fears are heavier than the truth.
 
+=== WHAT DRIVES YOU (your own read) ===
+Values ranked HIGHEST: ${valuesTop.join(', ') || '(not given)'}
+Value cared about LEAST: ${valuesLeast || '(not given)'}
+Motivation: ${motPos != null ? `${motPos}/100 toward INTRINSIC (0 = fully extrinsic, driven by rewards/status/deadlines; 100 = fully intrinsic, driven by the work itself, autonomy, mastery, meaning). Extrinsic fuel is real but runs out; the growth move is to keep shifting weight toward intrinsic.` : '(not given)'}
+
+=== HOW YOU CONNECT + REPAIR (your own read) ===
+How you SHOW care: ${selfLove.show ? (LOVE_LBL[selfLove.show] || selfLove.show) : '(not given)'}
+How you FEEL cared for: ${selfLove.receive ? (LOVE_LBL[selfLove.receive] || selfLove.receive) : '(not given)'}${selfLove.show && selfLove.receive && selfLove.show !== selfLove.receive ? ' (these DIFFER: name the give-vs-receive gap warmly)' : ''}
+In conflict you NEED: ${selfConflict.need ? (CNEED_LBL[selfConflict.need] || selfConflict.need) : '(not given)'}
+What REPAIRS it: ${selfConflict.repair ? (CREPAIR_LBL[selfConflict.repair] || selfConflict.repair) : '(not given)'}
+What makes it WORSE: ${selfConflict.worse ? (CWORSE_LBL[selfConflict.worse] || selfConflict.worse) : '(not given)'}
+
+=== CAREER FIT (RIASEC, your own read) ===
+Work code: ${riasecCode || '(not given)'}${riasecNames.length ? ` (${riasecNames.join(', ')})` : ''}
+
+=== LIFE SATISFACTION (your own read) ===
+Satisfaction: ${lsScore != null ? `${lsScore}/10` : '(not given)'}; most alive right now in: ${selfLifesat.alive ? (ALIVE_LBL[selfLifesat.alive] || selfLifesat.alive) : '(not given)'}
+
 === HOW YOU LAND ON PEOPLE (team) ===
 Your aura / vibe (team's read): ${auraSummary || '(not given)'}
 The words colleagues reach for most: ${johariTop.join(', ') || '(none)'}
@@ -429,7 +483,7 @@ Return the JSON now.`
 
     // One-line, per-slide takeaways: keep them tidy (no newlines, dashes cleaned).
     const oneLine = (v: any) => stripDashes(String(v ?? '')).replace(/\s+/g, ' ').trim()
-    const CAP_KEYS = ['strengths', 'virtues', 'hats', 'energy', 'youVsTeam', 'blindspots', 'watchouts', 'responsibilities', 'vice', 'rooms', 'lockedDoor']
+    const CAP_KEYS = ['strengths', 'virtues', 'hats', 'energy', 'youVsTeam', 'blindspots', 'watchouts', 'responsibilities', 'vice', 'rooms', 'lockedDoor', 'drives', 'conflictRepair', 'loveLanguage', 'lifeSatisfaction']
     const rawCaps = prose.captions && typeof prose.captions === 'object' ? prose.captions : {}
     const captions: Record<string, string> = {}
     for (const k of CAP_KEYS) {
@@ -465,6 +519,12 @@ Return the JSON now.`
     const softSpots = ss && typeof ss.body === 'string' && ss.body.trim()
       ? { heading: stripDashes(String(ss.heading || '')).slice(0, 60), body: stripDashes(String(ss.body)) }
       : null
+    // Two AI-cast working-style personas (who you'd clash with vs thrive with). Kept only
+    // when the model wrote both sides.
+    const cfRaw = prose.colleagueFit && typeof prose.colleagueFit === 'object' ? prose.colleagueFit : null
+    const colleagueFit = cfRaw && typeof cfRaw.clashWith === 'string' && cfRaw.clashWith.trim() && typeof cfRaw.thriveWith === 'string' && cfRaw.thriveWith.trim()
+      ? { clashWith: stripDashes(String(cfRaw.clashWith)), thriveWith: stripDashes(String(cfRaw.thriveWith)) }
+      : null
 
     const synthesis = {
       title: stripDashes(String(prose.title || 'Your full read')),
@@ -481,6 +541,7 @@ Return the JSON now.`
       ...(greatAt.length ? { greatAt } : {}),
       ...(typeof prose.howYouComeAcross === 'string' && prose.howYouComeAcross.trim() ? { howYouComeAcross: stripDashes(prose.howYouComeAcross) } : {}),
       ...(softSpots ? { softSpots } : {}),
+      ...(colleagueFit ? { colleagueFit } : {}),
       ...(actionPlan && actionPlan.stopNow.length ? { actionPlan } : {}),
       n,
     }

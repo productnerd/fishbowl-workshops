@@ -22,6 +22,17 @@ import {
 } from '@fishbowl/feedback-core'
 import { getSession } from '../lib/data'
 import { questions } from '../data/questions'
+import {
+  VALUE_OPTIONS,
+  motivationScore,
+  RIASEC_OPTIONS,
+  LOVE_OPTIONS,
+  CONFLICT_REPAIR,
+  CONFLICT_NEED,
+  CONFLICT_WORSE,
+  ALIVE_OPTIONS,
+  lifeSatScore,
+} from '../data/selfExtras'
 import { getSelfReport, synthesisStart, synthesisPoll, getWorkManual, type SelfData, type SelfSynthesis, type SynthStatus, type WorkManual as WorkManualData } from '../lib/self'
 import { useAiInsights } from '../lib/aiInsights'
 import { topPercent } from '../lib/percentile'
@@ -46,6 +57,7 @@ import ThroughLine from '../components/ThroughLine'
 import VirtueViceDial from '../components/VirtueViceDial'
 import FourRooms from '../components/FourRooms'
 import LockedDoor from '../components/LockedDoor'
+import MarkerBar from '../components/MarkerBar'
 import HeatCurve from '../components/HeatCurve'
 import RoleTriangle from '../components/RoleTriangle'
 import Constellation from '../components/Constellation'
@@ -738,6 +750,16 @@ export default function Results() {
 
   // ── Phase 3 framework cards — team layer at >=5; self overlays once self-assessed ──
   const sp = (self?.self_payload ?? {}) as Record<string, unknown>
+  // New self-knowledge reads (Extended depth; conflict also at Standard). Each slide that
+  // uses these renders only when its data is present, so older/lighter self-reads skip them.
+  const labelOf = (opts: { id: string; label: string }[], id?: string) => (id ? opts.find((o) => o.id === id)?.label : undefined)
+  const valuesPick = hasSelf ? (sp.values as { top?: string[]; least?: string } | undefined) : undefined
+  const motivationPos = hasSelf ? motivationScore((sp.motivation as Record<string, number>) ?? {}) : null
+  const riasecPick = hasSelf ? (sp.riasec as string[] | undefined) : undefined
+  const lovePick = hasSelf ? (sp.love as { show?: string; receive?: string } | undefined) : undefined
+  const conflictPick = hasSelf ? (sp.conflict as { repair?: string; need?: string; worse?: string } | undefined) : undefined
+  const lifesatObj = hasSelf ? (sp.lifesat as { answers?: Record<string, number>; alive?: string } | undefined) : undefined
+  const lifesatPos = lifeSatScore(lifesatObj?.answers ?? {})
   const fwCards: Slide[] = []
 
   const selfHats = hasSelf ? ((sp.hats as HatScores) ?? null) : null
@@ -1105,6 +1127,11 @@ export default function Results() {
           <h2 className="display mb-5 text-3xl">The locked door</h2>
           {cap('lockedDoor')}
           <LockedDoor confidence={confSelf} receptiveness={{ self: recSelf, team: recVirtue.mu }} blindWords={johariBlind} />
+          <div className="mt-6">
+            <p className="kicker mb-2 text-ink-soft">how tightly you hold a position</p>
+            <MarkerBar value={recSelf} value2={recVirtue.mu} min={1} max={9} leftLabel="Holds firm" rightLabel="Shifts easily" />
+            <p className="mt-2 text-xs text-ink-soft">Pink is your read; hollow is your team&rsquo;s.</p>
+          </div>
         </div>
       ),
     })
@@ -1198,6 +1225,19 @@ export default function Results() {
           </p>
           <h2 className="display mb-4 text-3xl">Where you'd thrive</h2>
           <RoleTriangle teamW={teamW} energyW={energyW} />
+          {riasecPick && riasecPick.length > 0 && (
+            <div className="mt-6">
+              <p className="kicker mb-2 text-blue-deep">your work code</p>
+              <p className="serif text-lg font-black text-ink">
+                {riasecPick.join('-')} · {riasecPick.map((id) => RIASEC_OPTIONS.find((o) => o.id === id)?.name).filter(Boolean).join(', ')}
+              </p>
+              {RIASEC_OPTIONS.filter((o) => !riasecPick.includes(o.id)).length > 0 && (
+                <p className="mt-1 text-sm text-ink-soft">
+                  What would drain you: {RIASEC_OPTIONS.filter((o) => !riasecPick.includes(o.id)).map((o) => o.name).join(', ')}.
+                </p>
+              )}
+            </div>
+          )}
           {synthesis?.greatAt && synthesis.greatAt.length > 0 && (
             <div className="mt-6">
               <p className="kicker mb-3 text-blue-deep">roles &amp; tasks you'd be great at</p>
@@ -1211,6 +1251,173 @@ export default function Results() {
               </ul>
             </div>
           )}
+        </div>
+      ),
+    })
+  }
+
+  // ── New self-knowledge slides — deterministic from the self-read; AI captions optional ──
+  // What drives you: top values + where you land on the intrinsic↔extrinsic spectrum.
+  if (hasSelf && ((valuesPick?.top && valuesPick.top.length > 0) || motivationPos != null)) {
+    const top = valuesPick?.top ?? []
+    const leastLabel = labelOf(VALUE_OPTIONS, valuesPick?.least)
+    cards.push({
+      tone: 'sand',
+      sec: 3.05,
+      motion: 'stagger',
+      node: (
+        <div>
+          <p className="kicker mb-1 text-blue-deep">
+            what drives you
+            <InfoTip text="Your own read: the values you rank highest, and whether your fuel is intrinsic (the work itself) or extrinsic (rewards, status, deadlines)." />
+          </p>
+          <h2 className="display mb-4 text-3xl">What drives you</h2>
+          {cap('drives')}
+          {top.length > 0 && (
+            <div>
+              <p className="kicker mb-2 text-ink-soft">what you value most</p>
+              <div className="flex flex-wrap gap-2">
+                {top.map((id) => (
+                  <span key={id} className="rounded-full border-2 border-ink bg-pink px-4 py-2 text-sm font-bold text-ink shadow-chunky-sm">
+                    {labelOf(VALUE_OPTIONS, id)}
+                  </span>
+                ))}
+              </div>
+              {leastLabel && (
+                <p className="mt-3 text-sm text-ink-soft">
+                  Won&rsquo;t move you: <span className="font-bold text-ink">{leastLabel}</span>.
+                </p>
+              )}
+            </div>
+          )}
+          {motivationPos != null && (
+            <div className="mt-7">
+              <p className="kicker mb-2 text-ink-soft">what powers that</p>
+              <MarkerBar value={motivationPos} leftLabel="Extrinsic" rightLabel="Intrinsic" />
+              <p className="mt-3 text-sm leading-snug text-ink-soft">
+                Extrinsic fuel (money, status, deadlines) is real, and it never fully disappears. But it runs out. Intrinsic fuel (autonomy, mastery, meaning) does not. The move is not to erase the left side. It is to keep shifting your weight toward the right.
+              </p>
+            </div>
+          )}
+        </div>
+      ),
+    })
+  }
+
+  // How you handle conflict: what you need, what repairs it, what makes it worse.
+  if (hasSelf && conflictPick && (conflictPick.need || conflictPick.repair || conflictPick.worse)) {
+    const band = (label: string, text: string | undefined, bg: string) =>
+      text ? (
+        <div className={`rounded-2xl border-[2.5px] border-ink ${bg} p-3.5 shadow-chunky-sm`}>
+          <p className="kicker mb-0.5 text-ink-soft">{label}</p>
+          <p className="serif font-black text-ink">{text}</p>
+        </div>
+      ) : null
+    cards.push({
+      tone: 'paper',
+      sec: 3.45,
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">
+            how you make up
+            <InfoTip text="Your own read on conflict: what you need in the heat of it, what actually repairs things afterward, and what reliably makes it worse." />
+          </p>
+          <h2 className="display mb-4 text-3xl">When it gets tense</h2>
+          {cap('conflictRepair')}
+          <div className="flex flex-col gap-3">
+            {band('In the heat, you need', labelOf(CONFLICT_NEED, conflictPick.need), 'bg-paper-hi')}
+            {band('What repairs it', labelOf(CONFLICT_REPAIR, conflictPick.repair), 'bg-sand')}
+            {band('What makes it worse', labelOf(CONFLICT_WORSE, conflictPick.worse), 'bg-paper-hi')}
+          </div>
+        </div>
+      ),
+    })
+  }
+
+  // Where you stand: a short life-satisfaction read + where you feel most alive.
+  if (hasSelf && lifesatPos != null) {
+    const aliveL = labelOf(ALIVE_OPTIONS, lifesatObj?.alive)
+    cards.push({
+      tone: 'paper',
+      sec: 5.05,
+      node: (
+        <div>
+          <p className="kicker mb-1 text-blue-deep">where you stand</p>
+          <h2 className="display mb-4 text-3xl">Life, right now</h2>
+          {cap('lifeSatisfaction')}
+          <div className="mb-4 flex items-end gap-2">
+            <span className="font-display text-6xl font-black leading-none text-ink">{lifesatPos.toFixed(1)}</span>
+            <span className="mb-1 text-lg font-bold text-ink-soft">/ 10</span>
+          </div>
+          <MarkerBar value={lifesatPos} min={0} max={10} leftLabel="Running low" rightLabel="Deeply content" />
+          {aliveL && (
+            <p className="mt-4 text-sm text-ink-soft">
+              Most alive right now in <span className="font-bold text-ink">{aliveL}</span>.
+            </p>
+          )}
+        </div>
+      ),
+    })
+  }
+
+  // How you love: how you show care vs how you feel cared for (the gap is the insight).
+  if (hasSelf && lovePick && (lovePick.show || lovePick.receive)) {
+    const showL = labelOf(LOVE_OPTIONS, lovePick.show)
+    const recvL = labelOf(LOVE_OPTIONS, lovePick.receive)
+    const same = Boolean(lovePick.show && lovePick.receive && lovePick.show === lovePick.receive)
+    cards.push({
+      tone: 'pink',
+      sec: 5.15,
+      node: (
+        <div>
+          <p className="kicker mb-1 text-pink-deep">how you connect</p>
+          <h2 className="display mb-4 text-3xl">How you love</h2>
+          {cap('loveLanguage')}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-4 shadow-chunky-sm">
+              <p className="kicker mb-1 text-ink-soft">you show it by</p>
+              <p className="serif font-black text-ink">{showL ?? 'Not shared'}</p>
+            </div>
+            <div className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-4 shadow-chunky-sm">
+              <p className="kicker mb-1 text-ink-soft">you feel it as</p>
+              <p className="serif font-black text-ink">{recvL ?? 'Not shared'}</p>
+            </div>
+          </div>
+          {showL && recvL && (
+            <p className="serif mt-4 text-lg italic leading-snug text-ink">
+              {same
+                ? 'You give and want the same thing. The people close to you just have to speak it back.'
+                : 'You give one way and need another. That gap is worth naming out loud, because you can pour out care and still feel unseen.'}
+            </p>
+          )}
+        </div>
+      ),
+    })
+  }
+
+  // Who you click with: two AI-cast personas from the whole read (needs the synthesis).
+  if (hasSelf && synthesis?.colleagueFit) {
+    const cf = synthesis.colleagueFit
+    cards.push({
+      tone: 'paper',
+      sec: 6.15,
+      node: (
+        <div>
+          <p className="kicker mb-1 text-blue-deep">
+            the people fit
+            <InfoTip text="Drawn from your whole read (values, candor, conflict, energy): the working style you would clash with, and the one you would thrive alongside." />
+          </p>
+          <h2 className="display mb-4 text-3xl">Who you click with</h2>
+          <div className="flex flex-col gap-3">
+            <div className="rounded-2xl border-[2.5px] border-ink bg-sand p-4 shadow-chunky-sm">
+              <p className="kicker mb-1 text-pink-deep">🙅 you&rsquo;d clash with</p>
+              <p className="leading-snug text-ink"><Rich text={cf.clashWith} /></p>
+            </div>
+            <div className="rounded-2xl border-[2.5px] border-ink bg-paper-hi p-4 shadow-chunky-sm">
+              <p className="kicker mb-1 text-blue-deep">🤝 you&rsquo;d thrive with</p>
+              <p className="leading-snug text-ink"><Rich text={cf.thriveWith} /></p>
+            </div>
+          </div>
         </div>
       ),
     })
