@@ -62,6 +62,30 @@ const CONTEXTS = [
   { key: 'drains', stem: 'What quietly drains me is' },
 ]
 
+// Structured-output schema: the API constrains the response to exactly this shape, so the
+// JSON is valid by construction (no more model-dependent malformed nesting or stray braces).
+const MANUAL_SCHEMA = {
+  type: 'object',
+  properties: {
+    entries: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          key: { type: 'string', enum: CONTEXTS.map((c) => c.key) },
+          text: { type: 'string' },
+        },
+        required: ['key', 'text'],
+        additionalProperties: false,
+      },
+    },
+    clashWith: { type: 'string' },
+    thriveWith: { type: 'string' },
+  },
+  required: ['entries', 'clashWith', 'thriveWith'],
+  additionalProperties: false,
+}
+
 const HAT_NAMES: Record<string, string> = {
   hat_white: 'White (facts)', hat_red: 'Red (feelings)', hat_yellow: 'Yellow (optimism)',
   hat_black: 'Black (caution)', hat_green: 'Green (creativity)', hat_blue: 'Blue (process)',
@@ -171,7 +195,7 @@ Now write the completions.`
         model: MODEL,
         max_tokens: 8000,
         thinking: { type: 'adaptive' },
-        output_config: { effort: 'high' },
+        output_config: { effort: 'medium', format: { type: 'json_schema', schema: MANUAL_SCHEMA } },
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }],
       }),

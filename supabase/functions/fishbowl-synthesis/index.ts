@@ -13,6 +13,37 @@ import { gifPromptBlock } from './gifs.ts'
 
 const MODEL = 'claude-opus-5'
 
+// The per-slide caption keys, shared by the output schema and the parser below.
+const CAPTION_KEYS = ['strengths', 'virtues', 'hats', 'energy', 'youVsTeam', 'blindspots', 'watchouts', 'responsibilities', 'vice', 'rooms', 'lockedDoor', 'drives', 'conflictRepair', 'loveLanguage', 'lifeSatisfaction']
+
+// Structured-output schema: the API constrains the response to exactly this shape, so the
+// JSON is valid by construction AND every field is mandatory. That last part matters: the
+// two worst bugs here were the model quietly dropping softSpots (and later colleagueFit)
+// off the end of a long response. It can't now. Empty strings/arrays are still allowed
+// where there is genuinely nothing to say; the parser filters those out.
+const S = { type: 'string' }
+const SARR = { type: 'array', items: { type: 'string' } }
+const obj = (properties: Record<string, unknown>) => ({
+  type: 'object',
+  properties,
+  required: Object.keys(properties),
+  additionalProperties: false,
+})
+const SYNTHESIS_SCHEMA = obj({
+  title: S,
+  portrait: S,
+  sections: { type: 'array', items: obj({ heading: S, body: S }) },
+  actionPlan: obj({ stopNow: SARR, startNow: SARR, stopNext: SARR, startNext: SARR }),
+  captions: obj(Object.fromEntries(CAPTION_KEYS.map((k) => [k, S]))),
+  throughLine: obj({ from: S, via: SARR, to: S }),
+  constellation: { type: 'array', items: obj({ label: S, words: SARR }) },
+  oneOnOne: SARR,
+  biases: SARR,
+  greatAt: { type: 'array', items: obj({ label: S, why: S }) },
+  softSpots: obj({ heading: S, body: S }),
+  howYouComeAcross: S,
+})
+
 const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -437,7 +468,7 @@ Return the JSON now.`
         model: MODEL,
         max_tokens: 32000,
         thinking: { type: 'adaptive' },
-        output_config: { effort: 'medium' },
+        output_config: { effort: 'medium', format: { type: 'json_schema', schema: SYNTHESIS_SCHEMA } },
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }],
       }),
@@ -481,7 +512,7 @@ Return the JSON now.`
 
     // One-line, per-slide takeaways: keep them tidy (no newlines, dashes cleaned).
     const oneLine = (v: any) => stripDashes(String(v ?? '')).replace(/\s+/g, ' ').trim()
-    const CAP_KEYS = ['strengths', 'virtues', 'hats', 'energy', 'youVsTeam', 'blindspots', 'watchouts', 'responsibilities', 'vice', 'rooms', 'lockedDoor', 'drives', 'conflictRepair', 'loveLanguage', 'lifeSatisfaction']
+    const CAP_KEYS = CAPTION_KEYS
     const rawCaps = prose.captions && typeof prose.captions === 'object' ? prose.captions : {}
     const captions: Record<string, string> = {}
     for (const k of CAP_KEYS) {

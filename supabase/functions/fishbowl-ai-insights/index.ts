@@ -17,6 +17,18 @@ import { gifPromptBlock } from './gifs.ts'
 const THRESHOLD = 3
 const MODEL = 'claude-opus-5'
 
+// Structured-output helpers. The schema is built per-session below (the virtue and
+// competency keys depend on which activities this team answered), which makes the
+// "include ALL N keys" instruction an API-level guarantee instead of a request.
+const S = { type: 'string' }
+const SARR = { type: 'array', items: { type: 'string' } }
+const obj = (properties: Record<string, unknown>) => ({
+  type: 'object',
+  properties,
+  required: Object.keys(properties),
+  additionalProperties: false,
+})
+
 type Tendency = 'deficient' | 'balanced' | 'excessive'
 interface Q {
   id: number
@@ -395,6 +407,24 @@ Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} 
 
     const userPrompt = `Computed results for ${name} (n=${responses.length}):\n\n${statsBlock}\n\nReturn the JSON now.`
 
+    const INSIGHTS_SCHEMA = obj({
+      headline: S,
+      virtues: obj(Object.fromEntries(virtueStats.map((v: any) => [v.dimension, S]))),
+      competencies: obj(Object.fromEntries(competencyStats.map((c: any) => [c.dimension, S]))),
+      topStrengths: { type: 'array', items: obj({ dimension: S, label: S, blurb: S }) },
+      growthEdges: { type: 'array', items: obj({ dimension: S, title: S, actions: SARR }) },
+      appreciations: SARR,
+      closing: S,
+      goodVibes: S,
+      postscript: S,
+      firstImpression: S,
+      auraSummary: S,
+      actionPlan: obj({ stopNow: SARR, startNow: SARR, stopNext: SARR, startNext: SARR }),
+      ...(sessionResp.length
+        ? { responsibilities: obj(Object.fromEntries(responsibilityStats.map((r: any) => [String(r.index), SARR]))) }
+        : {}),
+    })
+
     const anthropicKey = Deno.env.get('FISHBOWL_API_KEY') || Deno.env.get('fishbowl_api_key') || Deno.env.get('ANTHROPIC_API_KEY')
     if (!anthropicKey) {
       return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured' }), { status: 500, headers: jsonHeaders })
@@ -403,7 +433,7 @@ Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} 
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: MODEL, max_tokens: 16000, thinking: { type: 'adaptive' }, output_config: { effort: 'medium' }, system: systemPrompt, messages: [{ role: 'user', content: userPrompt }] }),
+      body: JSON.stringify({ model: MODEL, max_tokens: 16000, thinking: { type: 'adaptive' }, output_config: { effort: 'medium', format: { type: 'json_schema', schema: INSIGHTS_SCHEMA } }, system: systemPrompt, messages: [{ role: 'user', content: userPrompt }] }),
     })
     if (!claudeRes.ok) {
       const errText = await claudeRes.text()

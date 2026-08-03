@@ -10,6 +10,17 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
 const PASSWORD = Deno.env.get('FISHBOWL_MANAGER_PASSWORD') || 'fishbowl2026'
+
+// Structured-output schema: constrains the response shape, so the JSON is valid by
+// construction and no section can be silently dropped.
+const S = { type: 'string' }
+const SARR = { type: 'array', items: { type: 'string' } }
+const TEAM_SCHEMA = {
+  type: 'object',
+  properties: { headline: S, strengths: SARR, risks: SARR, complementarity: SARR, advice: SARR, closing: S },
+  required: ['headline', 'strengths', 'risks', 'complementarity', 'advice', 'closing'],
+  additionalProperties: false,
+}
 const MODEL = 'claude-opus-5'
 const THRESHOLD = 5
 
@@ -131,7 +142,7 @@ Talk about "the team" and "you" (the manager) like a sharp, funny colleague over
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: MODEL, max_tokens: 8000, thinking: { type: 'adaptive' }, output_config: { effort: 'medium' }, system, messages: [{ role: 'user', content: user }] }),
+        body: JSON.stringify({ model: MODEL, max_tokens: 8000, thinking: { type: 'adaptive' }, output_config: { effort: 'medium', format: { type: 'json_schema', schema: TEAM_SCHEMA } }, system, messages: [{ role: 'user', content: user }] }),
       })
       if (!res.ok) return new Response(JSON.stringify({ error: 'claude error', details: await res.text() }), { status: 502, headers: jsonHeaders })
       const cj = await res.json()
