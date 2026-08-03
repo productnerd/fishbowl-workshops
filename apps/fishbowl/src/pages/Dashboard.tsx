@@ -8,7 +8,14 @@ import {
   type HatScores,
 } from '@fishbowl/feedback-core'
 import { getResponseCount, getSession } from '../lib/data'
-import { getSelfReport, type SelfData } from '../lib/self'
+import {
+  getSelfReport,
+  synthesisPoll,
+  getWorkManual,
+  type SelfData,
+  type SelfSynthesis,
+  type WorkManual,
+} from '../lib/self'
 import { useAiInsights } from '../lib/aiInsights'
 import { computeGolden } from '../lib/goldenScore'
 import GoldenScore from '../components/GoldenScore'
@@ -30,6 +37,8 @@ export default function Dashboard() {
   const [count, setCount] = useState(0)
   const [selfDone, setSelfDone] = useState(false)
   const [self, setSelf] = useState<SelfData | null>(null)
+  const [synthesis, setSynthesis] = useState<SelfSynthesis | null>(null)
+  const [manual, setManual] = useState<WorkManual | null>(null)
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
@@ -69,12 +78,21 @@ export default function Dashboard() {
     if (!slug || !unlocked) return
     let cancelled = false
     getSelfReport(slug).then((r) => {
-      if (!cancelled && r.hasSelf) setSelf(r.self)
+      if (cancelled || !r.hasSelf) return
+      setSelf(r.self)
+      // Status-only read: shows the 1:1 points if the deep read already exists, and
+      // never kicks off a (slow, expensive) generation just to fill a dashboard card.
+      synthesisPoll(slug).then((s) => {
+        if (!cancelled && s.synthesis) setSynthesis(s.synthesis)
+      })
+      getWorkManual(slug, count).then((m) => {
+        if (!cancelled) setManual(m)
+      })
     })
     return () => {
       cancelled = true
     }
-  }, [slug, unlocked])
+  }, [slug, unlocked, count])
 
   const copy = async () => {
     if (!slug) return
@@ -128,6 +146,9 @@ export default function Dashboard() {
   const watchouts = (insights?.nohari?.counts ?? []).filter((c) => c.count >= 2).slice(0, 3)
   const stopNow = insights?.actionPlan?.stopNow ?? []
   const startNow = insights?.actionPlan?.startNow ?? []
+  const oneOnOne = (synthesis?.oneOnOne ?? []).slice(0, 3)
+  const manualEntries = (manual?.entries ?? []).slice(0, 4)
+  const plain = (s: string) => s.replace(/\*\*/g, '')
 
   // Everything after the report unlocks: the summary IS the page.
   const summary = (
@@ -140,10 +161,15 @@ export default function Dashboard() {
             The short version, from {count} {count === 1 ? 'colleague' : 'colleagues'}.
           </p>
         </div>
-        <Button variant="pink" onClick={() => navigate(`/r/${slug}`)} className="!text-lg">
-          Open the full report →
-        </Button>
       </div>
+
+      {/* Always in reach while scanning the board, never competing with the content. */}
+      <button
+        onClick={() => navigate(`/r/${slug}`)}
+        className="press sc-pink fixed bottom-5 right-5 z-40 cursor-pointer rounded-full border-[2.5px] border-ink bg-pink px-4 py-2 font-display text-sm font-black text-ink shadow-chunky"
+      >
+        Open the full report →
+      </button>
 
       {/* A dense board: the score reads widest, everything else sits beside it. */}
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -155,9 +181,9 @@ export default function Dashboard() {
 
         <div className="flex flex-col gap-4">
           {insights?.headline && (
-            <Card tone="pink" className="p-4">
-              <p className="kicker mb-1.5 text-ink/70">the one-line read</p>
-              <p className="display text-xl leading-tight text-ink">{insights.headline}</p>
+            <Card tone="blue" className="p-4">
+              <p className="kicker mb-1.5 text-paper-hi/70">the one-line read</p>
+              <p className="display text-xl leading-tight text-paper-hi">{insights.headline}</p>
             </Card>
           )}
           {strengths.length > 0 && (
@@ -220,6 +246,37 @@ export default function Dashboard() {
           </Card>
         )}
 
+        {/* Quick references: the two things people actually go back to between reports. */}
+        {(oneOnOne.length > 0 || manualEntries.length > 0) && (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:col-span-3">
+            {oneOnOne.length > 0 && (
+              <Card tone="sand" className="p-4">
+                <p className="kicker mb-2 text-blue-deep">for your next 1:1</p>
+                <ul className="flex flex-col gap-1.5">
+                  {oneOnOne.map((t, i) => (
+                    <li key={i} className="flex gap-2 text-xs leading-snug text-ink">
+                      <span className="shrink-0 text-blue-deep">→</span>
+                      <span>{plain(t)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+            {manualEntries.length > 0 && (
+              <Card tone="sand" className="p-4">
+                <p className="kicker mb-2 text-pink-deep">from your work manual</p>
+                <ul className="flex flex-col gap-1.5">
+                  {manualEntries.map((e) => (
+                    <li key={e.key} className="text-xs leading-snug text-ink">
+                      <span className="font-bold">{e.stem}</span> {plain(e.text)}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+          </div>
+        )}
+
         {!selfDone && (
           <Card tone="blue" className="p-4 lg:col-span-3">
             <p className="serif font-semibold text-paper-hi">You haven't done your own read yet.</p>
@@ -237,19 +294,19 @@ export default function Dashboard() {
       </div>
 
       {/* Demoted: you already have enough answers, so this is a footnote now. */}
-      <div className="mt-10 border-t-2 border-ink/10 pt-5">
+      <div className="mt-8 rounded-[2rem] border-[2.5px] border-ink/15 bg-paper-hi/50 p-5">
         <p className="text-sm font-semibold text-ink-soft">
           Want an even sharper read? Send your link to a few more people.
         </p>
-        <div className="mt-2 flex items-center gap-2">
+        <div className="mt-2.5 flex items-center gap-2">
           <input
             readOnly
             value={buildShareLink(slug)}
-            className="min-w-0 flex-1 truncate rounded-xl border-2 border-ink/20 bg-paper-hi/60 px-3 py-2 font-mono text-xs text-ink-soft outline-none"
+            className="min-w-0 flex-1 truncate rounded-full border-2 border-ink/15 bg-paper-hi px-4 py-2 font-mono text-xs text-ink-soft outline-none"
           />
           <button
             onClick={copy}
-            className="press shrink-0 cursor-pointer rounded-xl border-2 border-ink/30 bg-paper-hi px-3 py-2 text-sm font-bold text-ink"
+            className="press shrink-0 cursor-pointer rounded-full border-2 border-ink/30 bg-paper-hi px-4 py-2 text-sm font-bold text-ink"
           >
             {copied ? 'Copied!' : 'Copy'}
           </button>
