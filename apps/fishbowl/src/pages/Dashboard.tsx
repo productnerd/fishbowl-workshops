@@ -19,6 +19,8 @@ import {
 import { useAiInsights } from '../lib/aiInsights'
 import { computeGolden } from '../lib/goldenScore'
 import GoldenScore from '../components/GoldenScore'
+import OneOnOne from '../components/OneOnOne'
+import WorkManualDoc from '../components/WorkManual'
 import Card from '../components/Card'
 import Button from '../components/Button'
 
@@ -40,6 +42,8 @@ export default function Dashboard() {
   const [synthesis, setSynthesis] = useState<SelfSynthesis | null>(null)
   const [manual, setManual] = useState<WorkManual | null>(null)
   const [copied, setCopied] = useState(false)
+  // Which reference doc is open over the board, if any.
+  const [openDoc, setOpenDoc] = useState<'oneOnOne' | 'manual' | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
@@ -147,8 +151,7 @@ export default function Dashboard() {
   const stopNow = insights?.actionPlan?.stopNow ?? []
   const startNow = insights?.actionPlan?.startNow ?? []
   const oneOnOne = (synthesis?.oneOnOne ?? []).slice(0, 3)
-  const manualEntries = (manual?.entries ?? []).slice(0, 4)
-  const plain = (s: string) => s.replace(/\*\*/g, '')
+  const manualEntries = manual?.entries ?? []
 
   // Everything after the report unlocks: the summary IS the page.
   const summary = (
@@ -246,33 +249,24 @@ export default function Dashboard() {
           </Card>
         )}
 
-        {/* Quick references: the two things people actually go back to between reports. */}
+        {/* Quick references: kept off the board, one tap away, shown as in the report. */}
         {(oneOnOne.length > 0 || manualEntries.length > 0) && (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:col-span-3">
+          <div className="flex flex-wrap gap-3 lg:col-span-3">
             {oneOnOne.length > 0 && (
-              <Card tone="sand" className="p-4">
-                <p className="kicker mb-2 text-blue-deep">for your next 1:1</p>
-                <ul className="flex flex-col gap-1.5">
-                  {oneOnOne.map((t, i) => (
-                    <li key={i} className="flex gap-2 text-xs leading-snug text-ink">
-                      <span className="shrink-0 text-blue-deep">→</span>
-                      <span>{plain(t)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </Card>
+              <button
+                onClick={() => setOpenDoc('oneOnOne')}
+                className="press cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-5 py-2.5 font-display text-sm font-black text-ink shadow-chunky-sm"
+              >
+                📋 For your next 1:1
+              </button>
             )}
             {manualEntries.length > 0 && (
-              <Card tone="sand" className="p-4">
-                <p className="kicker mb-2 text-pink-deep">from your work manual</p>
-                <ul className="flex flex-col gap-1.5">
-                  {manualEntries.map((e) => (
-                    <li key={e.key} className="text-xs leading-snug text-ink">
-                      <span className="font-bold">{e.stem}</span> {plain(e.text)}
-                    </li>
-                  ))}
-                </ul>
-              </Card>
+              <button
+                onClick={() => setOpenDoc('manual')}
+                className="press cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-5 py-2.5 font-display text-sm font-black text-ink shadow-chunky-sm"
+              >
+                📖 Your work manual
+              </button>
             )}
           </div>
         )}
@@ -312,6 +306,37 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
+      {/* Reference docs, rendered with the same components the report uses. */}
+      {openDoc && (
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto bg-ink/50 p-4 backdrop-blur-sm sm:p-8"
+          onClick={() => setOpenDoc(null)}
+        >
+          <div onClick={(e) => e.stopPropagation()} className="mx-auto w-full max-w-2xl">
+            <div className="mb-3 flex justify-end">
+              <button
+                onClick={() => setOpenDoc(null)}
+                aria-label="Close"
+                className="press grid h-10 w-10 cursor-pointer place-items-center rounded-full border-[2.5px] border-ink bg-paper-hi text-lg font-black text-ink shadow-chunky-sm"
+              >
+                ✕
+              </button>
+            </div>
+            {openDoc === 'oneOnOne' ? (
+              <Card tone="paper" className="p-6">
+                <p className="kicker mb-1 text-blue-deep">take it to your 1:1</p>
+                <h2 className="display mb-1 text-3xl">For your next 1:1</h2>
+                <p className="mb-5 text-sm text-ink-soft">
+                  Questions to ask, and things to share, so this doesn't just sit in a report.
+                </p>
+                <OneOnOne items={synthesis?.oneOnOne ?? []} />
+              </Card>
+            ) : (
+              manual && <WorkManualDoc name={creator} manual={manual} />
+            )}
+          </div>
+        </div>
+      )}
     </>
   )
 
