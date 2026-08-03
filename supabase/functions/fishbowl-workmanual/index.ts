@@ -127,11 +127,11 @@ Never use an em dash, en dash, double hyphen, or spaced hyphen. Use commas, peri
 === NO DOUBLE QUOTES INSIDE VALUES ===
 Never put a double-quote character inside a string value; use single quotes if you must quote.
 
-=== OUTPUT (JSON only, no code fences) ===
-{ "entries": [ ${CONTEXTS.map((c) => `{ "key": "${c.key}", "text": "completion for: ${c.stem} ___" }`).join(', ')} ], "colleagueFit": { "clashWith": "...", "thriveWith": "..." } }
-Return all ${CONTEXTS.length} entries in this exact order, then the colleagueFit object. No prose outside the JSON.
+=== OUTPUT (JSON only, no code fences; ONE FLAT object, no nested objects) ===
+{ "entries": [ ${CONTEXTS.map((c) => `{ "key": "${c.key}", "text": "completion for: ${c.stem} ___" }`).join(', ')} ], "clashWith": "...", "thriveWith": "..." }
+Return all ${CONTEXTS.length} entries in this exact order, then "clashWith" and "thriveWith" as TOP-LEVEL keys (do NOT wrap them in another object). No prose outside the JSON, and nothing after the final closing brace.
 
-=== colleagueFit (write these two in SECOND PERSON, "you", NOT first person) ===
+=== clashWith / thriveWith (write these two in SECOND PERSON, "you", NOT first person) ===
 From this whole read (personality, candor, watch-outs, energy, virtues, what you fuel in others), cast TWO short working-style personas: clashWith = the kind of colleague YOU would most grate against or find draining; thriveWith = the kind YOU would most trust and thrive alongside. 2 to 3 sentences each, concrete about the behaviours (not adjectives), **bold** one phrase each. Never name a real person.`
 
     const userPrompt = `SUBJECT: ${name} (write as them, first person).
@@ -161,7 +161,7 @@ My note to a new teammate: ${refl.manual || '(not given)'}
 
 Now write the completions.`
 
-    const anthropicKey = Deno.env.get('FISHBOWL_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY')
+    const anthropicKey = Deno.env.get('FISHBOWL_API_KEY') || Deno.env.get('fishbowl_api_key') || Deno.env.get('ANTHROPIC_API_KEY')
     if (!anthropicKey) return ok({ error: 'ANTHROPIC_API_KEY not configured' }, 500)
 
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -185,12 +185,15 @@ Now write the completions.`
     const textBlock = Array.isArray(claudeJson.content) ? claudeJson.content.find((b: any) => b.type === 'text') : null
     let raw = (textBlock?.text || '').replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
     const first = raw.indexOf('{')
-    const last = raw.lastIndexOf('}')
-    if (first >= 0 && last > first) raw = raw.slice(first, last + 1)
+    if (first > 0) raw = raw.slice(first)
+    // opus-5 occasionally appends a stray trailing brace; walk back through the last few
+    // '}' positions until one yields valid JSON.
     let parsed: any
-    try {
-      parsed = JSON.parse(raw)
-    } catch {
+    let end = raw.lastIndexOf('}')
+    for (let tries = 0; tries < 5 && end > first; tries++) {
+      try { parsed = JSON.parse(raw.slice(0, end + 1)); break } catch { end = raw.lastIndexOf('}', end - 1) }
+    }
+    if (!parsed) {
       return ok({ error: 'parse error', raw: raw.slice(0, 800), stop: claudeJson.stop_reason }, 502)
     }
 
@@ -202,10 +205,10 @@ Now write the completions.`
     if (entries.length < 4) return ok({ error: 'too few entries', raw: raw.slice(0, 400) }, 502)
 
     // Two AI-cast working-style personas, generated alongside the manual so the big synthesis
-    // call stays lean. Kept only when the model wrote both sides.
-    const cf = parsed.colleagueFit && typeof parsed.colleagueFit === 'object' ? parsed.colleagueFit : null
-    const colleagueFit = cf && typeof cf.clashWith === 'string' && cf.clashWith.trim() && typeof cf.thriveWith === 'string' && cf.thriveWith.trim()
-      ? { clashWith: clean(cf.clashWith), thriveWith: clean(cf.thriveWith) }
+    // call stays lean. Flat top-level keys (a nested object confused the model). Kept only
+    // when both sides came back.
+    const colleagueFit = typeof parsed.clashWith === 'string' && parsed.clashWith.trim() && typeof parsed.thriveWith === 'string' && parsed.thriveWith.trim()
+      ? { clashWith: clean(parsed.clashWith), thriveWith: clean(parsed.thriveWith) }
       : null
 
     return ok({ manual: { entries, n, ...(colleagueFit ? { colleagueFit } : {}) } })

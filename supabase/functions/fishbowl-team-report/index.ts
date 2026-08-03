@@ -126,7 +126,7 @@ Talk about "the team" and "you" (the manager) like a sharp, funny colleague over
 }`
       const user = `Team of ${members.length}.\n\nVIRTUES (team averages, 1-9, 5=balanced):\n${virtueLines.join('\n')}\n\nCOMPETENCIES (1-5):\n${compLines.join('\n')}\n\nWHERE EACH MEMBER LEANS:\n${memberLines.join('\n')}\n\nReturn the JSON now.`
 
-      const key = Deno.env.get('FISHBOWL_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY')
+      const key = Deno.env.get('FISHBOWL_API_KEY') || Deno.env.get('fishbowl_api_key') || Deno.env.get('ANTHROPIC_API_KEY')
       if (!key) return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured' }), { status: 500, headers: jsonHeaders })
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
