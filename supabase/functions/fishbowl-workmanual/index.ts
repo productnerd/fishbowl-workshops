@@ -57,8 +57,10 @@ const CONTEXTS = [
   { key: 'team', stem: 'As part of a team, I' },
   { key: 'best', stem: "When I'm at my best, I" },
   { key: 'conflict', stem: 'In a disagreement, I' },
+  { key: 'triggers', stem: 'Certain things trigger me,' },
   { key: 'bestwork', stem: 'To do my best work, I need' },
   { key: 'feedback', stem: 'When you give me feedback, I' },
+  { key: 'appreciate', stem: 'There are certain things I really appreciate in others,' },
   { key: 'drains', stem: 'What quietly drains me is' },
 ]
 
@@ -155,8 +157,10 @@ Never put a double-quote character inside a string value; use single quotes if y
 { "entries": [ ${CONTEXTS.map((c) => `{ "key": "${c.key}", "text": "completion for: ${c.stem} ___" }`).join(', ')} ], "clashWith": "...", "thriveWith": "..." }
 Return all ${CONTEXTS.length} entries in this exact order, then "clashWith" and "thriveWith" as TOP-LEVEL keys (do NOT wrap them in another object). No prose outside the JSON, and nothing after the final closing brace.
 
-=== clashWith / thriveWith (write these two in SECOND PERSON, "you", NOT first person) ===
-From this whole read (personality, candor, watch-outs, energy, virtues, what you fuel in others), cast TWO short working-style personas: clashWith = the kind of colleague YOU would most grate against or find draining; thriveWith = the kind YOU would most trust and thrive alongside. 2 to 3 sentences each, concrete about the behaviours (not adjectives), **bold** one phrase each. Never name a real person.`
+=== clashWith / thriveWith (describe the OTHER PERSON in the THIRD PERSON) ===
+From this whole read (personality, candor, watch-outs, energy, virtues, what you fuel in others), cast TWO short working-style personas: clashWith = the kind of colleague this person would most grate against or find draining; thriveWith = the kind they would most trust and thrive alongside.
+CRITICAL: these describe a TYPE OF COLLEAGUE, not the reader. Write them in the third person, starting like "People who..." or "The colleague who..." or "Someone who...". NEVER address them as "you" (writing "You circle a decision for a week" reads as an accusation against the reader, which is wrong). Say "People who circle a decision for a week" instead.
+2 to 3 sentences each, concrete about the behaviours (not adjectives), **bold** one phrase each. Never name a real person.`
 
     const userPrompt = `SUBJECT: ${name} (write as them, first person).
 

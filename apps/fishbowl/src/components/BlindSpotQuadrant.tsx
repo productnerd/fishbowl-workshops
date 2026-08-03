@@ -67,7 +67,7 @@ export default function BlindSpotQuadrant({
 
   return (
     <div>
-      <svg viewBox={`0 0 ${VB} ${VB}`} className="mx-auto block w-full max-w-[360px]" role="img" aria-label="Self versus team perception map">
+      <svg viewBox={`0 0 ${VB} ${VB}`} className="mx-auto block w-full max-w-[560px]" role="img" aria-label="Self versus team perception map">
         <rect x={O} y={O} width={S} height={S} fill="#f5eedc" stroke="#2a2420" strokeOpacity={0.25} />
         <line x1={O} y1={bottom} x2={bottom} y2={O} stroke="#2a2420" strokeOpacity={0.35} strokeWidth={1.4} strokeDasharray="4 4" />
 

@@ -28,8 +28,49 @@ export default function WatchoutsDeck({
 
   const fan = [-2, -1, 0, 1, 2, -1]
 
+  // The headline read: which watch-outs you already own (self-awareness worth crediting)
+  // versus the ones only the team sees. The second group is the whole point of the slide,
+  // so it gets named as such rather than being left for the reader to diff.
+  const ranked = [...team].sort((a, b) => b.count - a.count)
+  const agreed = selfSet ? ranked.filter((t) => selfSet.has(t.word)).map((t) => t.word).slice(0, 6) : []
+  const blind = selfSet ? ranked.filter((t) => !selfSet.has(t.word)).map((t) => t.word).slice(0, 6) : []
+
+  const chip = (w: string, tone: 'agreed' | 'blind') => (
+    <span
+      key={w}
+      className={`rounded-full border-2 border-ink px-3 py-1.5 text-sm font-bold text-ink ${
+        tone === 'agreed' ? 'bg-blue text-paper-hi sc-navy' : 'bg-pink sc-pink'
+      }`}
+    >
+      {w}
+    </span>
+  )
+
   return (
     <div className="flex flex-col gap-6">
+      {selfSet && teamHasData && (agreed.length > 0 || blind.length > 0) && (
+        <motion.div variants={rowItem} className="rounded-2xl border-[2.5px] border-ink bg-sand p-4 shadow-chunky-sm">
+          {agreed.length > 0 && (
+            <div>
+              <p className="kicker mb-2 text-blue-deep">✓ you already see these</p>
+              <div className="flex flex-wrap gap-2">{agreed.map((w) => chip(w, 'agreed'))}</div>
+              <p className="mt-2 text-xs leading-snug text-ink-soft">
+                You flagged these yourself and your team agrees. Naming your own edges is most of the work, so give yourself that.
+              </p>
+            </div>
+          )}
+          {blind.length > 0 && (
+            <div className={agreed.length > 0 ? 'mt-5' : ''}>
+              <p className="kicker mb-2 text-pink-deep">◎ your blind spots</p>
+              <div className="flex flex-wrap gap-2">{blind.map((w) => chip(w, 'blind'))}</div>
+              <p className="mt-2 text-xs leading-snug text-ink-soft">
+                Your team named {blind.length === 1 ? 'this one' : 'these'} and you did not. That gap is the part worth sitting with.
+              </p>
+            </div>
+          )}
+        </motion.div>
+      )}
+
       {teamHasData && (
         <div>
           <p className="kicker mb-3 text-ink-soft">What your team flags most</p>

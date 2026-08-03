@@ -115,7 +115,7 @@ export interface WorkManual {
 export async function getWorkManual(slug: string, n: number): Promise<WorkManual | null> {
   const auth = getSubjectAuth()
   if (!auth) return null
-  const cacheKey = `fb_workmanual_v2_${slug}_${n}`
+  const cacheKey = `fb_workmanual_v3_${slug}_${n}`
   try {
     const cached = localStorage.getItem(cacheKey)
     if (cached) return JSON.parse(cached) as WorkManual

@@ -13,14 +13,13 @@ import {
   HATS,
   SDT_NEEDS,
   BELBIN_ROLES,
-  CANDOR_ITEMS,
   type Session,
   type BigFiveScores,
   type ResponsibilityTiers,
   type HatScores,
   type VirtueScores,
 } from '@fishbowl/feedback-core'
-import { getSession } from '../lib/data'
+import { getSession, getPopulationStats, MIN_POPULATION, type PopulationStats } from '../lib/data'
 import { questions } from '../data/questions'
 import {
   VALUE_OPTIONS,
@@ -72,7 +71,8 @@ import OneOnOne from '../components/OneOnOne'
 import StickyNote from '../components/StickyNote'
 import JohariWindow from '../components/JohariWindow'
 import WatchoutsDeck from '../components/WatchoutsDeck'
-import { WEAKNESSES, allocateGifs, stripGifTokens } from '@fishbowl/feedback-core'
+import { allocateGifs, stripGifTokens } from '@fishbowl/feedback-core'
+import BackgroundMusic from '../components/BackgroundMusic'
 import InfoTip from '../components/InfoTip'
 import Rich from '../components/Rich'
 import GifReaction from '../components/GifReaction'
@@ -128,8 +128,8 @@ type Slide = {
 const ACTS: Record<number, { title: string; line: string; color: string }> = {
   2: { title: 'How the team sees you', line: "Enough about your own read. Here's the mirror your colleagues hold up.", color: '#1366ac' },
   3: { title: 'How you operate', line: 'Not just who you are, but how you actually move through a workday.', color: '#2f9e7a' },
-  4: { title: 'Where the gaps are', line: 'The honest part: what you might not see, and what you quietly undersell.', color: '#c9683f' },
-  5: { title: 'The warm part', line: 'Set the analysis down for a second. This is what they wanted you to hear.', color: '#a83f6f' },
+  4: { title: 'The warm part', line: 'Set the analysis down for a second. This is what they wanted you to hear.', color: '#a83f6f' },
+  5: { title: 'Where the gaps are', line: 'The honest part: what you might not see, and what you quietly undersell.', color: '#c9683f' },
   6: { title: 'Putting it together', line: 'Every thread from the last few minutes, woven into one read.', color: '#6b4e9e' },
   7: { title: 'What to do with it', line: "Insight is nice. Here's how to actually use it this week.", color: '#2a2420' },
 }
@@ -141,8 +141,8 @@ const ACTS: Record<number, { title: string; line: string; color: string }> = {
 const ACT_SOUND: Record<number, () => void> = {
   2: () => playScaleNote(3),
   3: () => playScaleNote(4),
-  4: playWarm,
-  5: playChime,
+  4: playChime,
+  5: playWarm,
   6: () => playScaleNote(7),
   7: () => playScaleNote(9),
 }
@@ -175,7 +175,21 @@ export default function Results() {
   const [synthNonce, setSynthNonce] = useState(0) // bump to re-trigger a generation (retry)
   const synthesisLoading = synthStatus === 'generating'
   const [workManual, setWorkManual] = useState<WorkManualData | null>(null)
+  const [population, setPopulation] = useState<PopulationStats | null>(null)
   const [copied, setCopied] = useState(false)
+
+  // How this report stacks up against everyone else's. Only rendered once the population
+  // is big enough to mean something (see MIN_POPULATION).
+  useEffect(() => {
+    if (!slug) return
+    let cancelled = false
+    getPopulationStats(slug).then((r) => {
+      if (!cancelled) setPopulation(r)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [slug])
 
   useEffect(() => {
     if (!slug) return
@@ -322,6 +336,9 @@ export default function Results() {
   }
 
   // ── Build the deck ──
+  // "Top X%" / "how rare is your role" only appear once enough people have finished a
+  // Fishbowl for the comparison to be honest; below that the lines simply don't render.
+  const popReady = Boolean(population && population.n >= MIN_POPULATION)
   const mostBalanced = [...insights.virtues].sort((a, b) => b.balanceScore - a.balanceScore)[0]
   const selfVirtues = hasSelf
     ? ((self?.self_payload as Record<string, unknown> | undefined)?.virtues as VirtueScores | undefined)
@@ -565,12 +582,21 @@ export default function Results() {
       teamSignals[key] = { value: ok.reduce((a, b) => a + b.value, 0) / ok.length, label: ok.map((x) => x.label).join(' + ') }
     }
     const blended = blendDimensionScores(dimScores, teamSignals)
-    // One unified line under each blended score; nothing where the score is self-only.
+    // One line under each blended score, and it earns its place by saying something only
+    // this report can: whether your own read and the team's actually agree. Never explain
+    // the weighting here (that's our maths, not their insight). Self-only scores stay silent.
+    const selfOnly = new Map(dimScores.map((d) => [d.key, d.score]))
     const dimEvidence: Record<string, string | null> = {}
     for (const d of blended) {
       if (!d.team) { dimEvidence[d.key] = null; continue }
       const lvl = d.team.value >= 60 ? 'high' : d.team.value >= 40 ? 'moderate' : 'low'
-      dimEvidence[d.key] = `70% your read, 30% your team's: they read your ${d.team.label} as ${lvl}.`
+      const gap = d.team.value - (selfOnly.get(d.key) ?? d.score)
+      dimEvidence[d.key] =
+        gap >= 12
+          ? `They see more of this in you than you do: your ${d.team.label} reads ${lvl} to them.`
+          : gap <= -12
+            ? `You feel this more than they see it: your ${d.team.label} reads ${lvl} to them.`
+            : `You and your team read this the same way: your ${d.team.label} reads ${lvl} to them.`
     }
     ORIENTATIONS.forEach((o, i) => {
       selfCards.push({
@@ -783,32 +809,6 @@ export default function Results() {
     })
   }
 
-  if (insights.radicalCandor && insights.radicalCandor.n > 0) {
-    const rc = insights.radicalCandor
-    const selfRC = hasSelf ? (sp.radical_candor as Record<string, number> | undefined) : undefined
-    const axisMean = (axis: 'care' | 'challenge') => {
-      if (!selfRC) return null
-      const vals = CANDOR_ITEMS.filter((i) => i.axis === axis)
-        .map((i) => selfRC[i.id])
-        .filter((v): v is number => typeof v === 'number')
-      return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null
-    }
-    fwCards.push({
-      tone: 'paper',
-      sec: 3.1,
-      node: (
-        <div>
-          <p className="kicker mb-1 text-pink-deep">
-            feedback style
-            <InfoTip text="Kim Scott's Radical Candor, caring personally while challenging directly. The other three corners (Ruinous Empathy, Obnoxious Aggression, Manipulative Insincerity) are common failure modes. Situational, not a fixed trait." />
-          </p>
-          <h2 className="display mb-5 text-3xl">Care × challenge</h2>
-          <CandorPlot teamCare={rc.teamCare} teamChallenge={rc.teamChallenge} selfCare={axisMean('care')} selfChallenge={axisMean('challenge')} />
-        </div>
-      ),
-    })
-  }
-
   // SDT + Belbin detail slides.
   if (insights.sdt?.some((s) => s.n > 0)) {
     const sdtTeam = insights.sdt.map((s) => ({ key: s.key, label: SDT_NEEDS.find((x) => x.key === s.key)?.label ?? s.key, meanPoints: s.meanPoints, n: s.n }))
@@ -823,7 +823,7 @@ export default function Results() {
             <InfoTip text="Self-Determination Theory (Deci & Ryan): the needs people feel met, autonomy, competence, relatedness, plus purpose, safety and vitality. What do you leave in your colleagues' tanks?" />
           </p>
           <h2 className="display mb-5 text-3xl">What you fuel in others</h2>
-          <SdtProfile team={sdtTeam} />
+          <SdtProfile team={sdtTeam} topPct={popReady ? population!.sdt : undefined} />
         </div>
       ),
     })
@@ -861,6 +861,15 @@ export default function Results() {
           <h2 className="display mb-4 text-3xl">The roles you play</h2>
           <p className="mb-2 text-sm text-ink-soft">Your role mix, your read and the team's, weighted equally.</p>
           <BelbinComposition segments={belbinComposite} />
+          {popReady && population!.belbin && (
+            <p className="mt-3 text-sm text-ink-soft">
+              <span className="font-bold text-ink">
+                {population!.belbin.sameCount} other {population!.belbin.sameCount === 1 ? 'person' : 'people'}
+              </span>{' '}
+              on Fishbowl lead with{' '}
+              {BELBIN_ROLES.find((r) => r.key === population!.belbin!.role)?.name ?? 'this role'} too, {population!.belbin.sharePct}% of everyone.
+            </p>
+          )}
           <div className="mt-6">
             <BelbinReport team={belbinTeam} self={selfBelbin} />
           </div>
@@ -877,7 +886,7 @@ export default function Results() {
   if ((insights.johari && insights.johari.counts.length) || (selfJohari && selfJohari.length > 0)) {
     fwCards.push({
       tone: 'paper',
-      sec: 4.0,
+      sec: 5.0,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -900,7 +909,7 @@ export default function Results() {
   if (hasNohari) {
     fwCards.push({
       tone: 'paper',
-      sec: 4.1,
+      sec: 5.1,
       motion: 'stagger',
       node: (
         <div>
@@ -911,20 +920,6 @@ export default function Results() {
           <h2 className="display mb-4 text-3xl">Your top watch-outs</h2>
           {cap('watchouts')}
           <WatchoutsDeck team={teamNohari} self={selfNohari} total={insights.nohari?.n ?? 0} />
-        </div>
-      ),
-    })
-    fwCards.push({
-      tone: 'paper',
-      sec: 4.2,
-      node: (
-        <div>
-          <p className="kicker mb-1 text-pink-deep">
-            the other window
-            <InfoTip text="The Nohari Window, the shadow side of Johari. The same four-pane idea applied to growth areas: comparing the watch-outs you own against the ones your team names reveals your Open edges, your Blind Spots, and what's still Hidden." />
-          </p>
-          <h2 className="display mb-5 text-3xl">Nohari window</h2>
-          <JohariWindow teamCounts={teamNohari} self={selfNohari} n={insights.nohari?.n ?? 0} total={WEAKNESSES.length} dense />
         </div>
       ),
     })
@@ -968,38 +963,10 @@ export default function Results() {
     .sort((a, b) => Math.abs(b.self - b.team) - Math.abs(a.self - a.team))
     .slice(0, 9)
 
-  // WATCH-OUTS: every Nohari word the team named (>=2, kindness guard) or you owned, plus
-  // the virtues pushed off-centre, expressed as how strongly each side feels the imbalance.
-  const weaknessPts: { label: string; self: number; team: number }[] = []
-  if (hasSelf) {
-    const nn = insights.nohari?.n ?? 0
-    const nohariWords = new Map<string, number>()
-    teamNohari.forEach((c) => nohariWords.set(c.word, c.count))
-    ;(selfNohari ?? []).forEach((w) => { if (!nohariWords.has(w)) nohariWords.set(w, 0) })
-    nohariWords.forEach((count, word) => {
-      weaknessPts.push({ label: word, self: (selfNohari ?? []).includes(word) ? 9 : 1, team: adj9(count, nn) })
-    })
-    if (selfVirtues) {
-      insights.virtues.forEach((v) => {
-        const s = selfVirtues[v.dimension] as number | undefined
-        if (typeof s !== 'number') return
-        const teamDist = Math.abs(v.mu - 5)
-        const selfDist = Math.abs(s - 5)
-        if (teamDist < 1.5 && selfDist < 1.5) return // balanced by both → not a watch-out
-        const pole = v.mu >= 5 ? v.excessivePole : v.deficientPole
-        weaknessPts.push({ label: (pole ?? v.name).toLowerCase(), self: to9(selfDist / 4), team: to9(teamDist / 4) })
-      })
-    }
-  }
-  const weaknessMap = weaknessPts
-    .filter((p) => p.self >= 4 || p.team >= 4)
-    .sort((a, b) => Math.abs(b.self - b.team) - Math.abs(a.self - a.team))
-    .slice(0, 9)
-
   if (strengthMap.length >= 4) {
     cards.splice(cards.length - 1, 0, {
       tone: 'paper',
-      sec: 4.05,
+      sec: 5.05,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -1014,28 +981,6 @@ export default function Results() {
     })
   }
 
-  if (weaknessMap.length >= 4) {
-    cards.splice(cards.length - 1, 0, {
-      tone: 'paper',
-      sec: 4.25,
-      node: (
-        <div>
-          <p className="kicker mb-1 text-pink-deep">
-            the watch-outs map
-            <InfoTip text="The same plane for growth edges. Across = how much the team flags each, up = how much you own it. Above the diagonal you're harder on yourself than they are; below it they see something you don't: a blind spot." />
-          </p>
-          <h2 className="display mb-4 text-3xl">Where you and they agree on your edges</h2>
-          <BlindSpotQuadrant
-            points={weaknessMap}
-            colors={{ blind: '#5b86c4', hidden: '#d9734a', aligned: '#8a7d6d' }}
-            labels={{ blind: 'harder on yourself', hidden: 'blind spot', aligned: 'you agree' }}
-            axisX="how much the team flags it →"
-            axisY="how much you own it →"
-          />
-        </div>
-      ),
-    })
-  }
 
   // ── Phase C: compound slides — synthetic sections fusing several frameworks into
   // one picture (bearer-gated; each shows only when its data supports it). ──
@@ -1051,7 +996,7 @@ export default function Results() {
   if (hasSelf && viceDials.length > 0 && archetype) {
     cards.splice(cards.length - 1, 0, {
       tone: 'paper',
-      sec: 4.4,
+      sec: 5.4,
       motion: 'gauge',
       node: (
         <div>
@@ -1117,7 +1062,7 @@ export default function Results() {
   if (hasSelf && typeof confSelf === 'number' && recVirtue && typeof recSelf === 'number' && confSelf >= 5.5 && recSelf <= recVirtue.mu) {
     cards.splice(cards.length - 1, 0, {
       tone: 'paper',
-      sec: 4.5,
+      sec: 5.5,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -1146,7 +1091,7 @@ export default function Results() {
     const rc = insights.radicalCandor
     cards.splice(cards.length - 1, 0, {
       tone: 'sand',
-      sec: 4.6,
+      sec: 5.6,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -1166,7 +1111,7 @@ export default function Results() {
   if (hasSelf && blindStars.length >= 3) {
     cards.splice(cards.length - 1, 0, {
       tone: 'ink',
-      sec: 4.7,
+      sec: 5.7,
       node: (
         <div>
           <p className="kicker mb-1 text-blue">
@@ -1190,7 +1135,7 @@ export default function Results() {
   if (hasSelf && compVirtue && typeof compSelf === 'number' && heatDir !== 'steady') {
     cards.splice(cards.length - 1, 0, {
       tone: 'sand',
-      sec: 4.8,
+      sec: 5.8,
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">
@@ -1216,7 +1161,7 @@ export default function Results() {
   if (hasSelf && teamW.thinking + teamW.action + teamW.people > 0 && energyW.thinking + energyW.action + energyW.people > 0) {
     cards.splice(cards.length - 1, 0, {
       tone: 'paper',
-      sec: 5.3,
+      sec: 6.15,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">
@@ -1339,7 +1284,7 @@ export default function Results() {
     const aliveL = labelOf(ALIVE_OPTIONS, lifesatObj?.alive)
     cards.push({
       tone: 'paper',
-      sec: 5.05,
+      sec: 4.05,
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">where you stand</p>
@@ -1367,7 +1312,7 @@ export default function Results() {
     const same = Boolean(lovePick.show && lovePick.receive && lovePick.show === lovePick.receive)
     cards.push({
       tone: 'pink',
-      sec: 5.15,
+      sec: 4.15,
       node: (
         <div>
           <p className="kicker mb-1 text-pink-deep">how you connect</p>
@@ -1400,7 +1345,7 @@ export default function Results() {
     const cf = workManual.colleagueFit
     cards.push({
       tone: 'paper',
-      sec: 6.15,
+      sec: 2.35,
       node: (
         <div>
           <p className="kicker mb-1 text-blue-deep">
@@ -1457,7 +1402,7 @@ export default function Results() {
   if (insights.appreciations.length > 0) {
     cards.push({
       tone: 'sand',
-      sec: 5.0,
+      sec: 4.0,
       motion: 'stagger',
       sound: playWarm,
       node: (
@@ -1482,12 +1427,15 @@ export default function Results() {
     cards.push({
       tone: 'ink',
       bare: true,
-      sec: 5.1,
+      sec: 4.1,
       motion: 'tilt',
       sound: playPaper,
       node: (
         <>
           <LetterFromTeam name={session.creator_name} body={insights.goodVibes} words={vibeWords} postscript={insights.postscript} />
+          <p className="mt-3 text-center text-xs leading-snug text-ink-soft">
+            Nobody sat down and wrote you a letter. This is woven from what your team actually said about you, in their own words, kept anonymous.
+          </p>
           <GifReaction name={gif.letter} />
         </>
       ),
@@ -1502,7 +1450,7 @@ export default function Results() {
     cards.push({
       tone: 'paper',
       wide: true,
-      sec: 5.2,
+      sec: 6.05,
       node: <GoldenScore golden={golden} />,
     })
   }
@@ -1880,6 +1828,8 @@ export default function Results() {
     <MotionConfig reducedMotion="user">
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col px-5 py-6">
       {showEntryModal && <EntryModal onTakeNow={goSelf} onLater={dismissModal} />}
+      {/* background music — self-hides until a track exists at public/audio/report-theme.mp3 */}
+      <BackgroundMusic />
       {/* exit to home — a faded ✕ fixed to the screen's top-right corner, sharpens on hover */}
       <button
         onClick={() => { playClick(); navigate('/') }}

@@ -62,6 +62,26 @@ export async function emailHasSession(email: string): Promise<boolean> {
 
 // Fetch the shared viewer key for a DEMO session (public, non-expiring). Powers the
 // /demo/<slug> link that can be shared with many people. Returns null for non-demo slugs.
+// How this report compares to every other completed one. `n` is the size of the comparison
+// population: the UI stays silent below MIN_POPULATION, because a "top 4%" drawn from six
+// people is noise dressed as a fact.
+export interface PopulationStats {
+  n: number
+  sdt: Record<string, number>
+  belbin: { role: string; sharePct: number; sameCount: number } | null
+}
+export const MIN_POPULATION = 30
+
+export async function getPopulationStats(slug: string): Promise<PopulationStats | null> {
+  try {
+    const { data, error } = await supabase.functions.invoke('fishbowl-population-stats', { body: { slug } })
+    if (error || !data || data.error) return null
+    return { n: data.n ?? 0, sdt: data.sdt ?? {}, belbin: data.belbin ?? null }
+  } catch {
+    return null
+  }
+}
+
 export async function getDemoBearer(slug: string): Promise<{ bearer: string; person_id: string; slug: string } | null> {
   try {
     const { data, error } = await supabase.functions.invoke('fishbowl-demo-bearer', { body: { slug } })
