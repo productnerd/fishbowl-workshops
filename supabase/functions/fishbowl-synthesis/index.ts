@@ -437,7 +437,7 @@ Return the JSON now.`
         model: MODEL,
         max_tokens: 32000,
         thinking: { type: 'adaptive' },
-        output_config: { effort: 'high' },
+        output_config: { effort: 'medium' },
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }],
       }),
@@ -450,32 +450,34 @@ Return the JSON now.`
     const claudeJson = await claudeRes.json()
     const textBlock = Array.isArray(claudeJson.content) ? claudeJson.content.find((b: any) => b.type === 'text') : null
     let raw = (textBlock?.text || '').replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
-    // Keep only the outermost JSON object (the model sometimes adds a stray word around it).
+    // Keep only from the first '{'. opus-5 sometimes appends a stray trailing brace (or wraps
+    // the JSON in a stray word), so walk back through the last few '}' positions, trying both
+    // the raw form and a form with literal newlines/tabs escaped inside string values.
     const first = raw.indexOf('{')
-    const last = raw.lastIndexOf('}')
-    if (first >= 0 && last > first) raw = raw.slice(first, last + 1)
-    let prose: any
-    try {
-      prose = JSON.parse(raw)
-    } catch {
-      // Fallback: the model put literal newlines inside string values. Escape any
-      // newline/tab/CR that sits inside a JSON string and retry once.
-      try {
-        let inStr = false, esc = false, out = ''
-        for (const ch of raw) {
-          if (esc) { out += ch; esc = false; continue }
-          if (ch === '\\') { out += ch; esc = true; continue }
-          if (ch === '"') { inStr = !inStr; out += ch; continue }
-          if (inStr && ch === '\n') { out += '\\n'; continue }
-          if (inStr && ch === '\r') { out += '\\r'; continue }
-          if (inStr && ch === '\t') { out += '\\t'; continue }
-          out += ch
-        }
-        prose = JSON.parse(out)
-      } catch {
-        throw new Error(`parse error (stop=${claudeJson.stop_reason}): ${raw.slice(0, 200)}`)
+    if (first > 0) raw = raw.slice(first)
+    const escapeInStrings = (s: string) => {
+      let inStr = false, esc = false, out = ''
+      for (const ch of s) {
+        if (esc) { out += ch; esc = false; continue }
+        if (ch === '\\') { out += ch; esc = true; continue }
+        if (ch === '"') { inStr = !inStr; out += ch; continue }
+        if (inStr && ch === '\n') { out += '\\n'; continue }
+        if (inStr && ch === '\r') { out += '\\r'; continue }
+        if (inStr && ch === '\t') { out += '\\t'; continue }
+        out += ch
       }
+      return out
     }
+    let prose: any
+    let end = raw.lastIndexOf('}')
+    for (let tries = 0; tries < 5 && end > first && !prose; tries++) {
+      const cand = raw.slice(0, end + 1)
+      try { prose = JSON.parse(cand) } catch {
+        try { prose = JSON.parse(escapeInStrings(cand)) } catch { /* try an earlier end */ }
+      }
+      end = raw.lastIndexOf('}', end - 1)
+    }
+    if (!prose) throw new Error(`parse error (stop=${claudeJson.stop_reason}): ${raw.slice(0, 200)}`)
 
     // One-line, per-slide takeaways: keep them tidy (no newlines, dashes cleaned).
     const oneLine = (v: any) => stripDashes(String(v ?? '')).replace(/\s+/g, ' ').trim()
