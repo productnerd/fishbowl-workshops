@@ -403,7 +403,7 @@ Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} 
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: MODEL, max_tokens: 8000, system: systemPrompt, messages: [{ role: 'user', content: userPrompt }] }),
+      body: JSON.stringify({ model: MODEL, max_tokens: 16000, thinking: { type: 'adaptive' }, output_config: { effort: 'medium' }, system: systemPrompt, messages: [{ role: 'user', content: userPrompt }] }),
     })
     if (!claudeRes.ok) {
       const errText = await claudeRes.text()
@@ -412,11 +412,17 @@ Include ALL ${virtueStats.length} virtue keys and ALL ${competencyStats.length} 
 
     const claudeJson = await claudeRes.json()
     const textBlock = Array.isArray(claudeJson.content) ? claudeJson.content.find((b: any) => b.type === 'text') : null
-    const cleaned = (textBlock?.text || '').replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
+    let cleaned = (textBlock?.text || '').replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
+    const b0 = cleaned.indexOf('{')
+    if (b0 > 0) cleaned = cleaned.slice(b0)
     let prose: any
-    try {
-      prose = JSON.parse(cleaned)
-    } catch {
+    // opus-5 occasionally appends a stray trailing brace; walk back through the last few
+    // '}' positions until one yields valid JSON.
+    let cend = cleaned.lastIndexOf('}')
+    for (let t = 0; t < 5 && cend > 0 && !prose; t++) {
+      try { prose = JSON.parse(cleaned.slice(0, cend + 1)) } catch { cend = cleaned.lastIndexOf('}', cend - 1) }
+    }
+    if (!prose) {
       return new Response(JSON.stringify({ error: 'failed to parse claude response', raw: textBlock?.text }), { status: 502, headers: jsonHeaders })
     }
 

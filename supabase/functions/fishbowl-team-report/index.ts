@@ -131,19 +131,27 @@ Talk about "the team" and "you" (the manager) like a sharp, funny colleague over
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: MODEL, max_tokens: 4000, system, messages: [{ role: 'user', content: user }] }),
+        body: JSON.stringify({ model: MODEL, max_tokens: 8000, thinking: { type: 'adaptive' }, output_config: { effort: 'medium' }, system, messages: [{ role: 'user', content: user }] }),
       })
       if (!res.ok) return new Response(JSON.stringify({ error: 'claude error', details: await res.text() }), { status: 502, headers: jsonHeaders })
       const cj = await res.json()
       const text = (Array.isArray(cj.content) ? cj.content.find((b: any) => b.type === 'text')?.text : '') || ''
-      const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
+      let cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
+      const b0 = cleaned.indexOf('{')
+      if (b0 > 0) cleaned = cleaned.slice(b0)
       const stripDashes = (s: string) => s.replace(/\s*[—–]\s*/g, ', ').replace(/,\s*,/g, ',').replace(/\s{2,}/g, ' ').trim()
       const scrub = (n: any): any => (typeof n === 'string' ? stripDashes(n) : Array.isArray(n) ? n.map(scrub) : n && typeof n === 'object' ? Object.fromEntries(Object.keys(n).map((k) => [k, scrub(n[k])])) : n)
-      try {
-        team = scrub(JSON.parse(cleaned))
-      } catch {
+      // opus-5 occasionally appends a stray trailing brace; walk back through the last few
+      // '}' positions until one yields valid JSON.
+      let parsed: any
+      let cend = cleaned.lastIndexOf('}')
+      for (let t = 0; t < 5 && cend > 0 && !parsed; t++) {
+        try { parsed = JSON.parse(cleaned.slice(0, cend + 1)) } catch { cend = cleaned.lastIndexOf('}', cend - 1) }
+      }
+      if (!parsed) {
         return new Response(JSON.stringify({ error: 'failed to parse team report' }), { status: 502, headers: jsonHeaders })
       }
+      team = scrub(parsed)
     }
 
     return new Response(JSON.stringify({ roster, allComplete, team }), { headers: jsonHeaders })
