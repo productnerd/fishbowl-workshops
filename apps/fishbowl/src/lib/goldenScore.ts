@@ -20,6 +20,7 @@ export interface GoldenItem {
   key: string
   label: string
   kind: 'virtue' | 'hat'
+  mu: number // the blended 1-9 position itself (5 = the golden mean)
   goodness: number // 0-1, 1 = on the golden mean
   color: string
 }
@@ -58,6 +59,7 @@ export function computeGolden(
       key: v.dimension,
       label: v.name ?? v.dimension,
       kind: 'virtue',
+      mu,
       goodness: good(mu),
       color: VIRTUE_COLOR,
     })
@@ -66,7 +68,7 @@ export function computeGolden(
     const mu = blend(h.n === 0 ? undefined : h.mu, selfHats?.[h.key])
     if (mu == null) continue
     const label = HATS.find((x) => x.key === h.key)?.name ?? h.key
-    items.push({ key: h.key, label, kind: 'hat', goodness: good(mu), color: HAT_TINT[h.key] ?? '#c8dbf2' })
+    items.push({ key: h.key, label, kind: 'hat', mu, goodness: good(mu), color: HAT_TINT[h.key] ?? '#c8dbf2' })
   }
 
   if (items.length === 0) return null

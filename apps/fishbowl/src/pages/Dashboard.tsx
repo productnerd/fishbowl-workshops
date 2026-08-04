@@ -19,6 +19,7 @@ import {
 import { useAiInsights } from '../lib/aiInsights'
 import { computeGolden } from '../lib/goldenScore'
 import GoldenScore from '../components/GoldenScore'
+import GoldenBreakdown from '../components/GoldenBreakdown'
 import OneOnOne from '../components/OneOnOne'
 import WorkManualDoc from '../components/WorkManual'
 import Card from '../components/Card'
@@ -43,7 +44,7 @@ export default function Dashboard() {
   const [manual, setManual] = useState<WorkManual | null>(null)
   const [copied, setCopied] = useState(false)
   // Which reference doc is open over the board, if any.
-  const [openDoc, setOpenDoc] = useState<'oneOnOne' | 'manual' | null>(null)
+  const [openDoc, setOpenDoc] = useState<'golden' | 'oneOnOne' | 'manual' | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
@@ -177,9 +178,18 @@ export default function Dashboard() {
       {/* A dense board: the score reads widest, everything else sits beside it. */}
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         {golden && (
-          <Card tone="paper" className="p-4 lg:col-span-2">
-            <GoldenScore golden={golden} />
-          </Card>
+          <button
+            onClick={() => setOpenDoc('golden')}
+            aria-label="See the dimensions behind your Golden Score"
+            className="cursor-pointer text-left lg:col-span-2"
+          >
+            <Card tone="paper" className="h-full p-4">
+              <GoldenScore golden={golden} />
+              <p className="mt-2 text-center text-xs font-semibold text-ink-soft">
+                Tap to see all sixteen dimensions →
+              </p>
+            </Card>
+          </button>
         )}
 
         <div className="flex flex-col gap-4">
@@ -322,7 +332,14 @@ export default function Dashboard() {
                 ✕
               </button>
             </div>
-            {openDoc === 'oneOnOne' ? (
+            {openDoc === 'golden' && golden && (
+              <Card tone="paper" className="p-6">
+                <p className="kicker mb-1 text-blue-deep">the golden mean</p>
+                <h2 className="display mb-4 text-3xl">What makes up your {golden.score}</h2>
+                <GoldenBreakdown golden={golden} />
+              </Card>
+            )}
+            {openDoc === 'oneOnOne' && (
               <Card tone="paper" className="p-6">
                 <p className="kicker mb-1 text-blue-deep">take it to your 1:1</p>
                 <h2 className="display mb-1 text-3xl">For your next 1:1</h2>
@@ -331,9 +348,8 @@ export default function Dashboard() {
                 </p>
                 <OneOnOne items={synthesis?.oneOnOne ?? []} />
               </Card>
-            ) : (
-              manual && <WorkManualDoc name={creator} manual={manual} />
             )}
+            {openDoc === 'manual' && manual && <WorkManualDoc name={creator} manual={manual} />}
           </div>
         </div>
       )}
