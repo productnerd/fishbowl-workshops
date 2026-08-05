@@ -37,11 +37,16 @@ export default function GoldenScore({ golden }: { golden: Golden }) {
   })
 
   return (
-    <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-center lg:gap-10">
+    // Container query, not a viewport one: this sits in a full-bleed slide in the report
+    // and in a narrower board column on the dashboard, so it has to lay itself out from
+    // the width it actually gets. Words beside the target once there's room, stacked on
+    // phones.
+    <div className="@container">
+      <div className="grid gap-7 @2xl:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] @2xl:items-center @2xl:gap-10">
       {/* LEFT: the words, the number, the flex */}
       <div>
         <p className="kicker mb-1 text-pink-deep">the golden mean</p>
-        <h2 className="display mb-3 text-3xl lg:text-4xl">The Golden Score</h2>
+        <h2 className="display mb-3 text-3xl @2xl:text-4xl">The Golden Score</h2>
         <p className="mb-5 text-sm leading-relaxed text-ink-soft">
           One number for the whole picture, from Aristotle's <span className="font-semibold text-ink">golden mean</span>: every
           virtue is the midpoint between too little and too much. The closer you sit to that centre, across all ten virtues and
@@ -75,7 +80,7 @@ export default function GoldenScore({ golden }: { golden: Golden }) {
 
       {/* RIGHT: the big dartboard + legend */}
       <div>
-        <svg viewBox="0 0 300 230" className="mx-auto block w-full max-w-[300px] lg:max-w-[460px]" role="img" aria-label={`Golden Score ${golden.score} of 100`}>
+        <svg viewBox="0 0 300 230" className="mx-auto block w-full max-w-[300px] @2xl:max-w-[460px]" role="img" aria-label={`Golden Score ${golden.score} of 100`}>
           <defs>
             <radialGradient id="goldTarget" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="#f3da85" />
@@ -142,6 +147,7 @@ export default function GoldenScore({ golden }: { golden: Golden }) {
           <span className="inline-flex items-center gap-1.5">
             <span className="inline-block h-3 w-3 rounded-full border-2 border-dashed border-ink/70" /> your average
           </span>
+        </div>
         </div>
       </div>
     </div>

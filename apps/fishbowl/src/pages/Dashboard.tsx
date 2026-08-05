@@ -21,6 +21,7 @@ import { computeGolden } from '../lib/goldenScore'
 import GoldenScore from '../components/GoldenScore'
 import GoldenBreakdown from '../components/GoldenBreakdown'
 import OneOnOne from '../components/OneOnOne'
+import StickyNote from '../components/StickyNote'
 import WorkManualDoc from '../components/WorkManual'
 import Card from '../components/Card'
 import Button from '../components/Button'
@@ -152,6 +153,7 @@ export default function Dashboard() {
   const stopNow = insights?.actionPlan?.stopNow ?? []
   const startNow = insights?.actionPlan?.startNow ?? []
   const oneOnOne = (synthesis?.oneOnOne ?? []).slice(0, 3)
+  const biases = synthesis?.biases ?? []
   const manualEntries = manual?.entries ?? []
 
   // Everything after the report unlocks: the summary IS the page.
@@ -257,6 +259,13 @@ export default function Dashboard() {
               )}
             </div>
           </Card>
+        )}
+
+        {biases.length > 0 && (
+          <div className="lg:col-span-3">
+            <p className="kicker mb-1 text-center text-pink-deep">stick it on your monitor</p>
+            <StickyNote bullets={biases} />
+          </div>
         )}
 
         {/* Quick references: kept off the board, one tap away, shown as in the report. */}
