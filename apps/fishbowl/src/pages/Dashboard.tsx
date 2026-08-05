@@ -167,6 +167,28 @@ export default function Dashboard() {
             The short version, from {count} {count === 1 ? 'colleague' : 'colleagues'}.
           </p>
         </div>
+
+        {/* Reference docs: top-right on desktop, wrapping under the greeting when narrow. */}
+        {(oneOnOne.length > 0 || manualEntries.length > 0) && (
+          <div className="flex flex-wrap gap-2">
+            {oneOnOne.length > 0 && (
+              <button
+                onClick={() => setOpenDoc('oneOnOne')}
+                className="press cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-4 py-2 font-display text-sm font-black text-ink shadow-chunky-sm"
+              >
+                📋 For your next 1:1
+              </button>
+            )}
+            {manualEntries.length > 0 && (
+              <button
+                onClick={() => setOpenDoc('manual')}
+                className="press cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-4 py-2 font-display text-sm font-black text-ink shadow-chunky-sm"
+              >
+                📖 Your work manual
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Always in reach while scanning the board, never competing with the content. */}
@@ -178,12 +200,14 @@ export default function Dashboard() {
       </button>
 
       {/* A dense board: the score reads widest, everything else sits beside it. */}
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+      {/* Three columns only once there's genuinely room: at 1024 the score column would be
+          too narrow for its own side-by-side layout, so the board stays single-column. */}
+      <div className="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-3">
         {golden && (
           <button
             onClick={() => setOpenDoc('golden')}
             aria-label="See the dimensions behind your Golden Score"
-            className="cursor-pointer text-left lg:col-span-2"
+            className="cursor-pointer text-left xl:col-span-2"
           >
             <Card tone="paper" className="h-full p-4">
               <GoldenScore golden={golden} />
@@ -201,6 +225,7 @@ export default function Dashboard() {
               <p className="display text-xl leading-tight text-paper-hi">{insights.headline}</p>
             </Card>
           )}
+          {biases.length > 0 && <StickyNote bullets={biases} compact />}
           {strengths.length > 0 && (
             <Card tone="sand" className="p-4">
               <p className="kicker mb-2 text-blue-deep">what you lead with</p>
@@ -228,7 +253,7 @@ export default function Dashboard() {
         </div>
 
         {(stopNow.length > 0 || startNow.length > 0) && (
-          <Card tone="paper" className="p-4 lg:col-span-3">
+          <Card tone="paper" className="p-4 xl:col-span-3">
             <p className="kicker mb-3 text-pink-deep">this week</p>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               {stopNow.length > 0 && (
@@ -261,37 +286,8 @@ export default function Dashboard() {
           </Card>
         )}
 
-        {biases.length > 0 && (
-          <div className="lg:col-span-3">
-            <p className="kicker mb-1 text-center text-pink-deep">stick it on your monitor</p>
-            <StickyNote bullets={biases} />
-          </div>
-        )}
-
-        {/* Quick references: kept off the board, one tap away, shown as in the report. */}
-        {(oneOnOne.length > 0 || manualEntries.length > 0) && (
-          <div className="flex flex-wrap gap-3 lg:col-span-3">
-            {oneOnOne.length > 0 && (
-              <button
-                onClick={() => setOpenDoc('oneOnOne')}
-                className="press cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-5 py-2.5 font-display text-sm font-black text-ink shadow-chunky-sm"
-              >
-                📋 For your next 1:1
-              </button>
-            )}
-            {manualEntries.length > 0 && (
-              <button
-                onClick={() => setOpenDoc('manual')}
-                className="press cursor-pointer rounded-full border-[2.5px] border-ink bg-paper-hi px-5 py-2.5 font-display text-sm font-black text-ink shadow-chunky-sm"
-              >
-                📖 Your work manual
-              </button>
-            )}
-          </div>
-        )}
-
         {!selfDone && (
-          <Card tone="blue" className="p-4 lg:col-span-3">
+          <Card tone="blue" className="p-4 xl:col-span-3">
             <p className="serif font-semibold text-paper-hi">You haven't done your own read yet.</p>
             <p className="mt-1 text-sm text-paper-hi/85">
               It unlocks the self-vs-team parts of the report, which is where most of the insight lives.
