@@ -1,5 +1,4 @@
-import type { Question, Lens } from '@fishbowl/feedback-core'
-import { MODULES, TOPIC_WORK, resolveSurvey } from '@fishbowl/feedback-core'
+import type { Question } from '@fishbowl/feedback-core'
 
 // Mirrors supabase/functions/fishbowl-ai-insights QUESTIONS (ids must match).
 // Virtue sliders are a 1-9 bipolar scale: 1 = deficiency vice, 5 = the virtue,
@@ -164,31 +163,12 @@ export const questions: Question[] = [
 ]
 
 // ── Survey composition ───────────────────────────────────────────────────────────
-// Everything that used to be hardcoded here (the personal-lens wording tables, the
-// work-only skips, the pool sets and the presentation order) now lives as data in
-// TOPIC_WORK. This is the v1-shaped entry point kept for existing callers; it maps the
-// two relationship lenses onto the topic's two personas and delegates.
+// Composition itself lives in the topic config: see TOPIC_WORK in feedback-core, which
+// holds what used to be hardcoded here (the personal-lens wording tables, the work-only
+// skips, the pool sets and the presentation order). This file is now just the bank of
+// questions those configs select from.
 //
-// Parity with the old hardcoded behaviour is pinned by
+// Parity between TOPIC_WORK and the old hardcoded behaviour is pinned by
 // packages/feedback-core/src/__tests__/topic-parity.test.ts.
 
 export type SurveyDepth = 'quick' | 'standard' | 'full'
-
-const PERSONA_FOR_LENS: Record<Lens, string> = { work: 'work', personal: 'personal' }
-
-export function getSurvey(
-  name: string,
-  hasResponsibilities: boolean,
-  depth: SurveyDepth,
-  lens: Lens,
-): Question[] {
-  return resolveSurvey({
-    topic: TOPIC_WORK,
-    modules: MODULES,
-    bank: questions,
-    persona: PERSONA_FOR_LENS[lens],
-    length: depth,
-    name,
-    hasResponsibilities,
-  })
-}

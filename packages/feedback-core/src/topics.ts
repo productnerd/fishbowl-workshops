@@ -63,6 +63,11 @@ const FULL = [...STANDARD, 'responsibilities', 'hats', 'candor', 'sdt', 'belbin'
 export const TOPIC_WORK: TopicConfig = {
   key: 'how-you-show-up-at-work',
   name: 'How you show up at work',
+  description:
+    'The original Fishbowl. Character, thinking style, team role and the words people reach for when they describe you.',
+  audience: 'Anyone, at any level. The best first fishbowl.',
+  emoji: '🐠',
+  accent: '#1366ac',
 
   // v1's COLLEAGUE_SKIP, expressed where each id belongs. The scenarios, VIA, Nohari and
   // first-impression modules are absent entirely: VIA and Nohari merge into the single
@@ -82,11 +87,13 @@ export const TOPIC_WORK: TopicConfig = {
   ],
 
   personas: [
-    { key: 'work', label: 'A colleague', minN: 2 },
+    { key: 'work', label: 'We work together', hint: 'Colleague, manager, report, or client.', minN: 2, voice: 'work' },
     {
       key: 'personal',
-      label: 'A friend or family member',
+      label: 'We are friends or family',
+      hint: 'Friend, partner, family, or someone close.',
       minN: 2,
+      voice: 'personal',
       // Team roles and work responsibilities do not translate outside work.
       exclude: [28, 24],
       // Same constructs, re-framed. Confidence, the adjective pick and the vibe read are
@@ -111,9 +118,9 @@ export const TOPIC_WORK: TopicConfig = {
   ],
 
   lengths: [
-    { key: 'quick', label: 'Quick', modules: QUICK },
-    { key: 'standard', label: 'Standard', modules: STANDARD },
-    { key: 'full', label: 'Full', modules: FULL },
+    { key: 'quick', label: 'Quick', modules: QUICK, minutes: [2, 3] },
+    { key: 'standard', label: 'Standard', modules: STANDARD, minutes: [3, 4] },
+    { key: 'full', label: 'Full', modules: FULL, minutes: [6, 8] },
   ],
 
   // Lead with the rich activities, coast out on the plain agree-scales.
@@ -121,3 +128,143 @@ export const TOPIC_WORK: TopicConfig = {
 
   thresholds: { minResponses: 3, minPerPersona: 2 },
 }
+
+// ── Topic #2: a leadership workshop ──────────────────────────────────────────────
+// Genuinely different from topic #1, which is the point: a narrower module set, four
+// personas instead of two, and wording that assumes the subject leads people. The
+// report degrades to the modules present, so dropping the vibe and first-impression
+// reads simply removes those slides.
+const LEAD_CORE = ['virtues', 'appreciation']
+const LEAD_STANDARD = [...LEAD_CORE, 'competencies', 'johari']
+const LEAD_FULL = [...LEAD_STANDARD, 'candor', 'sdt', 'belbin', 'hats']
+
+export const TOPIC_LEADERSHIP: TopicConfig = {
+  key: 'leading-a-team',
+  name: 'Leading a team',
+  description:
+    'How your leadership actually lands: whether people feel safe to disagree with you, what your feedback does to them, and the role you really play.',
+  audience: 'Managers, leads and anyone who has people looking to them.',
+  emoji: '🧭',
+  accent: '#8a4b8f',
+
+  modules: [
+    // Rigor and generosity read as individual-contributor traits here; the leadership
+    // read is carried by courage, candor, composure, collaboration and decisiveness.
+    { key: 'virtues', exclude: [7, 9] },
+    {
+      key: 'competencies',
+      exclude: [12, 13, 16],
+      overrides: {
+        11: { text: '{name} does what they said they would do.', section: 'As a leader' },
+        14: { text: '{name} is reachable when you actually need them.', section: 'As a leader' },
+        15: { text: '{name} makes the people around them better.', section: 'As a leader' },
+      },
+    },
+    { key: 'appreciation', overrides: { 20: { text: 'What does {name} do as a leader that you would want to keep?' } } },
+    { key: 'candor' },
+    { key: 'sdt' },
+    { key: 'belbin' },
+    { key: 'hats' },
+    { key: 'johari' },
+  ],
+
+  personas: [
+    {
+      key: 'report',
+      label: 'They manage me',
+      hint: 'You report to them, directly or dotted line.',
+      minN: 2,
+      overrides: {
+        2: { text: 'When something needs saying to me, {name}…' },
+        8: { text: 'When I push back on them, {name}…' },
+        27: { text: 'After a one to one with {name}, you feel…' },
+      },
+    },
+    {
+      key: 'peer',
+      label: 'We are peers',
+      hint: 'You work alongside them at a similar level.',
+      minN: 2,
+      overrides: { 27: { text: 'After working alongside {name}, you feel…' } },
+    },
+    {
+      key: 'manager',
+      label: 'I manage them',
+      hint: 'They report to you.',
+      minN: 2,
+      // A boss rating how their report's team feels is second-hand; drop it.
+      exclude: [27],
+      overrides: {
+        4: { text: 'On stepping up to bigger things, {name}…' },
+        10: { text: 'When a call needs making without me, {name}…' },
+      },
+    },
+    {
+      key: 'mentor',
+      label: 'I mentor or coach them',
+      hint: 'You advise them from outside their reporting line.',
+      minN: 2,
+      // A mentor sees the person, not the team dynamics.
+      exclude: [27, 28],
+    },
+  ],
+
+  lengths: [
+    { key: 'standard', label: 'Standard', modules: LEAD_STANDARD, minutes: [4, 5] },
+    { key: 'full', label: 'Full', modules: LEAD_FULL, minutes: [7, 9] },
+  ],
+
+  order: [30, 27, 28, 25, 26, 1, 2, 3, 4, 5, 6, 8, 10, 20, 11, 14, 15],
+
+  thresholds: { minResponses: 3, minPerPersona: 2 },
+}
+
+// ── Topic #3: the short one ──────────────────────────────────────────────────────
+// Deliberately small, to show that a topic can be a fifteen-minute workshop opener
+// rather than a full instrument. One length, two personas, four modules.
+export const TOPIC_FIRST_IMPRESSIONS: TopicConfig = {
+  key: 'how-you-come-across',
+  name: 'How you come across',
+  description:
+    'A short one. The gut read people form of you, the words they pick, and what they appreciate but rarely say out loud.',
+  audience: 'A warm opener for a workshop, or a first fishbowl for a nervous team.',
+  emoji: '👋',
+  accent: '#c2557a',
+
+  modules: [
+    { key: 'vibe' },
+    { key: 'firstImpression' },
+    { key: 'johari' },
+    { key: 'appreciation' },
+  ],
+
+  personas: [
+    { key: 'work', label: 'We work together', hint: 'Colleague, manager, report, or client.', minN: 2, voice: 'work' },
+    {
+      key: 'personal',
+      label: 'We know each other outside work',
+      hint: 'Friend, partner, family, or someone close.',
+      minN: 2,
+      voice: 'personal',
+      overrides: {
+        20: { text: 'What do you most appreciate about {name}?' },
+        33: { text: 'How did {name} come across when you first met?' },
+      },
+    },
+  ],
+
+  lengths: [{ key: 'quick', label: 'Quick', modules: ['vibe', 'firstImpression', 'johari', 'appreciation'], minutes: [2, 2] }],
+
+  order: [33, 30, 32, 20],
+
+  thresholds: { minResponses: 3, minPerPersona: 2 },
+}
+
+/** The catalogue, in the order it is browsed. */
+export const TOPICS: TopicConfig[] = [TOPIC_WORK, TOPIC_LEADERSHIP, TOPIC_FIRST_IMPRESSIONS]
+
+export const DEFAULT_TOPIC_KEY = TOPIC_WORK.key
+
+/** Look up a topic, falling back to the default so a bad link never dead-ends. */
+export const getTopic = (key: string | undefined | null): TopicConfig =>
+  TOPICS.find((t) => t.key === key) ?? TOPIC_WORK

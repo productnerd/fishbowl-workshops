@@ -13,7 +13,7 @@
 import { describe, it, expect } from 'vitest'
 import { questions } from '../../../../apps/fishbowl/src/data/questions'
 import { resolveSurvey } from '../topic'
-import { MODULES, TOPIC_WORK } from '../topics'
+import { MODULES, TOPICS, TOPIC_WORK } from '../topics'
 import v1 from './fixtures/v1-survey.json'
 
 const NAME = 'Alex'
@@ -51,17 +51,64 @@ describe('TOPIC_WORK reproduces the v1 survey from config', () => {
   }
 })
 
-describe('registry integrity', () => {
-  it('every module the topic uses exists in the registry', () => {
+describe.each(TOPICS)('topic integrity: $key', (topic) => {
+  it('uses only modules that exist in the registry', () => {
     const known = new Set(MODULES.map((m) => m.key))
-    for (const use of TOPIC_WORK.modules) expect(known).toContain(use.key)
+    for (const use of topic.modules) expect(known).toContain(use.key)
   })
 
-  it('every module a length includes is used by the topic', () => {
-    const used = new Set(TOPIC_WORK.modules.map((m) => m.key))
-    for (const len of TOPIC_WORK.lengths) for (const key of len.modules) expect(used).toContain(key)
+  it('includes at each length only modules the topic uses', () => {
+    const used = new Set(topic.modules.map((m) => m.key))
+    for (const len of topic.lengths) for (const key of len.modules) expect(used).toContain(key)
   })
 
+  it('excludes only ids the module it names actually owns', () => {
+    const owned = new Map(MODULES.map((m) => [m.key, new Set(m.questionIds)]))
+    for (const use of topic.modules) for (const id of use.exclude ?? []) expect(owned.get(use.key)).toContain(id)
+  })
+
+  it('resolves to a non-empty survey for every persona and length', () => {
+    for (const persona of topic.personas) {
+      for (const len of topic.lengths) {
+        const qs = resolveSurvey({
+          topic,
+          modules: MODULES,
+          bank: questions,
+          persona: persona.key,
+          length: len.key,
+          name: NAME,
+          hasResponsibilities: true,
+        })
+        expect(qs.length, `${persona.key}/${len.key} resolved to nothing`).toBeGreaterThan(0)
+        // Nothing may reach a respondent with the placeholder still in it.
+        for (const q of qs) expect(q.text).not.toContain('{name}')
+      }
+    }
+  })
+
+  it('stays within the 40 question pricing ceiling', () => {
+    for (const persona of topic.personas) {
+      for (const len of topic.lengths) {
+        const n = resolveSurvey({
+          topic,
+          modules: MODULES,
+          bank: questions,
+          persona: persona.key,
+          length: len.key,
+          name: NAME,
+          hasResponsibilities: true,
+        }).length
+        expect(n, `${persona.key}/${len.key} has ${n} questions`).toBeLessThanOrEqual(40)
+      }
+    }
+  })
+
+  it('ships a safe default minN on every persona', () => {
+    for (const p of topic.personas) expect(p.minN).toBe(2)
+  })
+})
+
+describe('registry integrity', () => {
   it('claims no question id that is not in the bank', () => {
     const bank = new Set(questions.map((q) => q.id))
     for (const m of MODULES) for (const id of m.questionIds) expect(bank).toContain(id)

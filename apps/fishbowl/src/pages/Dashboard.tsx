@@ -8,6 +8,7 @@ import {
   type HatScores,
 } from '@fishbowl/feedback-core'
 import { getResponseCount, getSession } from '../lib/data'
+import { sessionTopicKey } from '../lib/sessionTopic'
 import {
   getSelfReport,
   synthesisPoll,
@@ -102,7 +103,7 @@ export default function Dashboard() {
 
   const copy = async () => {
     if (!slug) return
-    await navigator.clipboard.writeText(buildShareLink(slug))
+    await navigator.clipboard.writeText(buildShareLink(slug, sessionTopicKey(slug)))
     setCopied(true)
     setTimeout(() => setCopied(false), 1800)
   }
@@ -310,7 +311,7 @@ export default function Dashboard() {
         <div className="mt-2.5 flex items-center gap-2">
           <input
             readOnly
-            value={buildShareLink(slug)}
+            value={buildShareLink(slug, sessionTopicKey(slug))}
             className="min-w-0 flex-1 truncate rounded-full border-2 border-ink/15 bg-paper-hi px-4 py-2 font-mono text-xs text-ink-soft outline-none"
           />
           <button
@@ -399,7 +400,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-3 rounded-2xl border-[2.5px] border-ink bg-paper-hi p-3">
           <input
             readOnly
-            value={buildShareLink(slug)}
+            value={buildShareLink(slug, sessionTopicKey(slug))}
             className="min-w-0 flex-1 truncate bg-transparent px-2 font-mono text-sm text-ink outline-none"
           />
           <button

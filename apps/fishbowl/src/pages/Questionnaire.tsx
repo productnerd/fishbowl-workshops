@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Question, Session, ResponsibilityTiers, HatScores, CandorAnswers, Lens } from '@fishbowl/feedback-core'
+import { MODULES, getTopic, minutesRange, resolveSurvey } from '@fishbowl/feedback-core'
+import { questions as QUESTION_BANK } from '../data/questions'
 import {
   SDT_NEEDS,
   SDT_TOTAL,
@@ -15,7 +17,7 @@ import {
 } from '@fishbowl/feedback-core'
 import { getSession, submitResponse } from '../lib/data'
 import { playQuizTick } from '../lib/sound'
-import { getSurvey, type SurveyDepth } from '../data/questions'
+import { type SurveyDepth } from '../data/questions'
 import VirtueSlider from '../components/VirtueSlider'
 import LikertScale from '../components/LikertScale'
 import ScenarioSlider from '../components/ScenarioSlider'
@@ -74,7 +76,7 @@ function readSurveyProgress(slug: string | undefined): Record<string, unknown> {
 }
 
 export default function Questionnaire() {
-  const { slug } = useParams<{ slug: string }>()
+  const { slug, topicKey } = useParams<{ slug: string; topicKey: string }>()
   const navigate = useNavigate()
   const [saved] = useState(() => readSurveyProgress(slug))
   const [session, setSession] = useState<Session | null>(null)
@@ -83,22 +85,39 @@ export default function Questionnaire() {
   const [depth, setDepth] = useState<SurveyDepth | null>(() =>
     saved.depth === 'quick' || saved.depth === 'standard' || saved.depth === 'full' ? (saved.depth as SurveyDepth) : null
   )
-  // Relationship lens: colleagues answer 'work', friends/family answer 'personal' (re-framed
-  // questions, work-only activities dropped). Chosen on the gate before the depth screen.
-  // `?as=work|personal` in the URL pre-selects it (for testing both flows from a link).
+  // Which persona the respondent is to the subject, from the topic's own list. Replaces
+  // v1's fixed work/personal lens. `?as=<persona key>` pre-selects it for testing.
   const [searchParams] = useSearchParams()
-  const [lens, setLens] = useState<Lens | null>(() => {
+  const topic = getTopic(topicKey)
+  const [persona, setPersona] = useState<string | null>(() => {
+    const keys = topic.personas.map((p) => p.key)
     const as = searchParams.get('as')
-    if (as === 'work' || as === 'personal') return as
-    return saved.lens === 'work' || saved.lens === 'personal' ? (saved.lens as Lens) : null
+    if (as && keys.includes(as)) return as
+    return typeof saved.persona === 'string' && keys.includes(saved.persona) ? saved.persona : null
   })
+  const personaSpec = topic.personas.find((p) => p.key === persona) ?? null
+  // Components that still speak in v1's two registers read the persona's voice, not its key:
+  // a leadership topic has four personas that all speak at work.
+  const voice: Lens = personaSpec?.voice ?? 'work'
   const questions = useMemo<Question[]>(
     () =>
-      session && depth && lens
-        ? getSurvey(session.creator_name, (session.responsibilities?.length ?? 0) > 0, depth, lens)
+      session && depth && persona
+        ? resolveSurvey({
+            topic,
+            modules: MODULES,
+            bank: QUESTION_BANK,
+            persona,
+            length: depth,
+            name: session.creator_name,
+            hasResponsibilities: (session.responsibilities?.length ?? 0) > 0,
+          })
         : [],
-    [session, depth, lens]
+    [session, depth, persona, topic]
   )
+  // A topic that offers one length has nothing to ask, so skip the picker.
+  useEffect(() => {
+    if (!depth && topic.lengths.length === 1) setDepth(topic.lengths[0].key as SurveyDepth)
+  }, [depth, topic])
   const [i, setI] = useState<number>(() => (typeof saved.i === 'number' ? saved.i : 0))
   const [answers, setAnswers] = useState<Record<number, string | number>>(() => (saved.answers as Record<number, string | number>) ?? {})
   const [loading, setLoading] = useState(true)
@@ -180,12 +199,12 @@ export default function Questionnaire() {
     try {
       localStorage.setItem(
         progressKey(slug),
-        JSON.stringify({ lens, depth, i, answers, respTiers, respNotes, hats, candor, sdt, belbin, via, johari, nohari, email })
+        JSON.stringify({ persona, depth, i, answers, respTiers, respNotes, hats, candor, sdt, belbin, via, johari, nohari, email })
       )
     } catch {
       /* storage full / disabled */
     }
-  }, [slug, loading, submitting, lens, depth, i, answers, respTiers, respNotes, hats, candor, sdt, belbin, via, johari, nohari, email])
+  }, [slug, loading, submitting, persona, depth, i, answers, respTiers, respNotes, hats, candor, sdt, belbin, via, johari, nohari, email])
 
   // Safety: if a restored index somehow lands past the (depth-based) question set, clamp it.
   useEffect(() => {
@@ -209,12 +228,14 @@ export default function Questionnaire() {
     )
   }
 
-  // Relationship gate: colleagues and friends/family answer the same constructs with
-  // differently-framed scenarios, so the subject gets a fuller, multi-context picture.
-  if (!lens) {
-    const pick = (l: Lens) => {
+  // Persona gate: every persona answers the same constructs, framed for their vantage
+  // point, so the subject gets a fuller picture and the report can break the read down by
+  // who said it. The options come from the topic, so a leadership fishbowl asks a different
+  // question here than a first-impressions one.
+  if (!persona) {
+    const pick = (key: string) => {
       playQuizTick()
-      setLens(l)
+      setPersona(key)
     }
     return (
       <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-5 py-10">
@@ -273,24 +294,19 @@ export default function Questionnaire() {
           <p className="kicker text-pink-deep">before you start</p>
           <h1 className="display mt-2 text-4xl leading-tight">How do you know {session.creator_name}?</h1>
           <p className="serif mt-3 leading-snug text-ink-soft">
-            It shapes the questions — a friend gets asked different things than a colleague, so {session.creator_name}{' '}
-            gets a fuller picture of who they are.
+            It shapes the questions, and it lets {session.creator_name} see how differently each group reads them.
           </p>
           <div className="mt-7 flex flex-col gap-4">
-            <button
-              onClick={() => pick('work')}
-              className="press cursor-pointer rounded-3xl border-[2.5px] border-ink bg-paper-hi px-6 py-5 text-left shadow-chunky-sm"
-            >
-              <span className="display block text-2xl leading-tight">We work together</span>
-              <p className="mt-1 text-sm leading-snug text-ink-soft">Colleague, manager, report, or client.</p>
-            </button>
-            <button
-              onClick={() => pick('personal')}
-              className="press cursor-pointer rounded-3xl border-[2.5px] border-ink bg-paper-hi px-6 py-5 text-left shadow-chunky-sm"
-            >
-              <span className="display block text-2xl leading-tight">We&rsquo;re friends or family</span>
-              <p className="mt-1 text-sm leading-snug text-ink-soft">Friend, partner, family, or someone close.</p>
-            </button>
+            {topic.personas.map((p) => (
+              <button
+                key={p.key}
+                onClick={() => pick(p.key)}
+                className="press cursor-pointer rounded-3xl border-[2.5px] border-ink bg-paper-hi px-6 py-5 text-left shadow-chunky-sm"
+              >
+                <span className="display block text-2xl leading-tight">{p.label}</span>
+                {p.hint && <p className="mt-1 text-sm leading-snug text-ink-soft">{p.hint}</p>}
+              </button>
+            ))}
           </div>
         </motion.div>
       </div>
@@ -304,6 +320,12 @@ export default function Questionnaire() {
       playQuizTick()
       setDepth(d)
     }
+    // Only the lengths this topic offers, with its own time estimates.
+    const has = (k: string) => topic.lengths.some((l) => l.key === k)
+    const mins = (k: string) => {
+      const m = topic.lengths.find((l) => l.key === k)?.minutes
+      return m ? minutesRange(m) : ''
+    }
     return (
       <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-5 py-10">
 
@@ -316,6 +338,7 @@ export default function Questionnaire() {
 
           <div className="mt-7 flex flex-col gap-4">
             {/* Full — the hero */}
+            {has('full') && (
             <button
               onClick={() => choose('full')}
               className="press relative cursor-pointer rounded-3xl border-[2.5px] border-ink bg-pink sc-pink px-6 py-5 text-left shadow-chunky"
@@ -323,36 +346,41 @@ export default function Questionnaire() {
               <span className="absolute -top-3 right-5 rounded-full border-2 border-ink bg-paper-hi px-3 py-0.5 text-xs font-black uppercase tracking-wide text-pink-deep">
                 ♥ the most love
               </span>
-              <span className="kicker text-ink/70">{lens === 'personal' ? '~5 to 6 minutes' : '~6 to 8 minutes'}</span>
+              <span className="kicker text-ink/70">~{mins('full')} minutes</span>
               <span className="display mt-1 block text-2xl leading-tight">Go all in</span>
               <p className="mt-1.5 text-[0.95rem] leading-snug text-ink/80">
                 Every activity, the whole picture. The deepest, most accurate read.
               </p>
             </button>
+            )}
 
             {/* Standard — the middle read */}
+            {has('standard') && (
             <button
               onClick={() => choose('standard')}
               className="press cursor-pointer rounded-3xl border-[2.5px] border-ink bg-paper-hi px-6 py-4 text-left shadow-chunky-sm"
             >
-              <span className="kicker text-ink-soft">~3 to 4 minutes</span>
+              <span className="kicker text-ink-soft">~{mins('standard')} minutes</span>
               <span className="display mt-1 block text-xl leading-tight">A generous read</span>
               <p className="mt-1 text-sm leading-snug text-ink-soft">
                 The essentials, plus the words people reach for and a few kind watch-outs.
               </p>
             </button>
+            )}
 
             {/* Quick — secondary */}
+            {has('quick') && (
             <button
               onClick={() => choose('quick')}
               className="press cursor-pointer rounded-3xl border-[2.5px] border-ink bg-paper-hi px-6 py-4 text-left shadow-chunky-sm"
             >
-              <span className="kicker text-ink-soft">~2 to 3 minutes</span>
+              <span className="kicker text-ink-soft">~{mins('quick')} minutes</span>
               <span className="display mt-1 block text-xl leading-tight">Keep it short</span>
               <p className="mt-1 text-sm leading-snug text-ink-soft">
                 The essentials: their character, the core ratings, and your honest words.
               </p>
             </button>
+            )}
           </div>
         </motion.div>
       </div>
@@ -414,7 +442,7 @@ export default function Questionnaire() {
         session.id,
         {
           ...answers,
-          _relationship: lens ?? 'work',
+          _relationship: persona ?? 'work',
           responsibility_tiers: respTiers,
           responsibility_notes: respNotes,
           hats,
@@ -553,14 +581,14 @@ export default function Questionnaire() {
             )}
             {q.type === 'sixhats' && <HatsTagger value={hats} onChange={setHats} />}
             {q.type === 'radical_candor' && (
-              <CandorTagger name={session.creator_name} value={candor} onChange={setCandor} lens={lens ?? 'work'} />
+              <CandorTagger name={session.creator_name} value={candor} onChange={setCandor} lens={voice} />
             )}
             {q.type === 'sdt' && (
               <AllocationTagger
                 buckets={SDT_NEEDS.map((s) => ({
                   key: s.key,
                   label: s.label,
-                  sub: (lens === 'personal' && PERSONAL_SDT_SUB[s.key]) || s.feelStem,
+                  sub: (voice === 'personal' && PERSONAL_SDT_SUB[s.key]) || s.feelStem,
                 }))}
                 total={SDT_TOTAL}
                 value={sdt}

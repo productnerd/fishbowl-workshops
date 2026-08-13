@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createSession, emailHasSession, recoverLatestResults } from '../lib/data'
 import { setSubjectAuth } from '../lib/subjectAuth'
+import { rememberSessionTopic } from '../lib/sessionTopic'
+import { getTopic } from '@fishbowl/feedback-core'
 import Button from '../components/Button'
 import CountryPicker from '../components/CountryPicker'
 
@@ -10,6 +12,9 @@ const KEY = 'fishbowl_my_session'
 
 export default function Create() {
   const navigate = useNavigate()
+  // Which topic this fishbowl is for. Absent (the bare /create route) means the default.
+  const { topicKey } = useParams<{ topicKey: string }>()
+  const topic = getTopic(topicKey)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [role, setRole] = useState('')
@@ -95,6 +100,7 @@ export default function Create() {
       // and the report unlocks here with no magic link.
       setSubjectAuth({ bearer, person_id, slug })
       localStorage.setItem(KEY, JSON.stringify({ slug, creator_name: name.trim(), email: email.trim() || null }))
+      rememberSessionTopic(slug, topic.key)
       navigate(`/dashboard/${slug}`)
       return
     } catch (e) {

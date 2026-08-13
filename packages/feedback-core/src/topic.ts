@@ -4,7 +4,7 @@
 // introduces new code. Trainers compose, reword, reorder and extend within a module; they
 // cannot invent a scored construct, because nothing would aggregate it and no slide could
 // draw it. See docs/workshops-architecture.md.
-import type { Question } from './types'
+import type { Question, Lens } from './types'
 
 /** A framework unit we own and validate. Topics select these; they never define one. */
 export interface ModuleSpec {
@@ -44,7 +44,15 @@ export interface ModuleUse {
 export interface PersonaSpec {
   key: string
   label: string
+  /** One line under the label, so a respondent can tell which one is them. */
+  hint?: string
   minN: number
+  /**
+   * The framing register for components that still speak in v1's two lenses (the candor
+   * tagger, the "what you fuel" stems). Separate from `key`, because a topic can have four
+   * personas that all speak in the work register. Defaults to 'work'.
+   */
+  voice?: Lens
   exclude?: number[]
   overrides?: Record<number, QuestionOverride>
 }
@@ -54,11 +62,23 @@ export interface LengthSpec {
   key: string
   label: string
   modules: string[]
+  /** How long it takes, as [low, high] minutes. Formatted by `minutesRange`. */
+  minutes: [number, number]
 }
+
+/** "3" when the range is flat, "6 to 8" otherwise. Callers add their own unit. */
+export const minutesRange = (m: [number, number]): string =>
+  m[0] === m[1] ? `${m[0]}` : `${m[0]} to ${m[1]}`
 
 export interface TopicConfig {
   key: string
   name: string
+  /** Catalogue card copy: what this topic reveals, and who it is for. */
+  description: string
+  audience: string
+  emoji: string
+  /** Card accent. Topics are browsed as a grid, so each needs to be told apart at a glance. */
+  accent: string
   modules: ModuleUse[]
   personas: PersonaSpec[]
   lengths: LengthSpec[]

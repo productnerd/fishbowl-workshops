@@ -9,7 +9,7 @@ export function generateSlug(): string {
 }
 
 // Hash-router share link, base-path aware (origin + pathname + #/s/<slug>).
-export function buildShareLink(slug: string): string {
+export function buildShareLink(slug: string, topicKey?: string | null): string {
   const base = window.location.origin + window.location.pathname
-  return `${base}#/s/${slug}`
+  return topicKey ? `${base}#/s/${slug}/t/${topicKey}` : `${base}#/s/${slug}`
 }

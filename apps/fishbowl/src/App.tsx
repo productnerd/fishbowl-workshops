@@ -6,6 +6,7 @@ import WaterBackground from './components/WaterBackground'
 // The landing page loads eagerly (it's the entry point); every other route is split into
 // its own chunk so a first-time visitor doesn't download the whole app (Results + charts +
 // framer-motion, SelfAssessment, etc.) just to see the home page.
+const Topics = lazy(() => import('./pages/Topics'))
 const Create = lazy(() => import('./pages/Create'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Questionnaire = lazy(() => import('./pages/Questionnaire'))
@@ -35,9 +36,12 @@ export default function App() {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/topics" element={<Topics />} />
           <Route path="/create" element={<Create />} />
+          <Route path="/create/t/:topicKey" element={<Create />} />
           <Route path="/dashboard/:slug" element={<Dashboard />} />
           <Route path="/s/:slug" element={<Questionnaire />} />
+          <Route path="/s/:slug/t/:topicKey" element={<Questionnaire />} />
           <Route path="/s/:slug/done" element={<Done />} />
           <Route path="/r/:slug" element={<Results />} />
           <Route path="/self/:slug" element={<SelfAssessment />} />
