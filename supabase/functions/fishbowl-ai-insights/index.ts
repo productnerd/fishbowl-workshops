@@ -17,6 +17,20 @@ import { gifPromptBlock } from './gifs.ts'
 const THRESHOLD = 3
 const MODEL = 'claude-opus-5'
 
+// What each catalogue topic is a read ON. The instruments are shared, but the same virtue
+// means something different in a leadership workshop than in a first-impressions one, so
+// the narration has to know which workshop it is serving. Keyed by an allow-list rather
+// than accepting prompt text from the caller: a client must never be able to write
+// instructions into the system prompt.
+const TOPIC_FRAMING: Record<string, string> = {
+  'how-you-show-up-at-work':
+    'This is a general read on how they show up at work: character, thinking style, the role they play and the words people reach for. Treat it as a rounded portrait rather than an assessment against one job.',
+  'leading-a-team':
+    'This is a LEADERSHIP read, from a leadership workshop. They lead people, and the question throughout is what their leadership DOES to the people around them: whether people feel safe disagreeing with them, what their feedback leaves behind, whether they create room or take it up. Read every score through that lens, and make every tip something they could try with their team this week. Where the answers come from different vantage points (someone they manage, a peer, their own manager, a mentor), a difference between those groups is the most interesting thing in the report: say it plainly.',
+  'how-you-come-across':
+    'This is a SHORT first-impressions read, usually a workshop opener. It covers only how they land on people and what people appreciate, so keep it light, warm and quick. Do NOT reach for depth the data cannot support, do not diagnose character, and do not imply this is a full picture of them.',
+}
+
 // Structured-output helpers. The schema is built per-session below (the virtue and
 // competency keys depend on which activities this team answered), which makes the
 // "include ALL N keys" instruction an API-level guarantee instead of a request.
@@ -153,24 +167,39 @@ Deno.serve(async (req) => {
 
     const name = session.creator_name
     const workContext = session.context ? String(session.context).trim() : ''
+    // The session row has no topic column yet (see supabase/migrations/0001), so the
+    // client names the topic. Unknown or absent falls back to the default read.
+    const topicKey = typeof body.topic_key === 'string' ? body.topic_key : ''
+    const topicFraming = TOPIC_FRAMING[topicKey] ?? TOPIC_FRAMING['how-you-show-up-at-work']
     const val = (r: any, id: number) => r.answers?.[id] ?? r.answers?.[String(id)]
 
     // ── Deterministic aggregation ──
     const dimensionMeans: Record<string, number> = {}
 
-    const virtueStats = VIRTUES.map((q) => {
+    // A topic decides which modules it asks, so a dimension with no answers was very
+    // likely never PUT to anyone. Defaulting it (a virtue to the mean, a competency to
+    // zero) and then narrating it invents a finding: an unasked virtue would read as
+    // perfectly balanced, an unasked competency as a catastrophic 0/5. So carry `n` and
+    // drop the unanswered ones before anything downstream sees them. The filtered arrays
+    // feed the stats block, the output template, the response schema and the returned
+    // report alike, so all four stay consistent with what was actually asked.
+    const virtueStatsAll = VIRTUES.map((q) => {
       const scores = responses.map((r: any) => Number(val(r, q.id))).filter((n: number) => n >= 1 && n <= 9)
       const mu = scores.length ? mean(scores) : 5
-      dimensionMeans[q.dimension] = round(mu)
-      return { dimension: q.dimension, name: q.virtue!.name, deficientPole: q.virtue!.deficientPole, excessivePole: q.virtue!.excessivePole, mu: round(mu), sigma: round(stdDev(scores)), tendency: classifyTendency(mu), balanceScore: round(1 - Math.abs(mu - 5) / 4, 3) }
+      // Only stamp what was answered: dimension_means feeds the cross-user percentile
+      // layer, and a defaulted value would quietly skew everyone else's percentiles.
+      if (scores.length) dimensionMeans[q.dimension] = round(mu)
+      return { dimension: q.dimension, name: q.virtue!.name, deficientPole: q.virtue!.deficientPole, excessivePole: q.virtue!.excessivePole, mu: round(mu), sigma: round(stdDev(scores)), tendency: classifyTendency(mu), balanceScore: round(1 - Math.abs(mu - 5) / 4, 3), n: scores.length }
     })
+    const virtueStats = virtueStatsAll.filter((v) => v.n > 0)
 
-    const competencyStats = COMPETENCIES.map((q) => {
+    const competencyStatsAll = COMPETENCIES.map((q) => {
       const scores = responses.map((r: any) => Number(val(r, q.id))).filter((n: number) => n >= 1 && n <= 5)
       const avg = scores.length ? mean(scores) : 0
-      dimensionMeans[q.dimension] = round(avg)
-      return { dimension: q.dimension, statement: q.text.replace(/\{name\}/g, name), average: round(avg, 1) }
+      if (scores.length) dimensionMeans[q.dimension] = round(avg)
+      return { dimension: q.dimension, statement: q.text.replace(/\{name\}/g, name), average: round(avg, 1), n: scores.length }
     })
+    const competencyStats = competencyStatsAll.filter((c) => c.n > 0)
 
     // Scenarios are a 7-point situational spectrum (1 = deficient extreme, 4 = the
     // balanced move, 7 = excessive extreme). Older responses stored the picked option
@@ -323,18 +352,38 @@ Deno.serve(async (req) => {
       .map((v) => v.dimension)
 
     // ── Build the prompt (prose only) ──
+    // Free-text prompts nobody answered are dropped rather than shown as "(none)": an
+    // empty prompt still tells the model the question was asked, which invites invention.
+    const freetextWithAnswers = freetext.filter((f: any) => f.answers.length)
+
     const statsBlock = [
-      'VIRTUES (1-9 scale; 1=deficiency vice, 5=the virtue/mean, 9=excess vice):',
-      ...virtueStats.map((v) => `- ${v.dimension} (${v.name}): mean ${v.mu}/9 -> ${v.tendency} (${v.tendency === 'deficient' ? v.deficientPole : v.tendency === 'excessive' ? v.excessivePole : 'balanced'}), spread ${v.sigma}`),
-      '',
-      'COMPETENCIES (1-5 agree, higher is better):',
-      ...competencyStats.map((c) => `- ${c.dimension}: avg ${c.average}/5, "${c.statement}"`),
-      '',
-      'SCENARIOS (most common choice):',
-      ...scenarioStats.map((s) => `- ${s.dimension}: "${s.winner}" (deficient ${s.tally.deficient} / balanced ${s.tally.balanced} / excessive ${s.tally.excessive})`),
-      '',
-      'FREE TEXT:',
-      ...freetext.map((f) => `- ${f.dimension} ("${f.prompt}"):\n${f.answers.map((a) => `    • ${a}`).join('\n') || '    (none)'}`),
+      ...(virtueStats.length
+        ? [
+            'VIRTUES (1-9 scale; 1=deficiency vice, 5=the virtue/mean, 9=excess vice):',
+            ...virtueStats.map((v) => `- ${v.dimension} (${v.name}): mean ${v.mu}/9 -> ${v.tendency} (${v.tendency === 'deficient' ? v.deficientPole : v.tendency === 'excessive' ? v.excessivePole : 'balanced'}), spread ${v.sigma}`),
+          ]
+        : []),
+      ...(competencyStats.length
+        ? [
+            '',
+            'COMPETENCIES (1-5 agree, higher is better):',
+            ...competencyStats.map((c) => `- ${c.dimension}: avg ${c.average}/5, "${c.statement}"`),
+          ]
+        : []),
+      ...(scenarioStats.length
+        ? [
+            '',
+            'SCENARIOS (most common choice):',
+            ...scenarioStats.map((s) => `- ${s.dimension}: "${s.winner}" (deficient ${s.tally.deficient} / balanced ${s.tally.balanced} / excessive ${s.tally.excessive})`),
+          ]
+        : []),
+      ...(freetextWithAnswers.length
+        ? [
+            '',
+            'FREE TEXT:',
+            ...freetextWithAnswers.map((f) => `- ${f.dimension} ("${f.prompt}"):\n${f.answers.map((a) => `    • ${a}`).join('\n')}`),
+          ]
+        : []),
       ...(sessionResp.length
         ? [
             '',
@@ -366,7 +415,22 @@ Deno.serve(async (req) => {
         ? `\n\n=== WHO ANSWERED (important) ===\nEveryone who assessed ${name} is a friend or family member (personal context, NOT work). Frame everything personally, never as workplace feedback, and never assume a job or team.`
         : ''
 
-    const systemPrompt = `You are an insightful, kind feedback analyst for an app called "Fishbowl". ${responses.length} people (${sourceDesc}) anonymously assessed a person named ${name} on Aristotelian virtues (the good is the MEAN between two vices), competencies, situational tendencies, and free text. Write a warm, specific, honest report that ${name} will read about themselves.${sourceGuidance}${workContext ? ` Context about ${name}: "${workContext}". Use it to ground every insight and tip in their real situation. If a COUNTRY is given, DO surface the cultural angle at least once (gently, as a hypothesis, never a hard stereotype): where a trait plausibly reflects a norm of that country, say so, e.g. "in [country], [directness / status / deference / harmony] tends to be culturally common, so this may be partly cultural, not only personal." If a ROLE + company VERTICAL are given, infer the work ENVIRONMENT (e.g. a product manager at a tech company = fast-paced, ambiguity-heavy; investment banking = high-pressure, hierarchical) and factor that into what the scores mean and what advice actually fits.` : ''}
+    // Name only the instruments this topic actually used. Listing a framework nobody was
+    // asked about invites the model to fill the gap.
+    const assessedOn = [
+      virtueStats.length && 'Aristotelian virtues (the good is the MEAN between two vices)',
+      competencyStats.length && 'competencies',
+      scenarioStats.length && 'situational tendencies',
+      freetextWithAnswers.length && 'free text',
+    ].filter(Boolean).join(', ')
+
+    const systemPrompt = `You are an insightful, kind feedback analyst for an app called "Fishbowl". ${responses.length} people (${sourceDesc}) anonymously assessed a person named ${name}${assessedOn ? ` on ${assessedOn}` : ''}. Write a warm, specific, honest report that ${name} will read about themselves.
+
+=== WHAT THIS REPORT IS ===
+${topicFraming}
+
+=== ONLY WHAT WAS ASKED ===
+The data below is everything that was collected. Some activities were deliberately not part of this topic, so anything absent was never put to anyone. Write about what is present and stay silent about the rest: never infer, estimate or imply a finding for something that is not in the data, and never note that something is missing.${sourceGuidance}${workContext ? ` Context about ${name}: "${workContext}". Use it to ground every insight and tip in their real situation. If a COUNTRY is given, DO surface the cultural angle at least once (gently, as a hypothesis, never a hard stereotype): where a trait plausibly reflects a norm of that country, say so, e.g. "in [country], [directness / status / deference / harmony] tends to be culturally common, so this may be partly cultural, not only personal." If a ROLE + company VERTICAL are given, infer the work ENVIRONMENT (e.g. a product manager at a tech company = fast-paced, ambiguity-heavy; investment banking = high-pressure, hierarchical) and factor that into what the scores mean and what advice actually fits.` : ''}
 
 === VOICE ===
 Speak TO ${name} in second person ("you", "your"). Never use their name. Write like a sharp, funny friend who knows them well, NOT a consultant: casual, warm, a little cheeky, and playfully teasing when the data invites it (especially the over-the-top stuff). Land the joke, then land the truth. Smart, dry, observational humor with taste, the kind that makes them laugh AND nod. Never mean, never sarcastic at their expense, never punching down, never a roast. Kill all corporate-speak (no "leverage", "stakeholders", "areas of opportunity", "strengths and weaknesses", "it's important to note", "at the end of the day"). Use contractions, short punchy sentences, the odd well-placed aside. Still: grounded in the data, honest, and genuinely useful. The virtue ideal is the MIDDLE (5 on the 1-9 scale), not the maximum: too little AND too much are both weaknesses, and overshooting a virtue is fair game for a gentle ribbing.

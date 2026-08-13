@@ -76,7 +76,9 @@ export default function Dashboard() {
   const unlocked = count >= REQUIRED_RESPONSES
 
   // Same source the report uses, so the numbers here can never disagree with it.
-  const { insights } = useAiInsights(sessionId ?? undefined, count, Boolean(sessionId) && unlocked)
+  const { insights } = useAiInsights(sessionId ?? undefined, count, Boolean(sessionId) && unlocked, {
+    topic_key: sessionTopicKey(slug),
+  })
 
   // The self-read is what makes the Golden Score match the report's exactly (it blends
   // both sides). Without a bearer this quietly returns nothing and we fall back to the

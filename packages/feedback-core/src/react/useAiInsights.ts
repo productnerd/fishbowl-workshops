@@ -37,8 +37,14 @@ export function createUseAiInsights<T>(opts: UseAiInsightsOptions) {
   return function useAiInsights(
     sessionId: string | undefined,
     currentResponseCount: number | undefined,
-    ready: boolean
+    ready: boolean,
+    // Merged into the generate call. Fishbowl passes the topic key so the narration knows
+    // which kind of report it is writing.
+    extraBody?: Record<string, unknown>
   ): UseAiInsightsResult<T> {
+    // Kept as a string so it can be a stable effect dependency without re-firing
+    // generation on every render just because an object literal is new.
+    const extraBodyKey = JSON.stringify(extraBody ?? {})
     const [state, setState] = useState<State<T>>({
       insights: null,
       cachedAt: null,
@@ -82,7 +88,7 @@ export function createUseAiInsights<T>(opts: UseAiInsightsOptions) {
         let genErrMsg: string | null = null
         if (generateOnView && !fresh) {
           const { data, error: genErr } = await client.functions.invoke(fn, {
-            body: { session_id: sessionId, force: false },
+            body: { session_id: sessionId, force: false, ...JSON.parse(extraBodyKey) },
           })
           if (cancelled) return
           if (!genErr && data?.insights) {
@@ -125,14 +131,14 @@ export function createUseAiInsights<T>(opts: UseAiInsightsOptions) {
       return () => {
         cancelled = true
       }
-    }, [sessionId, ready, currentResponseCount])
+    }, [sessionId, ready, currentResponseCount, extraBodyKey])
 
     const regenerate = useCallback(async () => {
       if (!sessionId || !isConfigured()) return
       setState((s) => ({ ...s, regenerating: true, error: null }))
       try {
         const { data, error } = await client.functions.invoke(fn, {
-          body: { session_id: sessionId, force: true },
+          body: { session_id: sessionId, force: true, ...JSON.parse(extraBodyKey) },
         })
         if (error) {
           setState((s) => ({ ...s, regenerating: false, error: error.message }))
@@ -169,7 +175,7 @@ export function createUseAiInsights<T>(opts: UseAiInsightsOptions) {
       } catch (e) {
         setState((s) => ({ ...s, regenerating: false, error: String(e) }))
       }
-    }, [sessionId])
+    }, [sessionId, extraBodyKey])
 
     const isStale =
       state.insights !== null &&

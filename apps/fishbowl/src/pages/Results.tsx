@@ -20,6 +20,7 @@ import {
   type VirtueScores,
 } from '@fishbowl/feedback-core'
 import { getSession, getPopulationStats, MIN_POPULATION, type PopulationStats } from '../lib/data'
+import { sessionTopicKey } from '../lib/sessionTopic'
 import { questions } from '../data/questions'
 import {
   VALUE_OPTIONS,
@@ -207,7 +208,8 @@ export default function Results() {
   const { insights, regenerate, regenerating, isStale, error: insightsError } = useAiInsights(
     session?.id,
     session?.response_count,
-    Boolean(session)
+    Boolean(session),
+    { topic_key: sessionTopicKey(slug) }
   )
 
   useEffect(() => {

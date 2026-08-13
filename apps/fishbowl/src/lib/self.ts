@@ -1,4 +1,5 @@
 import type { BigFiveScores, MbtiType } from '@fishbowl/feedback-core'
+import { sessionTopicKey } from './sessionTopic'
 import { supabase } from './supabase'
 import { getSubjectAuth, clearSubjectAuth } from './subjectAuth'
 
@@ -83,7 +84,7 @@ export async function synthesisStart(slug: string, archetype: Archetype, force =
   const auth = getSubjectAuth()
   if (!auth) return { status: 'idle', synthesis: null }
   const { data, error } = await supabase.functions.invoke('fishbowl-synthesis', {
-    body: { bearer: auth.bearer, slug, archetype, force, mode: 'start' },
+    body: { bearer: auth.bearer, slug, archetype, force, mode: 'start', topic_key: sessionTopicKey(slug) },
   })
   if (error || !data || data.error) return { status: 'error', synthesis: null }
   return { status: (data.status as SynthStatus) ?? 'idle', synthesis: (data.synthesis as SelfSynthesis) ?? null }
