@@ -20,12 +20,13 @@ const rise = (delay: number) => ({
   transition: { duration: 0.6, delay, ease: [0.2, 0.8, 0.2, 1] as const },
 })
 
-// One beige family, light to dark across the four steps.
+// One beige family, light to dark. These are ordered as the workshop actually runs, so
+// the first two are the trainer's and the last two belong to each participant.
 const STEPS = [
-  { n: '01', emoji: '🔗', bg: 'var(--color-paper-hi)', title: 'Grab your link', body: 'One tap. No account, no setup, nothing to install.' },
-  { n: '02', emoji: '🪞', bg: 'var(--color-paper)', title: 'Do your own first', body: 'A quick self-read, about four minutes. Seeing yourself first makes the rest hit harder.' },
-  { n: '03', emoji: '💬', bg: 'var(--color-sand)', title: 'Your team weighs in', body: 'They answer anonymously: sliders, quick taps, a few honest words. No names. Ever.' },
-  { n: '04', emoji: '🎉', bg: 'var(--color-sand-deep)', title: 'Three in, report out', body: 'The second three teammates answer, your Wrapped pops open.' },
+  { n: '01', emoji: '🧭', bg: 'var(--color-paper-hi)', title: 'Pick your topic', body: 'Leadership, first impressions, how someone shows up at work. Set the length and who gets to answer.' },
+  { n: '02', emoji: '📱', bg: 'var(--color-paper)', title: 'Share one link', body: 'Put the QR code on screen. The whole room scans it and sets up their own private Fishbowl.' },
+  { n: '03', emoji: '💬', bg: 'var(--color-sand)', title: 'Their people weigh in', body: 'Each participant invites their own colleagues, manager, peers. Everyone answers anonymously.' },
+  { n: '04', emoji: '🎉', bg: 'var(--color-sand-deep)', title: 'Reports land', body: 'Three answers and it opens. Private to that person. You see who finished, never what was said.' },
 ]
 
 type Tone = 'pink' | 'blue' | 'sand' | 'paper'
@@ -154,56 +155,82 @@ export default function Landing() {
     }
   }, [])
 
-  // Returning creators always land on their dashboard (/create), where they see their
-  // link, the response count, and the button through to their report once it's ready.
-  const ctaLabel = mySlug ? 'Go to my dashboard →' : 'Create your link →'
-  const onCta = () => navigate(mySlug ? `/dashboard/${mySlug}` : '/create')
+  // Someone who already has a Fishbowl on this device is a participant mid-flight, so
+  // their own dashboard outranks anything else on the page.
 
   return (
     <div className="mx-auto min-h-dvh w-full max-w-6xl px-5 pb-24 sm:px-8">
       {/* Nav */}
-      <motion.nav {...rise(0)} className="flex items-center py-7">
+      <motion.nav {...rise(0)} className="flex flex-wrap items-center gap-x-6 gap-y-2 py-7">
         <span className="display text-2xl">Fishbowl</span>
+        <span className="kicker rounded-full border-2 border-ink px-2.5 py-0.5 text-[11px] text-ink">for workshops</span>
+        <span className="flex-1" />
+        <button onClick={() => navigate('/topics')} className="cursor-pointer text-sm font-semibold text-ink-soft hover:text-ink">
+          Topics
+        </button>
+        <button onClick={() => navigate('/trainer')} className="cursor-pointer text-sm font-semibold text-pink-deep underline">
+          For trainers →
+        </button>
       </motion.nav>
 
       {/* Hero */}
       <section className="pt-6 lg:pt-10">
         <div className="max-w-3xl">
           <motion.p {...rise(0.05)} className="kicker mb-5 text-pink-deep">
-            honest feedback, minus the cringe
+            peer feedback for workshops
           </motion.p>
           <motion.h1 {...rise(0.12)} className="display text-[clamp(2.8rem,8vw,6rem)] leading-[0.95]">
-            See yourself the way your{' '}
+            The exercise your room will{' '}
             <span className="relative inline-block text-paper-hi">
-              team does
+              still talk about
               <svg className="absolute -bottom-3 left-0 w-full" height="16" viewBox="0 0 300 16" fill="none" preserveAspectRatio="none">
                 <path d="M3 11C70 4 230 3 297 9" stroke="var(--color-pink-deep)" strokeWidth="5" strokeLinecap="round" />
               </svg>
             </span>
           </motion.h1>
           <motion.p {...rise(0.22)} className="mt-9 max-w-xl text-lg leading-relaxed text-ink-soft">
-            Your coworkers answer a few honest questions about you, anonymously. We spin it into a report you'll
-            actually want to read. Not a score. A <span className="font-semibold text-ink">mirror</span>, from a dozen angles.
+            Pick a topic and share one link. Every participant gets an honest, anonymous read from the people who
+            actually work with them, turned into a report they want to read. Not a score. A{' '}
+            <span className="font-semibold text-ink">mirror</span>, from a dozen angles.
           </motion.p>
           <motion.div {...rise(0.3)} className="mt-9">
-            <div className="inline-flex flex-col items-center gap-2.5">
-              <Button variant="pink" className="!text-xl" onClick={onCta}>
-                {mySlug ? (
+            {mySlug ? (
+              <div className="inline-flex flex-col items-start gap-2.5">
+                <Button variant="pink" className="!text-xl" onClick={() => navigate(`/dashboard/${mySlug}`)}>
                   <span className="flex flex-col items-center leading-tight">
-                    <span>{ctaLabel}</span>
-                    <span className="kicker mt-0.5 text-[11px] text-ink/55">{myCount} of {REQUIRED_RESPONSES} responded</span>
+                    <span>Go to my dashboard →</span>
+                    <span className="kicker mt-0.5 text-[11px] text-ink/55">
+                      {myCount} of {REQUIRED_RESPONSES} responded
+                    </span>
                   </span>
-                ) : (
-                  ctaLabel
-                )}
-              </Button>
-              <span className="text-sm font-semibold text-ink-soft">FREE · no signup needed</span>
-              {mySlug && (
-                <button onClick={() => navigate('/me')} className="cursor-pointer text-sm font-semibold text-pink-deep underline">
+                </Button>
+                <button
+                  onClick={() => navigate('/me')}
+                  className="cursor-pointer text-sm font-semibold text-pink-deep underline"
+                >
                   Your reports →
                 </button>
-              )}
-            </div>
+              </div>
+            ) : (
+              // Two doors, because this page has two readers: the trainer choosing whether
+              // to run a session, and the participant who was handed a link.
+              <div className="flex flex-col items-start gap-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button variant="pink" className="!text-xl" onClick={() => navigate('/topics')}>
+                    Browse the topics →
+                  </Button>
+                  <button
+                    onClick={() => navigate('/trainer')}
+                    className="press cursor-pointer rounded-2xl border-[2.5px] border-ink bg-paper-hi px-6 py-3.5 font-display text-lg font-black text-ink shadow-chunky-sm"
+                  >
+                    I&rsquo;m running a workshop
+                  </button>
+                </div>
+                <span className="text-sm font-semibold text-ink-soft">
+                  Participants never pay and never sign up. Nothing to install.
+                </span>
+              </div>
+            )}
           </motion.div>
         </div>
       </section>
@@ -214,7 +241,8 @@ export default function Landing() {
           <p className="kicker mb-2 text-blue-deep">the activities &amp; their frameworks</p>
           <h2 className="display text-4xl sm:text-5xl">Many lenses, one you</h2>
           <p className="mt-3 max-w-xl text-ink-soft">
-            A dozen quick activities, each backed by a real framework, mashed into a single report.
+            A dozen activities, each backed by a real framework. Every topic draws on a different set of them, so a
+            leadership session asks different things than a first-impressions one and the reports still hold up.
           </p>
         </motion.div>
 
@@ -228,7 +256,7 @@ export default function Landing() {
       {/* How it works */}
       <section className="pt-24">
         <motion.h2 {...rise(0.05)} className="display mb-8 text-4xl sm:text-5xl">
-          How it works
+          How a workshop runs
         </motion.h2>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((s, i) => (
@@ -260,12 +288,16 @@ export default function Landing() {
       {/* Footer CTA */}
       <motion.section {...rise(0.05)} className="pt-24">
         <Card tone="pink" className="flex flex-col items-center gap-6 px-6 py-14 text-center">
-          <p className="display text-4xl text-ink sm:text-6xl">Ready to look?</p>
+          <p className="display text-4xl text-ink sm:text-6xl">Ready to run one?</p>
           <p className="max-w-md text-lg text-ink/80">
-            No names. No logins for them. Just the truth, told kindly.
+            No names. No logins for participants. Just the truth, told kindly.
           </p>
-          <Button variant="paper" className="!text-xl" onClick={onCta}>
-            {ctaLabel}
+          <Button
+            variant="paper"
+            className="!text-xl"
+            onClick={() => navigate(mySlug ? `/dashboard/${mySlug}` : '/trainer')}
+          >
+            {mySlug ? 'Go to my dashboard →' : 'Start a workshop →'}
           </Button>
         </Card>
         <div className="mt-10 flex flex-col items-center gap-3">
