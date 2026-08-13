@@ -212,8 +212,58 @@ The mapping came out almost one-to-one, which is the encouraging part: v1's cons
 single topic's config written as code. One correction fell out of the test rather than review, namely
 that responsibilities carries `pool: 'role'` and so is full-only, not core.
 
-Still open on the gate: the **report** half. `Results.tsx` slides are still hardwired, so step 4's diff
-of the rendered report is not yet possible. That is the next piece of work and it is the larger half.
+### Progress: P1, the catalogue
+
+Three topics ship, and the second and third exist to prove a topic can differ from v1 without new
+code: **Leading a team** (four personas, a narrower module set, leadership wording, no quick length)
+and **How you come across** (one length, four modules, no picker at all).
+
+- `/topics` is the catalogue. `/create/t/:topicKey` and `/s/:slug/t/:topicKey` carry the topic through
+  creation and response, so the share link itself names the topic and any device opening it gets the
+  right survey.
+- The Questionnaire renders its persona gate and its length options from the topic. Components that
+  still speak in v1's two registers read the persona's `voice` rather than its key, which is what lets
+  a leadership topic have four personas that all speak at work.
+- `getSurvey` is gone. It had no callers left once the Questionnaire called `resolveSurvey` directly.
+
+**The report needed no changes.** `Results.tsx` already guards every framework slide on data presence,
+so a topic that omits a module simply renders fewer slides. That was the load-bearing discovery of this
+phase: the slide registry is not a prerequisite for a second topic, it is a prerequisite for a trainer
+*choosing* slides, which is P3.
+
+Still open on the gate: the **report** half. Slides are still hardwired to frameworks, so step 4's diff
+of a rendered report is not yet possible, and no trainer can reorder or drop a slide. That is the next
+piece of work and it is the larger half.
+
+### Where it runs
+
+The workshops build is a **separate repo and a separate Pages site**, so v1 cannot be affected:
+
+| | v1 consumer | workshops |
+|---|---|---|
+| repo | `productnerd/fishbowl` | `productnerd/fishbowl-workshops` |
+| branch | `claude/fishbowl-monorepo` | `main` (pushed from local `workshops`) |
+| workflow | `deploy-fishbowl.yml` | `deploy-workshops.yml` |
+| base | `/fishbowl/` | `/fishbowl-workshops/` |
+| url | productnerd.github.io/fishbowl/ | productnerd.github.io/fishbowl-workshops/ |
+
+The workflow was renamed on the workshops branch rather than duplicated, so the new repo has exactly
+one deploy workflow and cannot build with v1's base path. Both sites were confirmed live and serving
+their own assets after the split, and the existing demo and survey links still resolve.
+
+The deploy runs `npm test`, which includes the v1 parity test, so a config change that silently alters
+the original question set fails the deploy instead of shipping.
+
+### Not yet real
+
+Topic persistence. `fishbowl_sessions` has no topic column, so the topic travels in the share link and
+is remembered on the creating device. `supabase/migrations/0001_topic_and_persona.sql` adds
+`topic_key`, `config_snapshot` and `fishbowl_responses.persona` (backfilling persona from the
+`_relationship` v1 already wrote) and has **not been applied**. Until it is, a subject who opens their
+dashboard on a different device rebuilds the share link against the default topic.
+
+Per-persona report breakdowns are also not built yet. The data is being captured per persona from now
+on, which is the prerequisite, but no slide splits by it.
 
 ## 8b. What a report actually costs
 
