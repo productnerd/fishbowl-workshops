@@ -1,0 +1,1 @@
+var e=`fishbowl_session_topics`,t=()=>{try{let t=localStorage.getItem(e);return t?JSON.parse(t):{}}catch{return{}}};function n(n,r){try{localStorage.setItem(e,JSON.stringify({...t(),[n]:r}))}catch{}}var r=e=>e&&t()[e]||null;export{r as n,n as t};
