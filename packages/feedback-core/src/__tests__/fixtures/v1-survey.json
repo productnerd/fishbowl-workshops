@@ -1,0 +1,1172 @@
+{
+  "work|quick|true": [
+    {
+      "id": 1,
+      "text": "On facing risk and hard calls, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 2,
+      "text": "On directness, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 3,
+      "text": "On self-assurance, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 4,
+      "text": "On ambition, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 5,
+      "text": "Under pressure, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 6,
+      "text": "On working with others, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 7,
+      "text": "On attention to detail, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 8,
+      "text": "On taking input, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 9,
+      "text": "On sharing credit and helping, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 10,
+      "text": "On making decisions, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 32,
+      "text": "In plain words, what's Alex's vibe or aura?",
+      "section": "First Impressions",
+      "sectionDescription": "Quick gut read. Stays anonymous."
+    },
+    {
+      "id": 20,
+      "text": "What do you most appreciate about working with Alex?",
+      "section": "In Their Words",
+      "sectionDescription": "A few honest words. Stays anonymous."
+    },
+    {
+      "id": 11,
+      "text": "Alex reliably delivers on what they commit to.",
+      "section": "At Work",
+      "sectionDescription": "How much do you agree?"
+    },
+    {
+      "id": 14,
+      "text": "Alex is responsive and easy to reach when needed.",
+      "section": "At Work",
+      "sectionDescription": "How much do you agree?"
+    }
+  ],
+  "work|quick|false": [
+    {
+      "id": 1,
+      "text": "On facing risk and hard calls, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 2,
+      "text": "On directness, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 3,
+      "text": "On self-assurance, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 4,
+      "text": "On ambition, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 5,
+      "text": "Under pressure, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 6,
+      "text": "On working with others, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 7,
+      "text": "On attention to detail, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 8,
+      "text": "On taking input, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 9,
+      "text": "On sharing credit and helping, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 10,
+      "text": "On making decisions, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 32,
+      "text": "In plain words, what's Alex's vibe or aura?",
+      "section": "First Impressions",
+      "sectionDescription": "Quick gut read. Stays anonymous."
+    },
+    {
+      "id": 20,
+      "text": "What do you most appreciate about working with Alex?",
+      "section": "In Their Words",
+      "sectionDescription": "A few honest words. Stays anonymous."
+    },
+    {
+      "id": 11,
+      "text": "Alex reliably delivers on what they commit to.",
+      "section": "At Work",
+      "sectionDescription": "How much do you agree?"
+    },
+    {
+      "id": 14,
+      "text": "Alex is responsive and easy to reach when needed.",
+      "section": "At Work",
+      "sectionDescription": "How much do you agree?"
+    }
+  ],
+  "work|standard|true": [
+    {
+      "id": 30,
+      "text": "Which words describe Alex best?",
+      "section": "In a Word",
+      "sectionDescription": "Pick the words that fit — up to 8 for how they show up, up to 6 watch-outs."
+    },
+    {
+      "id": 1,
+      "text": "On facing risk and hard calls, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 2,
+      "text": "On directness, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 3,
+      "text": "On self-assurance, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 4,
+      "text": "On ambition, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 5,
+      "text": "Under pressure, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 6,
+      "text": "On working with others, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 7,
+      "text": "On attention to detail, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 8,
+      "text": "On taking input, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 9,
+      "text": "On sharing credit and helping, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 10,
+      "text": "On making decisions, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 32,
+      "text": "In plain words, what's Alex's vibe or aura?",
+      "section": "First Impressions",
+      "sectionDescription": "Quick gut read. Stays anonymous."
+    },
+    {
+      "id": 20,
+      "text": "What do you most appreciate about working with Alex?",
+      "section": "In Their Words",
+      "sectionDescription": "A few honest words. Stays anonymous."
+    },
+    {
+      "id": 11,
+      "text": "Alex reliably delivers on what they commit to.",
+      "section": "At Work",
+      "sectionDescription": "How much do you agree?"
+    },
+    {
+      "id": 14,
+      "text": "Alex is responsive and easy to reach when needed.",
+      "section": "At Work",
+      "sectionDescription": "How much do you agree?"
+    }
+  ],
+  "work|standard|false": [
+    {
+      "id": 30,
+      "text": "Which words describe Alex best?",
+      "section": "In a Word",
+      "sectionDescription": "Pick the words that fit — up to 8 for how they show up, up to 6 watch-outs."
+    },
+    {
+      "id": 1,
+      "text": "On facing risk and hard calls, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 2,
+      "text": "On directness, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 3,
+      "text": "On self-assurance, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 4,
+      "text": "On ambition, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 5,
+      "text": "Under pressure, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 6,
+      "text": "On working with others, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 7,
+      "text": "On attention to detail, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 8,
+      "text": "On taking input, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 9,
+      "text": "On sharing credit and helping, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 10,
+      "text": "On making decisions, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 32,
+      "text": "In plain words, what's Alex's vibe or aura?",
+      "section": "First Impressions",
+      "sectionDescription": "Quick gut read. Stays anonymous."
+    },
+    {
+      "id": 20,
+      "text": "What do you most appreciate about working with Alex?",
+      "section": "In Their Words",
+      "sectionDescription": "A few honest words. Stays anonymous."
+    },
+    {
+      "id": 11,
+      "text": "Alex reliably delivers on what they commit to.",
+      "section": "At Work",
+      "sectionDescription": "How much do you agree?"
+    },
+    {
+      "id": 14,
+      "text": "Alex is responsive and easy to reach when needed.",
+      "section": "At Work",
+      "sectionDescription": "How much do you agree?"
+    }
+  ],
+  "work|full|true": [
+    {
+      "id": 30,
+      "text": "Which words describe Alex best?",
+      "section": "In a Word",
+      "sectionDescription": "Pick the words that fit — up to 8 for how they show up, up to 6 watch-outs."
+    },
+    {
+      "id": 27,
+      "text": "After working with Alex, you feel…",
+      "section": "After Working Together",
+      "sectionDescription": "Spend 20 points on how it feels."
+    },
+    {
+      "id": 28,
+      "text": "What role does Alex play on the team?",
+      "section": "Team Role",
+      "sectionDescription": "Spend 20 chips on the roles they play."
+    },
+    {
+      "id": 25,
+      "text": "How does Alex balance the six thinking modes?",
+      "section": "Thinking Style",
+      "sectionDescription": "For each mode, where does Alex sit?"
+    },
+    {
+      "id": 26,
+      "text": "How does Alex handle care and challenge?",
+      "section": "Feedback Style",
+      "sectionDescription": "How much do you agree?"
+    },
+    {
+      "id": 1,
+      "text": "On facing risk and hard calls, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 2,
+      "text": "On directness, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 3,
+      "text": "On self-assurance, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 4,
+      "text": "On ambition, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 5,
+      "text": "Under pressure, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 6,
+      "text": "On working with others, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 7,
+      "text": "On attention to detail, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 8,
+      "text": "On taking input, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 9,
+      "text": "On sharing credit and helping, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 10,
+      "text": "On making decisions, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 24,
+      "text": "Rate Alex on each of their responsibilities.",
+      "section": "Their Role",
+      "sectionDescription": "How does Alex do on the things they own?"
+    },
+    {
+      "id": 32,
+      "text": "In plain words, what's Alex's vibe or aura?",
+      "section": "First Impressions",
+      "sectionDescription": "Quick gut read. Stays anonymous."
+    },
+    {
+      "id": 20,
+      "text": "What do you most appreciate about working with Alex?",
+      "section": "In Their Words",
+      "sectionDescription": "A few honest words. Stays anonymous."
+    },
+    {
+      "id": 11,
+      "text": "Alex reliably delivers on what they commit to.",
+      "section": "At Work",
+      "sectionDescription": "How much do you agree?"
+    },
+    {
+      "id": 14,
+      "text": "Alex is responsive and easy to reach when needed.",
+      "section": "At Work",
+      "sectionDescription": "How much do you agree?"
+    }
+  ],
+  "work|full|false": [
+    {
+      "id": 30,
+      "text": "Which words describe Alex best?",
+      "section": "In a Word",
+      "sectionDescription": "Pick the words that fit — up to 8 for how they show up, up to 6 watch-outs."
+    },
+    {
+      "id": 27,
+      "text": "After working with Alex, you feel…",
+      "section": "After Working Together",
+      "sectionDescription": "Spend 20 points on how it feels."
+    },
+    {
+      "id": 28,
+      "text": "What role does Alex play on the team?",
+      "section": "Team Role",
+      "sectionDescription": "Spend 20 chips on the roles they play."
+    },
+    {
+      "id": 25,
+      "text": "How does Alex balance the six thinking modes?",
+      "section": "Thinking Style",
+      "sectionDescription": "For each mode, where does Alex sit?"
+    },
+    {
+      "id": 26,
+      "text": "How does Alex handle care and challenge?",
+      "section": "Feedback Style",
+      "sectionDescription": "How much do you agree?"
+    },
+    {
+      "id": 1,
+      "text": "On facing risk and hard calls, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 2,
+      "text": "On directness, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 3,
+      "text": "On self-assurance, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 4,
+      "text": "On ambition, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 5,
+      "text": "Under pressure, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 6,
+      "text": "On working with others, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 7,
+      "text": "On attention to detail, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 8,
+      "text": "On taking input, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 9,
+      "text": "On sharing credit and helping, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 10,
+      "text": "On making decisions, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 32,
+      "text": "In plain words, what's Alex's vibe or aura?",
+      "section": "First Impressions",
+      "sectionDescription": "Quick gut read. Stays anonymous."
+    },
+    {
+      "id": 20,
+      "text": "What do you most appreciate about working with Alex?",
+      "section": "In Their Words",
+      "sectionDescription": "A few honest words. Stays anonymous."
+    },
+    {
+      "id": 11,
+      "text": "Alex reliably delivers on what they commit to.",
+      "section": "At Work",
+      "sectionDescription": "How much do you agree?"
+    },
+    {
+      "id": 14,
+      "text": "Alex is responsive and easy to reach when needed.",
+      "section": "At Work",
+      "sectionDescription": "How much do you agree?"
+    }
+  ],
+  "personal|quick|true": [
+    {
+      "id": 1,
+      "text": "When something scary or hard comes up, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 2,
+      "text": "When something is off between you, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 3,
+      "text": "On self-assurance, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 4,
+      "text": "On going after what they want, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 5,
+      "text": "When things get tense or stressful, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 6,
+      "text": "When plans involve other people, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 7,
+      "text": "On following through on the little things, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 8,
+      "text": "When you give them honest feedback, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 9,
+      "text": "On showing up for the people around them, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 10,
+      "text": "When there is a call to make, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 32,
+      "text": "In plain words, what's Alex's vibe or aura?",
+      "section": "First Impressions",
+      "sectionDescription": "Quick gut read. Stays anonymous."
+    },
+    {
+      "id": 20,
+      "text": "What do you most appreciate about Alex?",
+      "section": "In Their Words",
+      "sectionDescription": "A few honest words. Stays anonymous."
+    },
+    {
+      "id": 11,
+      "text": "Alex shows up when they say they will.",
+      "section": "Showing up",
+      "sectionDescription": "How much do you agree?"
+    },
+    {
+      "id": 14,
+      "text": "Alex is there for you when you need them.",
+      "section": "Showing up",
+      "sectionDescription": "How much do you agree?"
+    }
+  ],
+  "personal|quick|false": [
+    {
+      "id": 1,
+      "text": "When something scary or hard comes up, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 2,
+      "text": "When something is off between you, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 3,
+      "text": "On self-assurance, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 4,
+      "text": "On going after what they want, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 5,
+      "text": "When things get tense or stressful, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 6,
+      "text": "When plans involve other people, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 7,
+      "text": "On following through on the little things, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 8,
+      "text": "When you give them honest feedback, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 9,
+      "text": "On showing up for the people around them, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 10,
+      "text": "When there is a call to make, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 32,
+      "text": "In plain words, what's Alex's vibe or aura?",
+      "section": "First Impressions",
+      "sectionDescription": "Quick gut read. Stays anonymous."
+    },
+    {
+      "id": 20,
+      "text": "What do you most appreciate about Alex?",
+      "section": "In Their Words",
+      "sectionDescription": "A few honest words. Stays anonymous."
+    },
+    {
+      "id": 11,
+      "text": "Alex shows up when they say they will.",
+      "section": "Showing up",
+      "sectionDescription": "How much do you agree?"
+    },
+    {
+      "id": 14,
+      "text": "Alex is there for you when you need them.",
+      "section": "Showing up",
+      "sectionDescription": "How much do you agree?"
+    }
+  ],
+  "personal|standard|true": [
+    {
+      "id": 30,
+      "text": "Which words describe Alex best?",
+      "section": "In a Word",
+      "sectionDescription": "Pick the words that fit — up to 8 for how they show up, up to 6 watch-outs."
+    },
+    {
+      "id": 1,
+      "text": "When something scary or hard comes up, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 2,
+      "text": "When something is off between you, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 3,
+      "text": "On self-assurance, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 4,
+      "text": "On going after what they want, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 5,
+      "text": "When things get tense or stressful, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 6,
+      "text": "When plans involve other people, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 7,
+      "text": "On following through on the little things, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 8,
+      "text": "When you give them honest feedback, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 9,
+      "text": "On showing up for the people around them, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 10,
+      "text": "When there is a call to make, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 32,
+      "text": "In plain words, what's Alex's vibe or aura?",
+      "section": "First Impressions",
+      "sectionDescription": "Quick gut read. Stays anonymous."
+    },
+    {
+      "id": 20,
+      "text": "What do you most appreciate about Alex?",
+      "section": "In Their Words",
+      "sectionDescription": "A few honest words. Stays anonymous."
+    },
+    {
+      "id": 11,
+      "text": "Alex shows up when they say they will.",
+      "section": "Showing up",
+      "sectionDescription": "How much do you agree?"
+    },
+    {
+      "id": 14,
+      "text": "Alex is there for you when you need them.",
+      "section": "Showing up",
+      "sectionDescription": "How much do you agree?"
+    }
+  ],
+  "personal|standard|false": [
+    {
+      "id": 30,
+      "text": "Which words describe Alex best?",
+      "section": "In a Word",
+      "sectionDescription": "Pick the words that fit — up to 8 for how they show up, up to 6 watch-outs."
+    },
+    {
+      "id": 1,
+      "text": "When something scary or hard comes up, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 2,
+      "text": "When something is off between you, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 3,
+      "text": "On self-assurance, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 4,
+      "text": "On going after what they want, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 5,
+      "text": "When things get tense or stressful, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 6,
+      "text": "When plans involve other people, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 7,
+      "text": "On following through on the little things, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 8,
+      "text": "When you give them honest feedback, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 9,
+      "text": "On showing up for the people around them, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 10,
+      "text": "When there is a call to make, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 32,
+      "text": "In plain words, what's Alex's vibe or aura?",
+      "section": "First Impressions",
+      "sectionDescription": "Quick gut read. Stays anonymous."
+    },
+    {
+      "id": 20,
+      "text": "What do you most appreciate about Alex?",
+      "section": "In Their Words",
+      "sectionDescription": "A few honest words. Stays anonymous."
+    },
+    {
+      "id": 11,
+      "text": "Alex shows up when they say they will.",
+      "section": "Showing up",
+      "sectionDescription": "How much do you agree?"
+    },
+    {
+      "id": 14,
+      "text": "Alex is there for you when you need them.",
+      "section": "Showing up",
+      "sectionDescription": "How much do you agree?"
+    }
+  ],
+  "personal|full|true": [
+    {
+      "id": 30,
+      "text": "Which words describe Alex best?",
+      "section": "In a Word",
+      "sectionDescription": "Pick the words that fit — up to 8 for how they show up, up to 6 watch-outs."
+    },
+    {
+      "id": 27,
+      "text": "After spending time with Alex, you feel…",
+      "section": "After time together",
+      "sectionDescription": "Spend 20 points on how it feels."
+    },
+    {
+      "id": 25,
+      "text": "How does Alex balance the six thinking modes?",
+      "section": "Thinking Style",
+      "sectionDescription": "For each mode, where does Alex sit?"
+    },
+    {
+      "id": 26,
+      "text": "How does Alex balance honesty and kindness with you?",
+      "section": "Honesty",
+      "sectionDescription": "How much do you agree?"
+    },
+    {
+      "id": 1,
+      "text": "When something scary or hard comes up, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 2,
+      "text": "When something is off between you, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 3,
+      "text": "On self-assurance, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 4,
+      "text": "On going after what they want, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 5,
+      "text": "When things get tense or stressful, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 6,
+      "text": "When plans involve other people, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 7,
+      "text": "On following through on the little things, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 8,
+      "text": "When you give them honest feedback, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 9,
+      "text": "On showing up for the people around them, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 10,
+      "text": "When there is a call to make, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 32,
+      "text": "In plain words, what's Alex's vibe or aura?",
+      "section": "First Impressions",
+      "sectionDescription": "Quick gut read. Stays anonymous."
+    },
+    {
+      "id": 20,
+      "text": "What do you most appreciate about Alex?",
+      "section": "In Their Words",
+      "sectionDescription": "A few honest words. Stays anonymous."
+    },
+    {
+      "id": 11,
+      "text": "Alex shows up when they say they will.",
+      "section": "Showing up",
+      "sectionDescription": "How much do you agree?"
+    },
+    {
+      "id": 14,
+      "text": "Alex is there for you when you need them.",
+      "section": "Showing up",
+      "sectionDescription": "How much do you agree?"
+    }
+  ],
+  "personal|full|false": [
+    {
+      "id": 30,
+      "text": "Which words describe Alex best?",
+      "section": "In a Word",
+      "sectionDescription": "Pick the words that fit — up to 8 for how they show up, up to 6 watch-outs."
+    },
+    {
+      "id": 27,
+      "text": "After spending time with Alex, you feel…",
+      "section": "After time together",
+      "sectionDescription": "Spend 20 points on how it feels."
+    },
+    {
+      "id": 25,
+      "text": "How does Alex balance the six thinking modes?",
+      "section": "Thinking Style",
+      "sectionDescription": "For each mode, where does Alex sit?"
+    },
+    {
+      "id": 26,
+      "text": "How does Alex balance honesty and kindness with you?",
+      "section": "Honesty",
+      "sectionDescription": "How much do you agree?"
+    },
+    {
+      "id": 1,
+      "text": "When something scary or hard comes up, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 2,
+      "text": "When something is off between you, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 3,
+      "text": "On self-assurance, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 4,
+      "text": "On going after what they want, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 5,
+      "text": "When things get tense or stressful, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 6,
+      "text": "When plans involve other people, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 7,
+      "text": "On following through on the little things, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 8,
+      "text": "When you give them honest feedback, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 9,
+      "text": "On showing up for the people around them, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 10,
+      "text": "When there is a call to make, Alex…",
+      "section": "Character",
+      "sectionDescription": "Place Alex between two extremes. The middle is the virtue."
+    },
+    {
+      "id": 32,
+      "text": "In plain words, what's Alex's vibe or aura?",
+      "section": "First Impressions",
+      "sectionDescription": "Quick gut read. Stays anonymous."
+    },
+    {
+      "id": 20,
+      "text": "What do you most appreciate about Alex?",
+      "section": "In Their Words",
+      "sectionDescription": "A few honest words. Stays anonymous."
+    },
+    {
+      "id": 11,
+      "text": "Alex shows up when they say they will.",
+      "section": "Showing up",
+      "sectionDescription": "How much do you agree?"
+    },
+    {
+      "id": 14,
+      "text": "Alex is there for you when you need them.",
+      "section": "Showing up",
+      "sectionDescription": "How much do you agree?"
+    }
+  ]
+}

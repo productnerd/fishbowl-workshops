@@ -1,4 +1,5 @@
 import type { Question, Lens } from '@fishbowl/feedback-core'
+import { MODULES, TOPIC_WORK, resolveSurvey } from '@fishbowl/feedback-core'
 
 // Mirrors supabase/functions/fishbowl-ai-insights QUESTIONS (ids must match).
 // Virtue sliders are a 1-9 bipolar scale: 1 = deficiency vice, 5 = the virtue,
@@ -162,110 +163,32 @@ export const questions: Question[] = [
   { id: 33, type: 'freetext', dimension: 'first_impression', section: 'First Impressions', sectionDescription: 'Quick gut read. Stays anonymous.', text: 'How does {name} come across in terms of first impression?', placeholder: 'When you first started working together…' },
 ]
 
-// ── Relationship lens (v1) ────────────────────────────────────────────────────────
-// Friends/family answer the SAME constructs (same `dimension`, so scoring + slides are
-// unchanged) with re-framed scenarios, and skip the work-only activities. Kept as a
-// lookup here so the source `questions` array stays untouched for the self flow + report.
-
-// Skipped for the personal lens — team roles + work responsibilities don't translate.
-const WORK_ONLY = new Set([28, 24])
-
-// Personal-lens wording overrides (id → stem). Anything absent reuses the work text —
-// confidence, decisiveness, hats, the adjective pick, and the "vibe" read are universal.
-const PERSONAL_TEXT: Record<number, string> = {
-  1: 'When something scary or hard comes up, {name}…',
-  2: 'When something is off between you, {name}…',
-  4: 'On going after what they want, {name}…',
-  5: 'When things get tense or stressful, {name}…',
-  6: 'When plans involve other people, {name}…',
-  7: 'On following through on the little things, {name}…',
-  8: 'When you give them honest feedback, {name}…',
-  9: 'On showing up for the people around them, {name}…',
-  10: 'When there is a call to make, {name}…',
-  11: '{name} shows up when they say they will.',
-  14: '{name} is there for you when you need them.',
-  20: 'What do you most appreciate about {name}?',
-  26: 'How does {name} balance honesty and kindness with you?',
-  27: 'After spending time with {name}, you feel…',
-}
-
-// Personal-lens section headers, so the progress label never reads "At Work" to a friend.
-const PERSONAL_SECTION: Record<number, string> = {
-  11: 'Showing up',
-  14: 'Showing up',
-  26: 'Honesty',
-  27: 'After time together',
-}
-
-const withName = (q: Question, name: string, lens: Lens): Question => {
-  const text = (lens === 'personal' && PERSONAL_TEXT[q.id]) || q.text
-  const section = (lens === 'personal' && PERSONAL_SECTION[q.id]) || q.section
-  return {
-    ...q,
-    section,
-    text: text.replace(/\{name\}/g, name),
-    sectionDescription: q.sectionDescription.replace(/\{name\}/g, name),
-  }
-}
+// ── Survey composition ───────────────────────────────────────────────────────────
+// Everything that used to be hardcoded here (the personal-lens wording tables, the
+// work-only skips, the pool sets and the presentation order) now lives as data in
+// TOPIC_WORK. This is the v1-shaped entry point kept for existing callers; it maps the
+// two relationship lenses onto the topic's two personas and delegates.
+//
+// Parity with the old hardcoded behaviour is pinned by
+// packages/feedback-core/src/__tests__/topic-parity.test.ts.
 
 export type SurveyDepth = 'quick' | 'standard' | 'full'
 
-// The colleague chooses how much to give. Everyone answers CORE (no `pool`). QUICK adds only
-// the light At-Work ratings (~2 to 3 min). STANDARD adds the merged adjective portrait too
-// (~3 to 4 min). FULL adds every deeper framework activity (~6 to 8 min; ~5 to 6 for the
-// personal lens, which drops the work-only Belbin + responsibilities). Aggregation tolerates
-// missing answers, so the three mix freely.
-const QUICK_POOLS = new Set(['comp_a', 'comp_b'])
-// The three adjective decks (via / johari / nohari) are merged into the single Johari
-// pick (id 30) — see COLLEAGUE_SKIP + the questionnaire's johari branch — so Standard now
-// carries one adjective activity instead of three.
-const STANDARD_POOLS = new Set(['comp_a', 'comp_b', 'johari'])
+const PERSONA_FOR_LENS: Record<Lens, string> = { work: 'work', personal: 'personal' }
 
-// Trimmed from the colleague survey to cut its load (the survey audit): the 3 scenarios
-// were invisible to every AI report, four of the six At-Work agree-scales just restated
-// the virtue sliders, and the first-impression free-text fed a single slide. Kept in the
-// `questions` array for the self flow + report label lookups; only the colleague survey
-// skips them. Keeps At-Work 11 (delivery) + 14 (responsiveness) as the two distinct bars.
-// 29 (VIA) + 31 (Nohari) are skipped too: they merge into the single Johari pick (30),
-// whose combined grid the questionnaire splits back into johari + nohari answers.
-const COLLEAGUE_SKIP = new Set([17, 18, 19, 33, 12, 13, 15, 16, 29, 31])
-
-// Presentation order for the colleague survey (by id): lead with the rich, engaging
-// framework activities (the two spend-20-points allocations and the word/adjective
-// pickers), keep the plain agree-scales for the back so it opens strong and coasts out.
-// Only affects the colleague flow; the source `questions` order is untouched for other
-// consumers. Any id missing here falls to the end.
-const COLLEAGUE_ORDER = [
-  30, 27, 28, 25, 26, // merged adjective pick, spend-20 (feelings + roles), hats, candor
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, // the ten Character virtue sliders
-  24, // responsibilities
-  32, // vibe
-  20, // the free-text reflection
-  11, 14, // easiest: the two kept At-Work agree scales, at the back
-]
-
-// `lens` picks the relationship framing: 'work' = colleagues (the original survey),
-// 'personal' = friends/family (re-worded stems + work-only activities dropped).
 export function getSurvey(
   name: string,
   hasResponsibilities: boolean,
   depth: SurveyDepth,
   lens: Lens,
 ): Question[] {
-  const usable = questions.filter(
-    (q) =>
-      (q.type !== 'responsibilities' || hasResponsibilities) &&
-      !COLLEAGUE_SKIP.has(q.id) &&
-      !(lens === 'personal' && WORK_ONLY.has(q.id)),
-  )
-  const pools = depth === 'full' ? null : depth === 'standard' ? STANDARD_POOLS : QUICK_POOLS
-  const keep = (q: Question) => !q.pool || pools === null || pools.has(q.pool)
-  const rank = (id: number) => {
-    const i = COLLEAGUE_ORDER.indexOf(id)
-    return i === -1 ? COLLEAGUE_ORDER.length : i
-  }
-  return usable
-    .filter(keep)
-    .sort((a, b) => rank(a.id) - rank(b.id))
-    .map((q) => withName(q, name, lens))
+  return resolveSurvey({
+    topic: TOPIC_WORK,
+    modules: MODULES,
+    bank: questions,
+    persona: PERSONA_FOR_LENS[lens],
+    length: depth,
+    name,
+    hasResponsibilities,
+  })
 }

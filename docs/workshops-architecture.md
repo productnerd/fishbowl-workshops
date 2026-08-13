@@ -24,10 +24,17 @@ Trainers can customise a lot, but customisation must be **compositional, not gen
 | Choose which modules a topic uses | Invent a new scored construct |
 | Include, exclude and reorder questions | Define new scoring or aggregation |
 | Reword any question | Change what a slide fundamentally plots |
-| Add free-text questions | Add a new scored question type |
+| **Add new items to an extensible module** | Add a new scored question type |
+| Add free-text questions | |
 | Choose personas and their question sets | |
 | Pick length (quick / standard / extended) | |
 | Include, exclude, reorder and retitle slides | |
+
+**Extending within a module is safe and is the main customisation trainers will reach for.** A new
+statement on the energy map, or another item on a personality trait, works because those modules score
+generically over a list of items: the mean does not care how many items there are. That is materially
+different from inventing a new construct, which would have no aggregation, no slide and no prompt.
+Each module therefore declares whether it is `extensible`.
 
 The reason is structural. Aggregation, every report slide, and all three AI prompts key off known module
 ids. A brand new scored construct would have nothing to aggregate it, no slide able to draw it, and no
@@ -145,15 +152,18 @@ de-anonymise someone.
 If a participant has exactly one manager and we show a manager-only column, that manager has effectively
 signed their answers. So:
 
-- Every persona carries a `minN` (default 2, and 2 is the floor we should enforce in code, not just
-  config).
+- Every persona carries a `minN`, default 2.
 - Below `minN`, that persona's answers still count toward the pooled team read but never render as their
   own column.
 - The report should say so out loud ("not enough manager answers yet to show separately"), because silent
   omission reads as a bug.
 
-This is worth being strict about. In a corporate rollout the first time someone feels identified is the
-last time anyone answers honestly.
+**Decided:** `minN` is a configurable number, not a hard-enforced floor. Maria's call is that a manager
+being identifiable in this format is acceptable, since the persona breakdown is the point of the
+exercise and these are workshop settings rather than performance reviews. The default stays at 2 so the
+safe behaviour is what a trainer gets without thinking about it, and a trainer who wants a single-manager
+column can set it to 1 deliberately. Revisit if we sell into performance-review use cases, where the
+incentive to identify a respondent is much stronger.
 
 ## 7. What has to change in existing code
 
@@ -181,6 +191,53 @@ work already done helps here, because the schema is already explicit rather than
 Step 4 is the gate. If v1 cannot be reproduced purely as configuration, the module boundaries are wrong,
 and we want to discover that in week one rather than after the builder UI exists. Nothing else starts
 until that diff is clean.
+
+### Progress: the survey half of the gate is closed
+
+The question-set half is done and pinned by a test.
+
+- `packages/feedback-core/src/topic.ts` holds the config types and `resolveSurvey`.
+- `packages/feedback-core/src/topics.ts` holds the module registry and `TOPIC_WORK`.
+- `apps/fishbowl/src/data/questions.ts` keeps the question bank; `getSurvey` is now a thin wrapper that
+  maps the two lenses onto the two personas and delegates. Every hardcoded constant it used to carry
+  (`COLLEAGUE_SKIP`, `WORK_ONLY`, `PERSONAL_TEXT`, `PERSONAL_SECTION`, `COLLEAGUE_ORDER`, the pool sets)
+  is now data in `TOPIC_WORK`.
+- `__tests__/fixtures/v1-survey.json` was emitted from the **old hardcoded** `getSurvey` before the
+  rewrite, so it is a real record of v1 rather than a restatement of the new code. `topic-parity.test.ts`
+  checks all twelve combinations of persona, length and responsibilities against it and they match
+  exactly, wording included. **Do not regenerate that fixture:** if it fails, the change altered the v1
+  survey.
+
+The mapping came out almost one-to-one, which is the encouraging part: v1's constants were already a
+single topic's config written as code. One correction fell out of the test rather than review, namely
+that responsibilities carries `pool: 'role'` and so is full-only, not core.
+
+Still open on the gate: the **report** half. `Results.tsx` slides are still hardwired, so step 4's diff
+of the rendered report is not yet possible. That is the next piece of work and it is the larger half.
+
+## 8b. What a report actually costs
+
+Measured from the prompt assembly in `fishbowl-ai-insights`, not estimated. Numeric answers are
+aggregated to means and standard deviations **before** the prompt is built. Only free text is passed
+through per respondent.
+
+| Variable | Cost impact | Why |
+|---|---|---|
+| 3 → 33 respondents | negligible, about a cent | numbers collapse to means regardless of n; only free text grows |
+| 10 → 50 questions | real, roughly linear | every construct must be narrated, which drives output tokens at 5x the input price |
+| 10 → 50 slides | mild | a slide mostly costs one caption; the visuals render client-side from data that already exists |
+
+**Therefore price on length, not on headcount.** Short / standard / extended is a genuine cost tier
+(roughly $0.25 to $0.55 per report). Charging per respondent is margin, not cost recovery.
+
+**Pricing rule (agreed, implement later):** a topic includes up to **40 questions**. Every additional
+10 questions costs extra. This needs a question counter in the builder that totals the resolved set
+per persona, and a hard stop or upsell prompt when a trainer crosses a tier.
+
+**Generation trigger (agreed):** generate the first report when the minimum response count is hit
+(default 3, configurable up per topic by the trainer). After that, regenerate lazily: only when the
+participant opens the report **and** responses have arrived since the last generation. This is already
+exactly how v1 behaves, so only the configurable minimum is new work.
 
 ## 9. Phasing
 
