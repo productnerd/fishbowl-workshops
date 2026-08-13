@@ -254,6 +254,22 @@ their own assets after the split, and the existing demo and survey links still r
 The deploy runs `npm test`, which includes the v1 parity test, so a config change that silently alters
 the original question set fails the deploy instead of shipping.
 
+### Deployed
+
+`fishbowl-ai-insights` and `fishbowl-synthesis` were deployed to `knftyqkhampkqchoncel` on 2026-08-13
+with the module-aware prompt assembly and the per-topic framing. **Both products share that Supabase
+project**, so the change is live for v1 as well as workshops. Verified by regenerating v1's sample
+report (`yu3bxtei`, 9 responses): all 10 virtues and all 6 competencies came back with blurbs and no
+empty sections, and the new per-dimension `n` is populated (collaboration reads `n=8` against 9
+elsewhere, so it is a genuine per-question count rather than the response total).
+
+Deploying must be done from the project directory. Running from `~` picks up a stray
+`~/supabase/config.toml` for an unrelated project that the installed CLI cannot parse.
+
+Still unverified: a report for a topic that omits modules. That needs a leadership fishbowl with three
+responses, which does not exist yet. The mechanism is proven (the `n` filter is live and counting); its
+effect on a reduced topic is not yet observed end to end.
+
 ### Not yet real
 
 Topic persistence. `fishbowl_sessions` has no topic column, so the topic travels in the share link and
