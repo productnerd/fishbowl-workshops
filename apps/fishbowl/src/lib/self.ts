@@ -15,7 +15,9 @@ export interface SelfData {
 // Subject asks for a private link by email. In dev (no Resend configured), the
 // edge fn returns the claim URL directly so the flow is testable.
 export async function requestMagicLink(email: string, slug: string): Promise<{ ok: boolean; devClaimUrl?: string }> {
-  const { data, error } = await supabase.functions.invoke('fishbowl-send-magic-link', { body: { email, slug } })
+  const { data, error } = await supabase.functions.invoke('fishbowl-send-magic-link', {
+    body: { email, slug, app_url: window.location.origin + window.location.pathname },
+  })
   if (error) return { ok: false }
   return { ok: true, devClaimUrl: data?.devClaimUrl }
 }

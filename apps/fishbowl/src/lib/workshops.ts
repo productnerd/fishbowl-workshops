@@ -107,8 +107,15 @@ export const inviteLink = (token: string): string => {
  * fishbowl they may not have. Always resolves: the function never reveals whether an
  * address is known.
  */
-export async function trainerSignIn(email: string): Promise<void> {
-  await supabase.functions.invoke('fishbowl-send-magic-link', {
-    body: { email: email.trim(), slug: '', purpose: 'trainer' },
+export async function trainerSignIn(email: string): Promise<{ sent: boolean }> {
+  const { data, error } = await supabase.functions.invoke('fishbowl-send-magic-link', {
+    body: {
+      email: email.trim(),
+      slug: '',
+      purpose: 'trainer',
+      // So the emailed link returns to whichever app they signed in from.
+      app_url: window.location.origin + window.location.pathname,
+    },
   })
+  return { sent: !error && Boolean(data?.sent) }
 }

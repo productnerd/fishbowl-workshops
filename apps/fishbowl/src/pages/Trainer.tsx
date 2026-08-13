@@ -18,8 +18,39 @@ import {
 
 function SignIn() {
   const [email, setEmail] = useState('')
-  const [sent, setSent] = useState(false)
+  // null = not attempted, true = accepted for delivery, false = the send was rejected.
+  // Telling someone to check an inbox nothing was sent to is the worst of the three.
+  const [sent, setSent] = useState<boolean | null>(null)
+  const [busy, setBusy] = useState(false)
   const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+
+  const go = async () => {
+    if (!ok || busy) return
+    setBusy(true)
+    const res = await trainerSignIn(email)
+    setBusy(false)
+    setSent(res.sent)
+  }
+
+  if (sent === false) {
+    return (
+      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-5">
+        <div className="rounded-3xl border-[2.5px] border-ink bg-paper-hi p-8 text-center shadow-chunky">
+          <div className="text-5xl">📭</div>
+          <h1 className="display mt-3 text-3xl">We could not send that</h1>
+          <p className="mt-2 text-sm leading-snug text-ink-soft">
+            The email did not go out, so there is nothing in your inbox to wait for. This is on our side, not yours.
+          </p>
+          <button
+            onClick={() => setSent(null)}
+            className="press mt-6 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-paper px-5 py-3 font-display font-black text-ink shadow-chunky-sm"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   if (sent) {
     return (
@@ -28,7 +59,7 @@ function SignIn() {
           <div className="text-5xl">📬</div>
           <h1 className="display mt-3 text-3xl">Check your email</h1>
           <p className="mt-2 text-sm leading-snug text-ink-soft">
-            If we know that address, a link to your workshops is on its way. It works once and expires in 15 minutes.
+            If we know that address, a link to your workshops is on its way. It works once and expires in 30 minutes.
           </p>
         </div>
       </div>
@@ -48,19 +79,16 @@ function SignIn() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && ok && (setSent(true), trainerSignIn(email))}
+          onKeyDown={(e) => e.key === 'Enter' && go()}
           placeholder="you@yourpractice.com"
           className="mt-6 w-full rounded-2xl border-[2.5px] border-ink bg-paper-hi px-5 py-3.5 text-lg outline-none"
         />
         <button
-          disabled={!ok}
-          onClick={() => {
-            setSent(true)
-            trainerSignIn(email)
-          }}
+          disabled={!ok || busy}
+          onClick={go}
           className="press mt-4 w-full cursor-pointer rounded-2xl border-[2.5px] border-ink bg-pink sc-pink px-5 py-3.5 font-display text-lg font-black text-ink shadow-chunky-sm disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Email me my link →
+          {busy ? 'Sending…' : 'Email me my link →'}
         </button>
       </motion.div>
     </div>

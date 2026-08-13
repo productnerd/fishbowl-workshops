@@ -95,7 +95,9 @@ export async function getDemoBearer(slug: string): Promise<{ bearer: string; per
 // Email the owner a one-tap link to their latest report (magic link, no slug needed).
 // Owner-verified: only the mailbox holder can act on it, so it never leaks a session.
 export async function recoverLatestResults(email: string): Promise<void> {
-  await supabase.functions.invoke('fishbowl-send-magic-link', { body: { email: email.trim(), slug: '' } })
+  await supabase.functions.invoke('fishbowl-send-magic-link', {
+    body: { email: email.trim(), slug: '', app_url: window.location.origin + window.location.pathname },
+  })
 }
 
 export async function getSession(slug: string): Promise<Session | null> {

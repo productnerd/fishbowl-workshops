@@ -26,6 +26,47 @@ function randToken() {
 }
 
 const APP = Deno.env.get('FISHBOWL_APP_URL') || 'https://productnerd.github.io/fishbowl/'
+
+// One edge function now serves two deployed apps (v1 and workshops), so the claim link has
+// to land on the app the person actually came from. That destination cannot be taken from
+// the caller unchecked: this URL goes in an email, and an unvalidated one would be an open
+// redirect in somebody's inbox. So the client says where it is and we honour it only when
+// it is an origin we publish.
+const KNOWN_APPS = [
+  'https://productnerd.github.io/fishbowl/',
+  'https://productnerd.github.io/fishbowl-workshops/',
+  'http://localhost:4321/',
+  'http://localhost:5173/',
+]
+const appUrl = (requested: string) => (KNOWN_APPS.includes(requested) ? requested : APP)
+
+/**
+ * Send one email, and say whether it actually went.
+ *
+ * The previous `.catch(() => {})` swallowed everything, including a Resend 403, which is
+ * how a misconfigured sender turned into "no email and no explanation". Resend returns a
+ * normal 4xx Response rather than throwing, so the status has to be checked too.
+ */
+async function sendMail(to: string, subject: string, html: string): Promise<boolean> {
+  if (!RESEND) return false
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${RESEND}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: FROM, to: [to], subject, html }),
+    })
+    if (!res.ok) {
+      // Shows up in the function logs. The usual cause is FISHBOWL_FROM_EMAIL being unset,
+      // which leaves the sandbox sender that only delivers to the Resend account holder.
+      console.error('resend rejected', res.status, await res.text().catch(() => ''))
+      return false
+    }
+    return true
+  } catch (e) {
+    console.error('resend threw', String(e))
+    return false
+  }
+}
 const RESEND = Deno.env.get('RESEND_API_KEY')
 const FROM = Deno.env.get('FISHBOWL_FROM_EMAIL') || 'Fishbowl <onboarding@resend.dev>'
 // Returning the claim URL in the response is an account-takeover oracle, so it is
@@ -77,22 +118,19 @@ Deno.serve(async (req) => {
         token_hash: await sha256hex(raw),
         expires_at: new Date(Date.now() + TTL_MIN * 60_000).toISOString(),
       })
-      const url = `${APP}#/claim/${raw}?next=trainer`
+      const url = `${appUrl(String(body.app_url || ''))}#/claim/${raw}?next=trainer`
       if (RESEND) {
-        await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${RESEND}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            from: FROM,
-            to: [email],
-            subject: 'Your Fishbowl trainer link',
-            html: `<p>Here's your private link to your Fishbowl workshops.</p><p><a href="${url}">Open my workshops →</a></p><p style="color:#5a4f45;font-size:13px">This link expires in ${TTL_MIN} minutes and works once.</p>`,
-          }),
-        }).catch(() => {})
-        return ok({ ok: true })
+        // `sent` leaks nothing about whether the address was already known: a trainer link
+        // creates the person either way, so signing up and signing in are the same call.
+        const sent = await sendMail(
+          email,
+          'Your Fishbowl trainer link',
+          `<p>Here's your private link to your Fishbowl workshops.</p><p><a href="${url}">Open my workshops →</a></p><p style="color:#5a4f45;font-size:13px">This link expires in ${TTL_MIN} minutes and works once.</p>`
+        )
+        return ok({ ok: true, sent })
       }
-      if (DEV_CLAIM) return ok({ ok: true, devClaimUrl: url })
-      return ok({ ok: true })
+      if (DEV_CLAIM) return ok({ ok: true, sent: false, devClaimUrl: url })
+      return ok({ ok: true, sent: false })
     }
 
     if (!session) return ok({ ok: true })
@@ -145,19 +183,14 @@ Deno.serve(async (req) => {
     // Recovery (no slug = "retrieve my results") lands on the reports list so all of a
     // person's reports are reachable, not just the newest. A slug-specific link (the
     // self-assessment flow) keeps the default destination.
-    const claimUrl = `${APP}#/claim/${raw}${slug ? '' : '?next=me'}`
+    const claimUrl = `${appUrl(String(body.app_url || ''))}#/claim/${raw}${slug ? '' : '?next=me'}`
     if (RESEND) {
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${RESEND}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: FROM,
-          to: [email],
-          subject: 'Your Fishbowl link',
-          html: `<p>Here's your private Fishbowl link. It takes you to your self-assessment and your report.</p><p><a href="${claimUrl}">Open my Fishbowl →</a></p><p style="color:#5a4f45;font-size:13px">This link expires in ${TTL_MIN} minutes and works once.</p>`,
-        }),
-      }).catch(() => {})
-      return ok({ ok: true })
+      const sent = await sendMail(
+        email,
+        'Your Fishbowl link',
+        `<p>Here's your private Fishbowl link. It takes you to your self-assessment and your report.</p><p><a href="${claimUrl}">Open my Fishbowl →</a></p><p style="color:#5a4f45;font-size:13px">This link expires in ${TTL_MIN} minutes and works once.</p>`
+      )
+      return ok({ ok: true, sent })
     }
     // Dev fallback: only when explicitly enabled (FISHBOWL_DEV_CLAIM=1).
     if (DEV_CLAIM) return ok({ ok: true, devClaimUrl: claimUrl })
