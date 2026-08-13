@@ -4,7 +4,8 @@
 // introduces new code. Trainers compose, reword, reorder and extend within a module; they
 // cannot invent a scored construct, because nothing would aggregate it and no slide could
 // draw it. See docs/workshops-architecture.md.
-import type { Question, Lens } from './types'
+import type { Question, Lens, TopicNarrowing } from './types'
+export type { TopicNarrowing }
 
 /** A framework unit we own and validate. Topics select these; they never define one. */
 export interface ModuleSpec {
@@ -143,4 +144,33 @@ export function resolveSurvey(opts: {
     return i === -1 ? topic.order.length : i
   }
   return out.sort((a, b) => rank(a.id) - rank(b.id))
+}
+
+/**
+ * Apply a workshop's narrowing to a topic. Returns the topic unchanged when there is
+ * nothing to apply.
+ *
+ * A narrowing may never empty the topic. A trainer who picks a length that no longer
+ * exists, or personas that were since renamed, should get the full topic rather than a
+ * survey nobody can answer, so an empty result falls back rather than propagating.
+ */
+export function narrowTopic(topic: TopicConfig, narrowing?: TopicNarrowing | null): TopicConfig {
+  if (!narrowing) return topic
+
+  const lengths = narrowing.length
+    ? topic.lengths.filter((l) => l.key === narrowing.length)
+    : topic.lengths
+  const personas = narrowing.personas?.length
+    ? topic.personas.filter((p) => narrowing.personas!.includes(p.key))
+    : topic.personas
+
+  return {
+    ...topic,
+    lengths: lengths.length ? lengths : topic.lengths,
+    personas: personas.length ? personas : topic.personas,
+    thresholds: {
+      ...topic.thresholds,
+      minResponses: narrowing.minResponses ?? topic.thresholds.minResponses,
+    },
+  }
 }

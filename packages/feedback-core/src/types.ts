@@ -88,6 +88,12 @@ export interface Session {
   // Session-readable copy of the subject's responsibilities (so anon colleagues can
   // rate them). The self-tiers stay in the bearer-gated self row.
   responsibilities?: string[] | null
+  // Workshops: which catalogue topic this fishbowl runs, and the trainer's narrowing of
+  // it, both frozen at creation. Null on every v1 session, which reads as the default
+  // topic with nothing narrowed.
+  topic_key?: string | null
+  config_snapshot?: TopicNarrowing | null
+  workshop_id?: string | null
 }
 
 // The subject's private self-assessment. Read/written only through bearer-verified
@@ -137,4 +143,16 @@ export interface AggregatedResults {
   likertResults: Record<number, { average: number; scores: number[] }>
   virtueResults: Record<number, VirtueResult>
   scenarioResults: Record<number, ScenarioResult>
+}
+
+/**
+ * A trainer's narrowing of a topic for one workshop: which single length everyone answers
+ * at, and which personas are offered. Stored as `config_snapshot` on the workshop and
+ * copied onto each participant's session at join, so it is frozen against later edits.
+ * Lives here rather than in topic.ts so Session can reference it without a cycle.
+ */
+export interface TopicNarrowing {
+  length?: string
+  personas?: string[]
+  minResponses?: number
 }

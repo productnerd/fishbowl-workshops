@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Question, Session, ResponsibilityTiers, HatScores, CandorAnswers, Lens } from '@fishbowl/feedback-core'
-import { MODULES, getTopic, minutesRange, resolveSurvey } from '@fishbowl/feedback-core'
+import { MODULES, getTopic, minutesRange, narrowTopic, resolveSurvey } from '@fishbowl/feedback-core'
 import { questions as QUESTION_BANK } from '../data/questions'
 import {
   SDT_NEEDS,
@@ -88,7 +88,13 @@ export default function Questionnaire() {
   // Which persona the respondent is to the subject, from the topic's own list. Replaces
   // v1's fixed work/personal lens. `?as=<persona key>` pre-selects it for testing.
   const [searchParams] = useSearchParams()
-  const topic = getTopic(topicKey)
+  // The session is authoritative once loaded: it carries the topic and the trainer's
+  // narrowing, both frozen at join. The URL is the fallback for a link created before the
+  // session had a topic, and for the first render while the session is still loading.
+  const topic = useMemo(
+    () => narrowTopic(getTopic(session?.topic_key ?? topicKey), session?.config_snapshot),
+    [session, topicKey]
+  )
   const [persona, setPersona] = useState<string | null>(() => {
     const keys = topic.personas.map((p) => p.key)
     const as = searchParams.get('as')
@@ -96,12 +102,17 @@ export default function Questionnaire() {
     return typeof saved.persona === 'string' && keys.includes(saved.persona) ? saved.persona : null
   })
   const personaSpec = topic.personas.find((p) => p.key === persona) ?? null
+  // Narrowing can invalidate a persona or length restored from saved progress. Falling back
+  // to the gate is the only safe move: resolving a survey for a key the topic no longer has
+  // would throw.
+  const validPersona = Boolean(persona && personaSpec)
+  const validDepth = Boolean(depth && topic.lengths.some((l) => l.key === depth))
   // Components that still speak in v1's two registers read the persona's voice, not its key:
   // a leadership topic has four personas that all speak at work.
   const voice: Lens = personaSpec?.voice ?? 'work'
   const questions = useMemo<Question[]>(
     () =>
-      session && depth && persona
+      session && validDepth && validPersona && depth && persona
         ? resolveSurvey({
             topic,
             modules: MODULES,
@@ -232,7 +243,7 @@ export default function Questionnaire() {
   // point, so the subject gets a fuller picture and the report can break the read down by
   // who said it. The options come from the topic, so a leadership fishbowl asks a different
   // question here than a first-impressions one.
-  if (!persona) {
+  if (!validPersona) {
     const pick = (key: string) => {
       playQuizTick()
       setPersona(key)
@@ -315,7 +326,7 @@ export default function Questionnaire() {
 
   // Intro explainer, then the duration choice. Full is framed as the bigger gift so people
   // lean toward giving the richer, more accurate read.
-  if (!depth) {
+  if (!validDepth) {
     const choose = (d: SurveyDepth) => {
       playQuizTick()
       setDepth(d)

@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
 
       const { data: w } = await client
         .from('fb_workshops')
-        .select('id, archived_at, closes_at')
+        .select('id, archived_at, closes_at, topic_key, config_snapshot')
         .eq('invite_token', token)
         .maybeSingle()
       if (!w || w.archived_at) return ok({ error: 'not_found' }, 404)
@@ -153,7 +153,13 @@ Deno.serve(async (req) => {
           { workshop_id: w.id, session_id: sessionId, display_name: displayName || null },
           { onConflict: 'workshop_id,session_id' }
         )
-      await client.from('fishbowl_sessions').update({ workshop_id: w.id }).eq('id', sessionId)
+      // Copy the topic and the trainer's narrowing onto the session. Everything downstream
+      // (the survey, the report) then reads one authoritative place, and a later edit to the
+      // workshop cannot reshape a survey someone is part-way through.
+      await client
+        .from('fishbowl_sessions')
+        .update({ workshop_id: w.id, topic_key: w.topic_key, config_snapshot: w.config_snapshot })
+        .eq('id', sessionId)
       return ok({ joined: true })
     }
 

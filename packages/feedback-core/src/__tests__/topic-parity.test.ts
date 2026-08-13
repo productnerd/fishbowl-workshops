@@ -12,7 +12,7 @@
 // code. Do not regenerate it: if a change makes it fail, that change alters the v1 survey.
 import { describe, it, expect } from 'vitest'
 import { questions } from '../../../../apps/fishbowl/src/data/questions'
-import { resolveSurvey } from '../topic'
+import { narrowTopic, resolveSurvey } from '../topic'
 import { MODULES, TOPICS, TOPIC_WORK } from '../topics'
 import v1 from './fixtures/v1-survey.json'
 
@@ -125,5 +125,50 @@ describe('registry integrity', () => {
   // so a trainer who never touches it gets per-persona anonymity for free.
   it('ships a safe default minN on every persona', () => {
     for (const p of TOPIC_WORK.personas) expect(p.minN).toBe(2)
+  })
+})
+
+describe('narrowTopic', () => {
+  const lead = TOPICS.find((t) => t.key === 'leading-a-team')!
+
+  it('leaves a topic alone when there is nothing to narrow', () => {
+    expect(narrowTopic(lead, null)).toBe(lead)
+    expect(narrowTopic(lead, {}).lengths).toHaveLength(lead.lengths.length)
+  })
+
+  it('restricts to the one length the trainer chose', () => {
+    const got = narrowTopic(lead, { length: 'standard' })
+    expect(got.lengths.map((l) => l.key)).toEqual(['standard'])
+  })
+
+  it('restricts to the personas the trainer chose', () => {
+    const got = narrowTopic(lead, { personas: ['peer', 'report'] })
+    expect(got.personas.map((p) => p.key).sort()).toEqual(['peer', 'report'])
+  })
+
+  // A survey with no lengths or no personas cannot be answered at all, so a stale or
+  // mistyped narrowing has to degrade to the full topic rather than break the flow.
+  it('falls back to the full topic rather than emptying it', () => {
+    expect(narrowTopic(lead, { length: 'no-such-length' }).lengths).toHaveLength(lead.lengths.length)
+    expect(narrowTopic(lead, { personas: ['nobody'] }).personas).toHaveLength(lead.personas.length)
+  })
+
+  it('still resolves a real survey after narrowing', () => {
+    const got = narrowTopic(lead, { length: 'standard', personas: ['report'] })
+    const qs = resolveSurvey({
+      topic: got,
+      modules: MODULES,
+      bank: questions,
+      persona: 'report',
+      length: 'standard',
+      name: NAME,
+      hasResponsibilities: true,
+    })
+    expect(qs.length).toBeGreaterThan(0)
+  })
+
+  it('carries a trainer-raised minimum response count', () => {
+    expect(narrowTopic(lead, { minResponses: 5 }).thresholds.minResponses).toBe(5)
+    expect(narrowTopic(lead, {}).thresholds.minResponses).toBe(lead.thresholds.minResponses)
   })
 })
