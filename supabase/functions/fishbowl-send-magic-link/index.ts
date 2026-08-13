@@ -40,6 +40,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}))
     const email = String(body.email || '').trim().toLowerCase()
     const slug = String(body.slug || '').trim()
+    const purpose = String(body.purpose || '')
     // Anti-enumeration: we never reveal whether the email/session exists.
     if (!email) return ok({ ok: true })
 
@@ -65,6 +66,35 @@ Deno.serve(async (req) => {
         .maybeSingle()
       session = data
     }
+    // A trainer signing in for the first time owns no fishbowl of their own, so their
+    // link authenticates the PERSON rather than pointing at a session. Everything below
+    // (claim-on-first-link, per-session throttling) is session logic that does not apply.
+    if (purpose === 'trainer') {
+      const raw = randToken()
+      await sb.from('fishbowl_magic_tokens').insert({
+        person_id: personId,
+        session_id: null,
+        token_hash: await sha256hex(raw),
+        expires_at: new Date(Date.now() + TTL_MIN * 60_000).toISOString(),
+      })
+      const url = `${APP}#/claim/${raw}?next=trainer`
+      if (RESEND) {
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${RESEND}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: FROM,
+            to: [email],
+            subject: 'Your Fishbowl trainer link',
+            html: `<p>Here's your private link to your Fishbowl workshops.</p><p><a href="${url}">Open my workshops →</a></p><p style="color:#5a4f45;font-size:13px">This link expires in ${TTL_MIN} minutes and works once.</p>`,
+          }),
+        }).catch(() => {})
+        return ok({ ok: true })
+      }
+      if (DEV_CLAIM) return ok({ ok: true, devClaimUrl: url })
+      return ok({ ok: true })
+    }
+
     if (!session) return ok({ ok: true })
 
     // Claim-on-first-link: attach only an UNCLAIMED session. Never hijack one

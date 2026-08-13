@@ -7,6 +7,9 @@ import WaterBackground from './components/WaterBackground'
 // its own chunk so a first-time visitor doesn't download the whole app (Results + charts +
 // framer-motion, SelfAssessment, etc.) just to see the home page.
 const Topics = lazy(() => import('./pages/Topics'))
+const Trainer = lazy(() => import('./pages/Trainer'))
+const Workshop = lazy(() => import('./pages/Workshop'))
+const Join = lazy(() => import('./pages/Join'))
 const Create = lazy(() => import('./pages/Create'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Questionnaire = lazy(() => import('./pages/Questionnaire'))
@@ -37,6 +40,9 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/topics" element={<Topics />} />
+          <Route path="/trainer" element={<Trainer />} />
+          <Route path="/workshop/:id" element={<Workshop />} />
+          <Route path="/j/:token" element={<Join />} />
           <Route path="/create" element={<Create />} />
           <Route path="/create/t/:topicKey" element={<Create />} />
           <Route path="/dashboard/:slug" element={<Dashboard />} />

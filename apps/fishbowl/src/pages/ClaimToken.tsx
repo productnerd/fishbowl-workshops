@@ -48,7 +48,9 @@ export default function ClaimToken() {
       if (done) return
       // Recovery links ask to land on the reports list (so all reports are reachable);
       // everything else goes straight to the claimed report (or its self-read).
-      if (params.get('next') === 'me') navigate('/me', { replace: true })
+      const next = params.get('next')
+      if (next === 'trainer') navigate('/trainer', { replace: true })
+      else if (next === 'me') navigate('/me', { replace: true })
       else navigate(hasSelf ? `/r/${r.slug}` : `/self/${r.slug}`, { replace: true })
     })
     return () => {
