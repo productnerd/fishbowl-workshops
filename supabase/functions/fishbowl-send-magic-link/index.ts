@@ -71,6 +71,14 @@ const RESEND = Deno.env.get('RESEND_API_KEY')
 const FROM = Deno.env.get('FISHBOWL_FROM_EMAIL') || 'Fishbowl <onboarding@resend.dev>'
 // Returning the claim URL in the response is an account-takeover oracle, so it is
 // OFF unless this explicit dev flag is set — never merely because Resend is absent.
+// Testing switch: return the claim link instead of emailing it, so the trainer flow can be
+// exercised while mail delivery is unconfigured.
+//
+// SCOPED TO THE TRAINER PURPOSE ON PURPOSE. This function also serves v1's live recovery
+// email; if the bypass applied there it would stop real users receiving their report links.
+// While it is on, anyone who reaches the trainer screen can sign in as ANY address, so it
+// is a testing tool and not a soft launch. Turn it off with:
+//   supabase secrets unset FISHBOWL_DEV_CLAIM --project-ref knftyqkhampkqchoncel
 const DEV_CLAIM = Deno.env.get('FISHBOWL_DEV_CLAIM') === '1'
 const TTL_MIN = 30
 const REISSUE_THROTTLE_MS = 60_000
@@ -82,6 +90,10 @@ Deno.serve(async (req) => {
     const email = String(body.email || '').trim().toLowerCase()
     const slug = String(body.slug || '').trim()
     const purpose = String(body.purpose || '')
+    // Lets the trainer screen say out loud that testing mode is on. Reports only the switch
+    // state, never anything about an address.
+    if (purpose === 'devcheck') return ok({ ok: true, devClaim: DEV_CLAIM })
+
     // Anti-enumeration: we never reveal whether the email/session exists.
     if (!email) return ok({ ok: true })
 
@@ -112,13 +124,24 @@ Deno.serve(async (req) => {
     // (claim-on-first-link, per-session throttling) is session logic that does not apply.
     if (purpose === 'trainer') {
       const raw = randToken()
-      await sb.from('fishbowl_magic_tokens').insert({
+      // Checked, unlike before: an unstored token produces a link that claims as "expired",
+      // which is a maddening way to learn that a column is still NOT NULL.
+      const { error: tokErr } = await sb.from('fishbowl_magic_tokens').insert({
         person_id: personId,
         session_id: null,
         token_hash: await sha256hex(raw),
         expires_at: new Date(Date.now() + TTL_MIN * 60_000).toISOString(),
       })
+      if (tokErr) {
+        console.error('trainer token insert failed', tokErr.message)
+        // The reason is surfaced only while the testing switch is on, and it describes our
+        // own schema rather than anything about the person asking.
+        return ok({ ok: true, sent: false, ...(DEV_CLAIM ? { tokenError: tokErr.message } : {}) })
+      }
       const url = `${appUrl(String(body.app_url || ''))}#/claim/${raw}?next=trainer`
+      // Checked before RESEND: while testing we want no email sent at all, not one sent
+      // and also bypassed.
+      if (DEV_CLAIM) return ok({ ok: true, sent: false, devClaimUrl: url })
       if (RESEND) {
         // `sent` leaks nothing about whether the address was already known: a trainer link
         // creates the person either way, so signing up and signing in are the same call.

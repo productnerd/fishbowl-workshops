@@ -7,6 +7,7 @@ import {
   listWorkshops,
   createWorkshop,
   trainerSignIn,
+  trainerTestMode,
   type WorkshopSummary,
   type WorkshopConfig,
 } from '../lib/workshops'
@@ -18,6 +19,10 @@ import {
 
 function SignIn() {
   const [email, setEmail] = useState('')
+  const [testMode, setTestMode] = useState(false)
+  useEffect(() => {
+    trainerTestMode().then(setTestMode)
+  }, [])
   // null = not attempted, true = accepted for delivery, false = the send was rejected.
   // Telling someone to check an inbox nothing was sent to is the worst of the three.
   const [sent, setSent] = useState<boolean | null>(null)
@@ -28,6 +33,12 @@ function SignIn() {
     if (!ok || busy) return
     setBusy(true)
     const res = await trainerSignIn(email)
+    // Testing mode: the server handed back the claim link rather than emailing it, so walk
+    // straight through it. This is a real claim, so the bearer and person are real too.
+    if (res.devClaimUrl) {
+      window.location.href = res.devClaimUrl
+      return
+    }
     setBusy(false)
     setSent(res.sent)
   }
@@ -75,6 +86,14 @@ function SignIn() {
           Run a Fishbowl with a group: pick a topic, share one link, and watch the room fill up. We will email you a
           private link, no password to remember.
         </p>
+        {/* Only rendered when the server actually is in testing mode, so it cannot quietly
+            outlive the switch it describes. */}
+        {testMode && (
+          <p className="mt-4 rounded-2xl border-2 border-dashed border-pink-deep px-4 py-3 text-sm leading-snug text-pink-deep">
+            <span className="font-black">Testing mode.</span> Email is off, so any address signs straight in. Turn it
+            off before anyone else has this link.
+          </p>
+        )}
         <input
           type="email"
           value={email}

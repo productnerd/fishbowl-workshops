@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { claimToken, saveSelf } from '../lib/self'
@@ -11,23 +11,33 @@ export default function ClaimToken() {
   const [params] = useSearchParams()
   const [error, setError] = useState(false)
 
+  // A magic token is single use, so claiming it twice burns it and the second attempt
+  // reports "expired". React runs effects twice in development, and any remount would do
+  // the same, so the guard is a ref rather than the cleanup flag: it has to stop the second
+  // REQUEST, not just the second state update.
+  const claimed = useRef(false)
+
   useEffect(() => {
     if (!token) {
       setError(true)
       return
     }
-    let done = false
+    if (claimed.current) return
+    claimed.current = true
+    const next = params.get('next')
     claimToken(token).then(async (r) => {
-      if (done) return
-      if (!r || !r.slug) {
+      // A trainer link authenticates the PERSON and points at no session, so a missing slug
+      // is expected there and only a failure everywhere else.
+      if (!r || (!r.slug && next !== 'trainer')) {
         setError(true)
         return
       }
-      setSubjectAuth({ bearer: r.bearer, person_id: r.person_id, slug: r.slug })
+      setSubjectAuth({ bearer: r.bearer, person_id: r.person_id, slug: r.slug ?? '' })
       // Point "my session" at the claimed slug too, so any stale pointer (e.g. an old
-      // seeded session) can't keep bouncing the landing/create flows elsewhere.
+      // seeded session) can't keep bouncing the landing/create flows elsewhere. Skipped
+      // for a trainer, who has no session to point at.
       try {
-        localStorage.setItem('fishbowl_my_session', JSON.stringify({ slug: r.slug }))
+        if (r.slug) localStorage.setItem('fishbowl_my_session', JSON.stringify({ slug: r.slug }))
       } catch {
         /* storage unavailable */
       }
@@ -37,7 +47,7 @@ export default function ClaimToken() {
       try {
         const raw = localStorage.getItem('fishbowl_pending_self')
         const pending = raw ? JSON.parse(raw) : null
-        if (pending?.slug === r.slug && pending.payload) {
+        if (r.slug && pending?.slug === r.slug && pending.payload) {
           const res = await saveSelf(r.slug, pending.payload)
           if (res.ok) hasSelf = true
           localStorage.removeItem('fishbowl_pending_self')
@@ -45,17 +55,12 @@ export default function ClaimToken() {
       } catch {
         /* ignore */
       }
-      if (done) return
       // Recovery links ask to land on the reports list (so all reports are reachable);
       // everything else goes straight to the claimed report (or its self-read).
-      const next = params.get('next')
       if (next === 'trainer') navigate('/trainer', { replace: true })
       else if (next === 'me') navigate('/me', { replace: true })
       else navigate(hasSelf ? `/r/${r.slug}` : `/self/${r.slug}`, { replace: true })
     })
-    return () => {
-      done = true
-    }
   }, [token, navigate, params])
 
   return (

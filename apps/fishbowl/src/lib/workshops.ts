@@ -107,7 +107,7 @@ export const inviteLink = (token: string): string => {
  * fishbowl they may not have. Always resolves: the function never reveals whether an
  * address is known.
  */
-export async function trainerSignIn(email: string): Promise<{ sent: boolean }> {
+export async function trainerSignIn(email: string): Promise<{ sent: boolean; devClaimUrl?: string }> {
   const { data, error } = await supabase.functions.invoke('fishbowl-send-magic-link', {
     body: {
       email: email.trim(),
@@ -117,5 +117,15 @@ export async function trainerSignIn(email: string): Promise<{ sent: boolean }> {
       app_url: window.location.origin + window.location.pathname,
     },
   })
-  return { sent: !error && Boolean(data?.sent) }
+  // `devClaimUrl` only comes back while FISHBOWL_DEV_CLAIM is set on the server: the link
+  // is handed over directly instead of emailed, so the flow is testable without mail.
+  return { sent: !error && Boolean(data?.sent), devClaimUrl: data?.devClaimUrl }
+}
+
+/** Whether the server is handing out claim links instead of emailing them. */
+export async function trainerTestMode(): Promise<boolean> {
+  const { data, error } = await supabase.functions.invoke('fishbowl-send-magic-link', {
+    body: { purpose: 'devcheck' },
+  })
+  return !error && Boolean(data?.devClaim)
 }
